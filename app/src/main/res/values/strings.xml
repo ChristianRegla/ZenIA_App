@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">ZenIA</string>
+
+    <!-- Recursos para AuthScreen -->
+    <string name="web_client_id">864420659614-54ha7itog48q4981arpr8s0k3fclbod9.apps.googleusercontent.com</string>
+    <string name="signOutSuccess">¡Registro exitoso! Revisa tu correo para verificar tu cuenta.</string>
+    <string name="emailSent">Correo enviado. Revisa tu bandeja de entrada para restablecer la contraseña.</string>
+    <string name="register">Registrarse</string>
+    <string name="login">Iniciar sesión</string>
+    <string name="email">Correo</string>
+    <string name="password">Contraseña</string>
+    <string name="confirmPassword">Confirmar contraseña</string>
+    <string name="notGoogleCredential">Error: La credencial recibida no es de Google.</string>
+    <string name="googleLoginCanceled">Inicio con Google cancelado o fallido.</string>
+    <string name="googleLogin">Iniciar Sesión con Google</string>
+    <string name="forgotPassword">¿Olvidaste tu contraseña?</string>
+    <string name="accountAlready">¿Ya tienes cuenta? Inicia sesión</string>
+    <string name="noAccount">¿No tienes una cuenta? Regístrate</string>
+
+</resources>
