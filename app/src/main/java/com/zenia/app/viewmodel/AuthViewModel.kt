@@ -53,6 +53,7 @@ class AuthViewModel : ViewModel() {
                 val result = auth.signInWithEmailAndPassword(email, password).await()
                 val user = result.user
                 if (user != null && user.isEmailVerified) {
+                    _uiState.value = AuthUiState.Idle
                 } else {
                     auth.signOut()
                     _uiState.value = AuthUiState.Error("El correo electrónico no ha sido verificado.")
@@ -88,6 +89,7 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 auth.signInWithCredential(credential).await()
+                _uiState.value = AuthUiState.Idle
             } catch (e: Exception) {
                 _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
             }
@@ -144,6 +146,7 @@ class AuthViewModel : ViewModel() {
     fun signOut() {
         viewModelScope.launch {
             auth.signOut()
+            _uiState.value = AuthUiState.Idle
         }
     }
 
