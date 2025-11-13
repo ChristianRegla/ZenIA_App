@@ -1,7 +1,10 @@
 package com.zenia.app.viewmodel
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.zenia.app.R
 import com.zenia.app.data.ZeniaRepository
 import com.zenia.app.model.RegistroBienestar
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,12 +20,15 @@ sealed interface HomeUiState {
     data class Error(val message: String) : HomeUiState
 }
 
-class HomeViewModel(private val repositorio: ZeniaRepository) : ViewModel() {
+class HomeViewModel(
+    private val repositorio: ZeniaRepository,
+    private val application: Application
+) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Idle)
     val uiState = _uiState.asStateFlow()
 
     val registros = repositorio.getRegistrosBienestar()
-        .catch { _uiState.value = HomeUiState.Error(it.message ?: "Error") }
+        .catch { _uiState.value = HomeUiState.Error(application.getString(R.string.error_loading_records)) }
         .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun guardarRegistro(estado: String, notas: String) {
@@ -37,7 +43,7 @@ class HomeViewModel(private val repositorio: ZeniaRepository) : ViewModel() {
                 repositorio.addRegistroBienestar(nuevoRegistro)
                 _uiState.value = HomeUiState.Success
             } catch (e: Exception) {
-                _uiState.value = HomeUiState.Error(e.message ?: "Error al guardar")
+                _uiState.value = HomeUiState.Error(e.message ?: application.getString(R.string.error_saving_record))
             }
         }
     }

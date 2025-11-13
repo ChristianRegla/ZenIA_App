@@ -1,18 +1,22 @@
 package com.zenia.app.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import android.util.Patterns
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.Firebase
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
-import com.google.firebase.auth.auth
+import com.zenia.app.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-class AuthViewModel(private val auth: FirebaseAuth) : ViewModel() {
+class AuthViewModel(
+    private val auth: FirebaseAuth,
+    private val application: Application
+) : AndroidViewModel(application) {
     val userEmail: String?
         get() = auth.currentUser?.email
 
@@ -39,9 +43,23 @@ class AuthViewModel(private val auth: FirebaseAuth) : ViewModel() {
         auth.removeAuthStateListener(authStateListener)
     }
 
+    private fun isValidEmail(email: String): Boolean {
+        return email.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    }
+
+    private fun isValidPassword(password: String): Boolean {
+        return password.isNotBlank() && password.length >= 6
+    }
+
     fun signInWithEmail(email: String, password: String) {
-        if (email.isBlank() || password.isBlank()) {
-            _uiState.value = AuthUiState.Error("Por favor ingrese un correo electrónico y una contraseña.")
+        if (_uiState.value == AuthUiState.Loading) return
+
+        if (!isValidEmail(email)) {
+            _uiState.value = AuthUiState.Error(application.getString(R.string.auth_error_invalid_email))
+            return
+        }
+        if (password.isBlank()) {
+            _uiState.value = AuthUiState.Error(application.getString(R.string.auth_error_fill_password_empty))
             return
         }
 
@@ -54,7 +72,7 @@ class AuthViewModel(private val auth: FirebaseAuth) : ViewModel() {
                     _uiState.value = AuthUiState.Idle
                 } else {
                     auth.signOut()
-                    _uiState.value = AuthUiState.Error("El correo electrónico no ha sido verificado.")
+                    _uiState.value = AuthUiState.Error(application.getString(R.string.auth_error_email_not_verified))
                 }
             } catch (e: Exception) {
                 _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
@@ -63,8 +81,18 @@ class AuthViewModel(private val auth: FirebaseAuth) : ViewModel() {
     }
 
     fun createUser(email: String, password: String, confirmPassword: String) {
+        if (_uiState.value == AuthUiState.Loading) return
+
+        if (!isValidEmail(email)) {
+            _uiState.value = AuthUiState.Error(application.getString(R.string.auth_error_invalid_email))
+            return
+        }
+        if (!isValidPassword(password)) {
+            _uiState.value = AuthUiState.Error(application.getString(R.string.auth_error_weak_password))
+            return
+        }
         if (password != confirmPassword) {
-            _uiState.value = AuthUiState.Error("Las contraseñas no coinciden.")
+            _uiState.value = AuthUiState.Error(application.getString(R.string.auth_error_passwords_no_match))
             return
         }
 
@@ -83,6 +111,8 @@ class AuthViewModel(private val auth: FirebaseAuth) : ViewModel() {
     }
 
     fun signInWithGoogle(credential: AuthCredential) {
+        if (_uiState.value == AuthUiState.Loading) return
+
         _uiState.value = AuthUiState.Loading
         viewModelScope.launch {
             try {
@@ -95,8 +125,10 @@ class AuthViewModel(private val auth: FirebaseAuth) : ViewModel() {
     }
 
     fun sendPasswordResetEmail(email: String) {
-        if (email.isBlank()) {
-            _uiState.value = AuthUiState.Error("Por favor ingrese un correo electrónico.")
+        if (_uiState.value == AuthUiState.Loading) return
+
+        if (!isValidEmail(email)) {
+            _uiState.value = AuthUiState.Error(application.getString(R.string.auth_error_invalid_email))
             return
         }
 
@@ -112,6 +144,8 @@ class AuthViewModel(private val auth: FirebaseAuth) : ViewModel() {
     }
 
     fun resendVerificationEmail() {
+        if (_uiState.value == AuthUiState.Loading) return
+
         _uiState.value = AuthUiState.Loading
         viewModelScope.launch {
             try {
@@ -120,7 +154,7 @@ class AuthViewModel(private val auth: FirebaseAuth) : ViewModel() {
                     user.sendEmailVerification().await()
                     _uiState.value = AuthUiState.VerificationSent
                 } else {
-                    _uiState.value = AuthUiState.Error("El correo electrónico ya ha sido verificado.")
+                    _uiState.value = AuthUiState.Error(application.getString(R.string.auth_error_email_already_verified))
                 }
             } catch (e: Exception) {
                 _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
@@ -129,6 +163,8 @@ class AuthViewModel(private val auth: FirebaseAuth) : ViewModel() {
     }
 
     fun deleteAccount() {
+        if (_uiState.value == AuthUiState.Loading) return
+
         _uiState.value = AuthUiState.Loading
         viewModelScope.launch {
             try {
@@ -142,6 +178,8 @@ class AuthViewModel(private val auth: FirebaseAuth) : ViewModel() {
     }
 
     fun signOut() {
+        if (_uiState.value == AuthUiState.Loading) return
+
         viewModelScope.launch {
             auth.signOut()
             _uiState.value = AuthUiState.Idle
@@ -155,15 +193,15 @@ class AuthViewModel(private val auth: FirebaseAuth) : ViewModel() {
     private fun mapFirebaseAuthException(e: Exception): String {
         return when (e) {
             is FirebaseAuthException -> when (e.errorCode) {
-                "ERROR_INVALID_EMAIL" -> "Formato de correo inválido."
-                "ERROR_WRONG_PASSWORD" -> "Contraseña incorrecta."
-                "ERROR_USER_NOT_FOUND" -> "No se encontró usuario con este correo."
-                "ERROR_EMAIL_ALREADY_IN_USE" -> "Este correo ya está registrado."
-                "ERROR_WEAK_PASSWORD" -> "La contraseña es muy débil (mínimo 6 caracteres)."
-                "ERROR_REQUIRES_RECENT_LOGIN" -> "Esta operación es sensible. Por favor, cierra sesión y vuelve a iniciarla para completarla."
-                else -> "Error de autenticación: ${e.message}"
+                "ERROR_INVALID_EMAIL" -> application.getString(R.string.auth_error_invalid_email)
+                "ERROR_WRONG_PASSWORD" -> application.getString(R.string.auth_error_wrong_password)
+                "ERROR_USER_NOT_FOUND" -> application.getString(R.string.auth_error_user_not_found)
+                "ERROR_EMAIL_ALREADY_IN_USE" -> application.getString(R.string.auth_error_email_in_use)
+                "ERROR_WEAK_PASSWORD" -> application.getString(R.string.auth_error_weak_password)
+                "ERROR_REQUIRES_RECENT_LOGIN" -> application.getString(R.string.auth_error_requires_recent_login)
+                else -> application.getString(R.string.auth_error_default, e.message ?: "Unknown")
             }
-            else -> "Ocurrió un error inesperado: ${e.message}"
+            else -> e.message?.let { application.getString(R.string.auth_error_unexpected, it) } ?: application.getString(R.string.auth_error_unexpected, "Unknown")
         }
     }
 }

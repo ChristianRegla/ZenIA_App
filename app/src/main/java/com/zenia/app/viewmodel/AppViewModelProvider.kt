@@ -10,13 +10,15 @@ object AppViewModelProvider {
     val Factory = viewModelFactory {
         initializer {
             AuthViewModel(
-                zeniaApplication().container.firebaseAuth
+                zeniaApplication().container.firebaseAuth,
+                zeniaApplication()
             )
         }
 
         initializer {
             HomeViewModel(
-                zeniaApplication().container.zeniaRepository
+                zeniaApplication().container.zeniaRepository,
+                zeniaApplication()
             )
         }
 
