@@ -48,6 +48,7 @@ import com.zenia.app.viewmodel.AuthUiState
 import com.zenia.app.viewmodel.AuthViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
 import com.zenia.app.ui.screens.lock.canAuthenticate
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -178,19 +179,31 @@ fun AccountScreen(
                     text = stringResource(R.string.account_language_label),
                     style = MaterialTheme.typography.bodyLarge
                 )
+
+                val currentLanguage = (AppCompatDelegate.getApplicationLocales()[0] ?: Locale.getDefault()).language
+                val isEsSelected = currentLanguage == "es"
+
                 Row {
-                    OutlinedButton(onClick = {
+                    val esOnClick = {
                         val appLocale = LocaleListCompat.forLanguageTags("es")
                         AppCompatDelegate.setApplicationLocales(appLocale)
-                    }) {
-                        Text("ES")
                     }
+                    if (isEsSelected) {
+                        Button(onClick = esOnClick) { Text("ES") }
+                    } else {
+                        OutlinedButton(onClick = esOnClick) { Text("ES") }
+                    }
+
                     Spacer(modifier = Modifier.width(8.dp))
-                    OutlinedButton(onClick = {
+
+                    val enOnClick = {
                         val appLocale = LocaleListCompat.forLanguageTags("en")
                         AppCompatDelegate.setApplicationLocales(appLocale)
-                    }) {
-                        Text("EN")
+                    }
+                    if (isEsSelected) {
+                        OutlinedButton(onClick = enOnClick) { Text("EN") }
+                    } else {
+                        Button(onClick = enOnClick) { Text("EN") }
                     }
                 }
             }
