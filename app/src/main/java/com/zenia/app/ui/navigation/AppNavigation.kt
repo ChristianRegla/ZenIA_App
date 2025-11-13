@@ -1,5 +1,7 @@
 package com.zenia.app.ui.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -16,6 +18,7 @@ import com.zenia.app.viewmodel.AuthViewModel
 import com.zenia.app.viewmodel.HomeViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
 
+@RequiresApi(Build.VERSION_CODES.P)
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -47,6 +50,7 @@ fun AppNavigation() {
                 onSignOut = {
                     authViewModel.signOut()
                 },
+                homeViewModel = homeViewModel,
                 onNavigateToAccount = {
                     navController.navigate(Destinations.ACCOUNT_ROUTE)
                 }

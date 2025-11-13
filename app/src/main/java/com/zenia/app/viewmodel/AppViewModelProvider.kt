@@ -18,6 +18,7 @@ object AppViewModelProvider {
         initializer {
             HomeViewModel(
                 zeniaApplication().container.zeniaRepository,
+                zeniaApplication().container.healthConnectRepository,
                 zeniaApplication()
             )
         }
