@@ -17,9 +17,7 @@ sealed interface HomeUiState {
     data class Error(val message: String) : HomeUiState
 }
 
-class HomeViewModel : ViewModel() {
-    private val repositorio = ZeniaRepository()
-
+class HomeViewModel(private val repositorio: ZeniaRepository) : ViewModel() {
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Idle)
     val uiState = _uiState.asStateFlow()
 

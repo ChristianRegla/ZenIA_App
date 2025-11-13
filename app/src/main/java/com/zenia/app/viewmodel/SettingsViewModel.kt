@@ -1,7 +1,6 @@
 package com.zenia.app.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.UserPreferencesRepository
 import kotlinx.coroutines.flow.SharingStarted
@@ -9,9 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
-    private val userPreferencesRepository = UserPreferencesRepository(application.applicationContext)
-
+class SettingsViewModel(private val userPreferencesRepository: UserPreferencesRepository) : ViewModel() {
     val isBiometricEnabled: StateFlow<Boolean> = userPreferencesRepository.isBiometricEnabled
         .stateIn(
             scope = viewModelScope,

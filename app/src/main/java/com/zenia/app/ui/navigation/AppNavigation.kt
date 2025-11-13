@@ -11,14 +11,16 @@ import com.zenia.app.ui.screens.account.AccountScreen
 import com.zenia.app.ui.screens.auth.AuthScreen
 import com.zenia.app.ui.screens.home.HomeScreen
 import com.zenia.app.ui.screens.lock.LockScreen
+import com.zenia.app.viewmodel.AppViewModelProvider
 import com.zenia.app.viewmodel.AuthViewModel
+import com.zenia.app.viewmodel.HomeViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel()
-    val settingsViewModel: SettingsViewModel = viewModel()
+    val settingsViewModel: SettingsViewModel = viewModel(factory = AppViewModelProvider.Factory)
 
     val isLoggedIn by authViewModel.isUserLoggedIn.collectAsState()
 
@@ -40,6 +42,7 @@ fun AppNavigation() {
             )
         }
         composable(Destinations.HOME_ROUTE) {
+            val homeViewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
             HomeScreen(
                 onSignOut = {
                     authViewModel.signOut()
