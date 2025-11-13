@@ -19,7 +19,7 @@ import com.zenia.app.viewmodel.SettingsViewModel
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    val authViewModel: AuthViewModel = viewModel()
+    val authViewModel: AuthViewModel = viewModel(factory = AppViewModelProvider.Factory)
     val settingsViewModel: SettingsViewModel = viewModel(factory = AppViewModelProvider.Factory)
 
     val isLoggedIn by authViewModel.isUserLoggedIn.collectAsState()

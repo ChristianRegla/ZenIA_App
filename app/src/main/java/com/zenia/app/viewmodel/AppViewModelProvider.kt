@@ -9,6 +9,12 @@ import com.zenia.app.ZeniaApplication
 object AppViewModelProvider {
     val Factory = viewModelFactory {
         initializer {
+            AuthViewModel(
+                zeniaApplication().container.firebaseAuth
+            )
+        }
+
+        initializer {
             HomeViewModel(
                 zeniaApplication().container.zeniaRepository
             )

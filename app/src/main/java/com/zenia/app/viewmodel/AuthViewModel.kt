@@ -12,9 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-class AuthViewModel : ViewModel() {
-    private val auth = Firebase.auth
-
+class AuthViewModel(private val auth: FirebaseAuth) : ViewModel() {
     val userEmail: String?
         get() = auth.currentUser?.email
 
