@@ -74,14 +74,14 @@ fun AuthScreen(
         when (val state = uiState) {
             is AuthUiState.VerificationSent -> {
                 snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.signOutSuccess),
+                    message = context.getString(R.string.auth_verification_sent),
                     duration = SnackbarDuration.Long
                 )
                 authViewModel.resetState()
             }
             is AuthUiState.PasswordResetSent -> {
                 snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.emailSent),
+                    message = context.getString(R.string.auth_password_reset_sent),
                     duration = SnackbarDuration.Long
                 )
                 authViewModel.resetState()
@@ -186,12 +186,14 @@ fun AuthScreen(
 
                                    authViewModel.signInWithGoogle(firebaseCredential)
                                } else {
-                                   snackbarHostState.showSnackbar(context.getString(R.string.notGoogleCredential))
+                                   snackbarHostState.showSnackbar(context.getString(R.string.auth_error_not_google_credential))
                                }
                            } catch (_: GetCredentialException) {
-                               snackbarHostState.showSnackbar(context.getString(R.string.googleLoginCanceled))
+                               snackbarHostState.showSnackbar(context.getString(R.string.auth_error_google_canceled))
                            } catch (e: Exception) {
-                               snackbarHostState.showSnackbar("Error inesperado: ${e.message}")
+                               snackbarHostState.showSnackbar(
+                                   context.getString(R.string.auth_error_unexpected, e.message ?: "Unknown")
+                               )
                            }
                        }
                    },

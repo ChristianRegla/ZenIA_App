@@ -22,13 +22,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import com.zenia.app.R
 
 private fun showBiometricPrompt(
     activity: FragmentActivity,
+    title: String,
+    subtitle: String,
+    cancelText: String,
     onSuccess: () -> Unit,
     onError: (Int, String) -> Unit
 ) {
@@ -47,10 +52,10 @@ private fun showBiometricPrompt(
         })
 
     val promptInfo = BiometricPrompt.PromptInfo.Builder()
-        .setTitle("Desbloquear ZenIA")
-        .setSubtitle("Confirma tu identidad para continuar")
+        .setTitle(title)
+        .setSubtitle(subtitle)
         .setAllowedAuthenticators(BIOMETRIC_STRONG)
-        .setNegativeButtonText("Cancelar")
+        .setNegativeButtonText(cancelText)
         .build()
 
     biometricPrompt.authenticate(promptInfo)
@@ -70,15 +75,23 @@ fun LockScreen(
     val activity = (context as? FragmentActivity)
 
     var authError by remember { mutableStateOf<String?>(null) }
+    val authErrorPrefix = stringResource(R.string.auth_error_prefix)
+
+    val title = stringResource(R.string.lock_title)
+    val subtitle = stringResource(R.string.lock_subtitle)
+    val cancelText = stringResource(R.string.cancel)
 
     LaunchedEffect(activity) {
         if (activity != null) {
             showBiometricPrompt(
                 activity = activity,
+                title = title,
+                subtitle = subtitle,
+                cancelText = cancelText,
                 onSuccess = { onUnlockSuccess() },
                 onError = { errorCode, errString ->
                     if (errorCode != BiometricPrompt.ERROR_USER_CANCELED) {
-                        authError = "Error de autenticación: $errString"
+                        authError = authErrorPrefix + errString
                     }
                 }
             )
@@ -96,13 +109,13 @@ fun LockScreen(
             CircularProgressIndicator()
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Esperando autenticación...",
+                text = stringResource(R.string.lock_waiting),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center
             )
         } else {
             Text(
-                text = authError ?: "No se pudo verificar la identidad.",
+                text = authError ?: stringResource(R.string.lock_auth_failed),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.error,
                 textAlign = TextAlign.Center
@@ -112,7 +125,7 @@ fun LockScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(onClick = onSignOut) {
-            Text("Cerrar Sesión")
+            Text(stringResource(R.string.sign_out))
         }
     }
 }
