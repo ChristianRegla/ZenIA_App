@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContract
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,6 +17,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.os.LocaleListCompat
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
@@ -28,17 +31,21 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.GoogleAuthProvider
 import com.zenia.app.R
 import com.zenia.app.ui.screens.account.AccountScreen
+import com.zenia.app.ui.screens.account.AccountScreenActions
+import com.zenia.app.ui.screens.account.AccountScreenState
 import com.zenia.app.ui.screens.auth.AuthScreen
 import com.zenia.app.ui.screens.auth.AuthScreenActions
 import com.zenia.app.ui.screens.auth.AuthScreenState
 import com.zenia.app.ui.screens.home.HomeScreen
 import com.zenia.app.ui.screens.lock.LockScreen
+import com.zenia.app.ui.screens.lock.canAuthenticate
 import com.zenia.app.viewmodel.AppViewModelProvider
 import com.zenia.app.viewmodel.AuthUiState
 import com.zenia.app.viewmodel.AuthViewModel
 import com.zenia.app.viewmodel.HomeViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 /**
  * Composable principal que gestiona la navegación de toda la aplicación.
@@ -243,17 +250,91 @@ fun AppNavigation() {
             )
         }
         composable(Destinations.ACCOUNT_ROUTE) {
-            AccountScreen(
-                authViewModel = authViewModel,
-                settingsViewModel = settingsViewModel,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onNavigateToAuth = {
-                    navController.navigate(Destinations.AUTH_ROUTE) {
-                        popUpTo(Destinations.HOME_ROUTE) { inclusive = true }
+            // --- 1. Estado y Handlers ---
+            val uiState by authViewModel.uiState.collectAsState()
+            val userEmail = authViewModel.userEmail
+            val isVerified = authViewModel.isUserVerified
+            val isBiometricEnabled by settingsViewModel.isBiometricEnabled.collectAsState()
+            val snackbarHostState = remember { SnackbarHostState() }
+            var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+            val context = LocalContext.current
+            val canUseBiometrics = remember { canAuthenticate(context) }
+            val currentLanguage = (AppCompatDelegate.getApplicationLocales()[0] ?: Locale.getDefault()).language
+
+            // --- 2. Efectos Secundarios (Snackbars y Navegación) ---
+            LaunchedEffect(uiState) {
+                when (val state = uiState) {
+                    is AuthUiState.AccountDeleted -> {
+                        snackbarHostState.showSnackbar(
+                            message = context.getString(R.string.account_delete_success),
+                            duration = SnackbarDuration.Short
+                        )
+                        authViewModel.resetState()
+                        // Navega a Auth y limpia el historial
+                        navController.navigate(Destinations.AUTH_ROUTE) {
+                            popUpTo(Destinations.HOME_ROUTE) { inclusive = true }
+                        }
                     }
+                    is AuthUiState.VerificationSent -> {
+                        snackbarHostState.showSnackbar(
+                            message = context.getString(R.string.account_verification_sent),
+                            duration = SnackbarDuration.Short
+                        )
+                        authViewModel.resetState()
+                    }
+                    is AuthUiState.PasswordResetSent -> {
+                        snackbarHostState.showSnackbar(
+                            message = context.getString(R.string.account_password_reset_sent),
+                            duration = SnackbarDuration.Long
+                        )
+                        authViewModel.resetState()
+                    }
+                    is AuthUiState.Error -> {
+                        snackbarHostState.showSnackbar(
+                            message = state.message,
+                            duration = SnackbarDuration.Long
+                        )
+                        authViewModel.resetState()
+                    }
+                    else -> {}
                 }
+            }
+
+            // --- 3. Definición de Estado y Acciones ---
+            val screenState = AccountScreenState(
+                uiState = uiState,
+                userEmail = userEmail,
+                isVerified = isVerified,
+                canUseBiometrics = canUseBiometrics,
+                isBiometricEnabled = isBiometricEnabled,
+                currentLanguage = currentLanguage,
+                showDeleteDialog = showDeleteDialog,
+                snackbarHostState = snackbarHostState
+            )
+
+            val screenActions = AccountScreenActions(
+                onNavigateBack = { navController.popBackStack() },
+                onBiometricToggle = { isEnabled ->
+                    settingsViewModel.setBiometricEnabled(isEnabled)
+                },
+                onLanguageChange = { langTag ->
+                    val appLocale = LocaleListCompat.forLanguageTags(langTag)
+                    AppCompatDelegate.setApplicationLocales(appLocale)
+                },
+                onDeleteAccountClick = { showDeleteDialog = true },
+                onResendVerificationClick = { authViewModel.resendVerificationEmail() },
+                onChangePasswordClick = {
+                    authViewModel.sendPasswordResetEmail(userEmail ?: "")
+                },
+                onConfirmDelete = {
+                    showDeleteDialog = false
+                    authViewModel.deleteAccount()
+                },
+                onDismissDeleteDialog = { showDeleteDialog = false }
+            )
+            AccountScreen(
+                state = screenState,
+                actions = screenActions
             )
         }
         composable(Destinations.LOCK_ROUTE) {

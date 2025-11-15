@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import com.zenia.app.R
@@ -48,69 +49,50 @@ import com.zenia.app.viewmodel.AuthUiState
 import com.zenia.app.viewmodel.AuthViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
 import com.zenia.app.ui.screens.lock.canAuthenticate
+import com.zenia.app.ui.theme.ZenIATheme
 import java.util.Locale
+
+/**
+ * Clase de datos que agrupa todo el estado necesario para la UI de AccountScreen.
+ */
+data class AccountScreenState(
+    val uiState: AuthUiState,
+    val userEmail: String?,
+    val isVerified: Boolean,
+    val canUseBiometrics: Boolean,
+    val isBiometricEnabled: Boolean,
+    val currentLanguage: String,
+    val showDeleteDialog: Boolean,
+    val snackbarHostState: SnackbarHostState
+)
+
+/**
+ * Clase de datos que agrupa todas las acciones (lambdas) que la UI puede disparar.
+ */
+data class AccountScreenActions(
+    val onNavigateBack: () -> Unit,
+    val onBiometricToggle: (Boolean) -> Unit,
+    val onLanguageChange: (String) -> Unit,
+    val onDeleteAccountClick: () -> Unit,
+    val onResendVerificationClick: () -> Unit,
+    val onChangePasswordClick: () -> Unit,
+    val onConfirmDelete: () -> Unit,
+    val onDismissDeleteDialog: () -> Unit
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountScreen(
-    authViewModel: AuthViewModel,
-    settingsViewModel: SettingsViewModel,
-    onNavigateBack: () -> Unit,
-    onNavigateToAuth: () -> Unit
+    state: AccountScreenState,
+    actions: AccountScreenActions
     ) {
-    val uiState by authViewModel.uiState.collectAsState()
-    val userEmail = authViewModel.userEmail
-    val isVerified = authViewModel.isUserVerified
-
-    val context = LocalContext.current
-    val canUseBiometrics = remember { canAuthenticate(context) }
-    val isBiometricEnabled by settingsViewModel.isBiometricEnabled.collectAsState()
-
-    val snackbarHostState = remember { SnackbarHostState() }
-    var showDeleteDialog by remember { mutableStateOf(false) }
-
-    LaunchedEffect(uiState) {
-        when (val state = uiState) {
-            is AuthUiState.AccountDeleted -> {
-                snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.account_delete_success),
-                    duration = SnackbarDuration.Short
-                )
-                authViewModel.resetState()
-                onNavigateToAuth()
-            }
-            is AuthUiState.VerificationSent -> {
-                snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.account_verification_sent),
-                    duration = SnackbarDuration.Short
-                )
-                authViewModel.resetState()
-            }
-            is AuthUiState.PasswordResetSent -> {
-                snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.account_password_reset_sent),
-                    duration = SnackbarDuration.Long
-                )
-                authViewModel.resetState()
-            }
-            is AuthUiState.Error -> {
-                snackbarHostState.showSnackbar(
-                    message = state.message,
-                    duration = SnackbarDuration.Long
-                )
-                authViewModel.resetState()
-            }
-            else -> {}
-        }
-    }
-
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        snackbarHost = { SnackbarHost(hostState = state.snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.account_title)) },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = actions.onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.common_back)
@@ -135,16 +117,16 @@ fun AccountScreen(
 
             Text(
                 stringResource(R.string.account_email_label) +
-                        (userEmail ?: stringResource(R.string.common_not_available))
+                        (state.userEmail ?: stringResource(R.string.common_not_available))
             )
 
             Text(
                 stringResource(R.string.account_verified_label) +
-                        stringResource(if (isVerified) R.string.common_yes else R.string.common_no)
+                        stringResource(if (state.isVerified) R.string.common_yes else R.string.common_no)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-            if (canUseBiometrics) {
+            if (state.canUseBiometrics) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -155,10 +137,8 @@ fun AccountScreen(
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Switch(
-                        checked = isBiometricEnabled,
-                        onCheckedChange = { isEnabled ->
-                            settingsViewModel.setBiometricEnabled(isEnabled)
-                        }
+                        checked = state.isBiometricEnabled,
+                        onCheckedChange = actions.onBiometricToggle
                     )
                 }
             } else {
@@ -210,27 +190,25 @@ fun AccountScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            if (uiState == AuthUiState.Loading) {
+            if (state.uiState == AuthUiState.Loading) {
                 CircularProgressIndicator()
             } else {
                 Button(
-                    onClick = { showDeleteDialog = true },
+                    onClick = actions.onDeleteAccountClick,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                 ) {
                     Text(stringResource(R.string.account_delete_button))
                 }
 
-                if  (!isVerified) {
+                if (!state.isVerified) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    TextButton(onClick = { authViewModel.resendVerificationEmail() }) {
+                    TextButton(onClick = actions.onResendVerificationClick) {
                         Text(stringResource(R.string.account_resend_verification_button))
                     }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
-                TextButton(onClick = {
-                    authViewModel.sendPasswordResetEmail(userEmail ?: "")
-                }) {
+                TextButton(onClick = actions.onChangePasswordClick) {
                     Text(stringResource(R.string.account_change_password_button))
                 }
             }
@@ -244,27 +222,84 @@ fun AccountScreen(
         }
     }
 
-    if (showDeleteDialog) {
+    if (state.showDeleteDialog) {
         AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
+            onDismissRequest = actions.onDismissDeleteDialog,
             title = { Text(stringResource(R.string.account_delete_dialog_title)) },
             text = { Text(stringResource(R.string.account_delete_dialog_text)) },
             confirmButton = {
                 Button(
-                    onClick = {
-                        showDeleteDialog = false
-                        authViewModel.deleteAccount()
-                    },
+                    onClick = actions.onConfirmDelete,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                 ) {
                     Text(stringResource(R.string.common_delete))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
+                TextButton(onClick = actions.onDismissDeleteDialog) {
                     Text(stringResource(R.string.cancel))
                 }
             }
         )
+    }
+}
+
+@Preview(name = "Cuenta Verificada", showBackground = true)
+@Composable
+fun AccountScreenPreview_Verified() {
+    val state = AccountScreenState(
+        uiState = AuthUiState.Idle,
+        userEmail = "test@zenia.app",
+        isVerified = true,
+        canUseBiometrics = true,
+        isBiometricEnabled = true,
+        currentLanguage = "es",
+        showDeleteDialog = false,
+        snackbarHostState = SnackbarHostState()
+    )
+    val actions = AccountScreenActions({}, {}, {}, {}, {}, {}, {}, {})
+
+    ZenIATheme {
+        AccountScreen(state = state, actions = actions)
+    }
+}
+
+@Preview(name = "Cuenta No Verificada", showBackground = true)
+@Composable
+fun AccountScreenPreview_NotVerified() {
+    val state = AccountScreenState(
+        uiState = AuthUiState.Idle,
+        userEmail = "test@zenia.app",
+        isVerified = false,
+        canUseBiometrics = true,
+        isBiometricEnabled = false,
+        currentLanguage = "en",
+        showDeleteDialog = false,
+        snackbarHostState = SnackbarHostState()
+    )
+    val actions = AccountScreenActions({}, {}, {}, {}, {}, {}, {}, {})
+
+    ZenIATheme {
+        AccountScreen(state = state, actions = actions)
+    }
+}
+
+@Preview(name = "Diálogo de Borrado", showBackground = true)
+@Composable
+fun AccountScreenPreview_DeleteDialog() {
+    val state = AccountScreenState(
+        uiState = AuthUiState.Idle,
+        userEmail = "test@zenia.app",
+        isVerified = true,
+        canUseBiometrics = true,
+        isBiometricEnabled = true,
+        currentLanguage = "es",
+        showDeleteDialog = true,
+        snackbarHostState = SnackbarHostState()
+    )
+    val actions = AccountScreenActions({}, {}, {}, {}, {}, {}, {}, {})
+
+    ZenIATheme {
+        AccountScreen(state = state, actions = actions)
     }
 }
