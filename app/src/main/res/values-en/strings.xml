@@ -75,4 +75,6 @@
     <string name="home_connect_watch_premium">Connect Smartwatch (Premium Feature)</string>
     <string name="home_my_account">My Account</string>
 
+    <string name="lock_retry_button">Retry</string>
+
 </resources>
