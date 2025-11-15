@@ -18,6 +18,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+/**
+ * Define los posibles estados de la UI para la pantalla principal,
+ * específicamente para operaciones asíncronas como guardar un registro.
+ */
 sealed interface HomeUiState {
     object Idle : HomeUiState
     object Loading : HomeUiState
@@ -25,37 +29,82 @@ sealed interface HomeUiState {
     data class Error(val message: String) : HomeUiState
 }
 
+/**
+ * ViewModel para la [HomeScreen].
+ * Se encarga de gestionar el estado de la UI, obtener los registros de bienestar,
+ * manejar la lógica de Health Connect (permisos y lectura) y el estado de suscripción del usuario.
+ *
+ * @param repositorio El repositorio para interactuar con Firestore (registros, datos de usuario).
+ * @param healthConnectRepository Repositorio para interactuar con la API de Health Connect. Es nulable si el SDK no está disponible.
+ * @param application La instancia de la aplicación para acceder a recursos (strings).
+ */
 class HomeViewModel(
     private val repositorio: ZeniaRepository,
     private val healthConnectRepository: HealthConnectRepository?,
     private val application: Application
 ) : AndroidViewModel(application) {
+    /**
+     * StateFlow interno para el estado de la UI (Cargando, Éxito, Error) al guardar un registro.
+     */
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Idle)
     val uiState = _uiState.asStateFlow()
 
+    /**
+     * Expone un boolean que indica si el usuario actual tiene una suscripción "premium".
+     * Se actualiza en tiempo real observando el documento del usuario en Firestore.
+     */
     val esPremium: StateFlow<Boolean> = repositorio.getUsuarioFlow()
         .map { it?.suscripcion == "premium" }
         .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), false)
 
+    /**
+     * Expone el flujo de registros de bienestar del usuario desde Firestore,
+     * ordenados por fecha descendente. Maneja errores de carga.
+     */
     val registros = repositorio.getRegistrosBienestar()
         .catch { _uiState.value = HomeUiState.Error(application.getString(R.string.error_loading_records)) }
         .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), emptyList())
 
+    /**
+     * StateFlow interno para rastrear si se tienen los permisos de Health Connect.
+     */
     private val _hasHealthPermissions = MutableStateFlow(false)
+    /**
+     * Expone si la app tiene (o no) los permisos necesarios de Health Connect.
+     */
     val hasHealthPermissions: StateFlow<Boolean> = _hasHealthPermissions.asStateFlow()
 
+    /**
+     * Indica si el SDK de Health Connect está disponible en el dispositivo.
+     * Se basa en si [healthConnectRepository] pudo ser inicializado.
+     */
     val isHealthConnectAvailable: Boolean = healthConnectRepository != null
 
+    /**
+     * Expone el conjunto de permisos de Health Connect que la app requiere (ej. leer ritmo cardíaco).
+     */
     val healthConnectPermissions: Set<String>
         get() = healthConnectRepository?.permissions ?: emptySet()
 
+    /**
+     * Expone el 'contrato' de ActivityResult que la UI debe usar para solicitar
+     * los permisos de Health Connect.
+     */
     val permissionRequestContract
         get() = healthConnectRepository?.getPermissionRequestContract()
 
+    /**
+     * Bloque de inicialización.
+     * Comprueba los permisos de Health Connect en cuanto se crea el ViewModel.
+     */
     init {
         checkHealthPermissions()
     }
 
+    /**
+     * Comprueba si la app tiene actualmente los permisos de Health Connect
+     * y actualiza el [hasHealthPermissions] StateFlow.
+     */
     fun checkHealthPermissions() {
         if (healthConnectRepository == null) {
             _hasHealthPermissions.value = false
@@ -66,6 +115,14 @@ class HomeViewModel(
         }
     }
 
+    /**
+     * Guarda un nuevo registro de bienestar en Firestore.
+     * Si el usuario es [esPremium] y [hasHealthPermissions], también intenta
+     * leer el promedio de ritmo cardíaco del último día y lo adjunta al registro.
+     *
+     * @param estado El estado de ánimo seleccionado por el usuario.
+     * @param notas Las notas de diario opcionales.
+     */
     fun guardarRegistro(estado: String, notas: String) {
         _uiState.value = HomeUiState.Loading
         viewModelScope.launch {
@@ -88,6 +145,10 @@ class HomeViewModel(
         }
     }
 
+    /**
+     * Resetea el estado de la UI a [HomeUiState.Idle].
+     * Útil para ocultar un Snackbar de error o éxito después de un tiempo.
+     */
     fun resetState() {
         _uiState.value = HomeUiState.Idle
     }

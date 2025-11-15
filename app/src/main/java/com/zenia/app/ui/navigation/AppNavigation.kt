@@ -1,7 +1,5 @@
 package com.zenia.app.ui.navigation
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -18,7 +16,13 @@ import com.zenia.app.viewmodel.AuthViewModel
 import com.zenia.app.viewmodel.HomeViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
 
-@RequiresApi(Build.VERSION_CODES.P)
+/**
+ * Composable principal que gestiona la navegación de toda la aplicación.
+ * Utiliza un [NavHost] para definir todas las rutas (pantallas) posibles.
+ *
+ * Obtiene los ViewModels de autenticación ([AuthViewModel]) y configuración ([SettingsViewModel])
+ * para determinar la pantalla de inicio correcta.
+ */
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -29,6 +33,12 @@ fun AppNavigation() {
 
     val isBiometricEnabled by settingsViewModel.isBiometricEnabled.collectAsState()
 
+    /**
+     * Lógica clave para determinar la pantalla de inicio de la app (startDestination).
+     * 1. Si el usuario está logueado Y tiene biometría activada -> Va a [Destinations.LOCK_ROUTE].
+     * 2. Si está logueado pero SIN biometría -> Va directo a [Destinations.HOME_ROUTE].
+     * 3. Si no está logueado (en cualquier otro caso) -> Va a [Destinations.AUTH_ROUTE].
+     */
     val startDestination = when {
         isLoggedIn && isBiometricEnabled -> Destinations.LOCK_ROUTE
         isLoggedIn && !isBiometricEnabled -> Destinations.HOME_ROUTE
