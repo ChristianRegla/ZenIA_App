@@ -11,6 +11,7 @@ object AppViewModelProvider {
         initializer {
             AuthViewModel(
                 zeniaApplication().container.firebaseAuth,
+                zeniaApplication().container.zeniaRepository,
                 zeniaApplication()
             )
         }

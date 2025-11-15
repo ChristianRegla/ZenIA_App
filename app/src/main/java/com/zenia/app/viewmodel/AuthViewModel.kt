@@ -8,13 +8,24 @@ import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.zenia.app.R
+import com.zenia.app.data.ZeniaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+/**
+ * ViewModel encargado de gestionar toda la lógica de autenticación de usuarios.
+ * Maneja el registro, inicio de sesión, cierre de sesión y la gestión de la cuenta
+ * (verificación, reseteo de contraseña, eliminación).
+ *
+ * @param auth La instancia de FirebaseAuth.
+ * @param repositorio El repositorio para interactuar con Firestore (ej. crear documentos de usuario).
+ * @param application La instancia de la Aplicación para acceder a recursos (como strings).
+ */
 class AuthViewModel(
     private val auth: FirebaseAuth,
+    private val repositorio: ZeniaRepository,
     private val application: Application
 ) : AndroidViewModel(application) {
     val userEmail: String?
@@ -38,19 +49,35 @@ class AuthViewModel(
         auth.addAuthStateListener(authStateListener)
     }
 
+    /**
+     * Se llama cuando el ViewModel está a punto de ser destruido.
+     * Limpia el [authStateListener] para evitar memory leaks.
+     */
     override fun onCleared() {
         super.onCleared()
         auth.removeAuthStateListener(authStateListener)
     }
 
+    /**
+     * Validador simple para el formato de email.
+     */
     private fun isValidEmail(email: String): Boolean {
         return email.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
+    /**
+     * Validador simple para la contraseña.
+     * Firebase requiere al menos 6 caracteres.
+     */
     private fun isValidPassword(password: String): Boolean {
         return password.isNotBlank() && password.length >= 6
     }
 
+    /**
+     * Inicia sesión con Correo y Contraseña.
+     * Si tiene éxito y el email está verificado, comprueba y crea el documento de usuario en Firestore.
+     * Si el email no está verificado, cierra sesión y muestra un error.
+     */
     fun signInWithEmail(email: String, password: String) {
         if (_uiState.value == AuthUiState.Loading) return
 
@@ -69,6 +96,7 @@ class AuthViewModel(
                 val result = auth.signInWithEmailAndPassword(email, password).await()
                 val user = result.user
                 if (user != null && user.isEmailVerified) {
+                    repositorio.checkAndCreateUserDocument(user.uid, user.email)
                     _uiState.value = AuthUiState.Idle
                 } else {
                     auth.signOut()
@@ -80,6 +108,11 @@ class AuthViewModel(
         }
     }
 
+    /**
+     * Crea una nueva cuenta de usuario.
+     * Si tiene éxito, crea el documento de usuario en Firestore, envía un correo de verificación,
+     * y cierra la sesión para forzar al usuario a verificar su email.
+     */
     fun createUser(email: String, password: String, confirmPassword: String) {
         if (_uiState.value == AuthUiState.Loading) return
 
@@ -101,7 +134,10 @@ class AuthViewModel(
             try {
                 val result = auth.createUserWithEmailAndPassword(email, password).await()
                 val newUser = result.user
-                newUser?.sendEmailVerification()
+                if (newUser != null) {
+                    repositorio.checkAndCreateUserDocument(newUser.uid, email)
+                    newUser.sendEmailVerification()
+                }
                 auth.signOut()
                 _uiState.value = AuthUiState.VerificationSent
             } catch (e: Exception) {
@@ -110,13 +146,22 @@ class AuthViewModel(
         }
     }
 
+    /**
+     * Inicia sesión o registra al usuario usando una Credencial de Google (Sign-In with Google).
+     * Si tiene éxito, comprueba y crea el documento de usuario en Firestore.
+     */
     fun signInWithGoogle(credential: AuthCredential) {
         if (_uiState.value == AuthUiState.Loading) return
 
         _uiState.value = AuthUiState.Loading
         viewModelScope.launch {
             try {
-                auth.signInWithCredential(credential).await()
+                val result = auth.signInWithCredential(credential).await()
+                val user = result.user
+
+                if (user != null) {
+                    repositorio.checkAndCreateUserDocument(user.uid, user.email)
+                }
                 _uiState.value = AuthUiState.Idle
             } catch (e: Exception) {
                 _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
@@ -124,6 +169,9 @@ class AuthViewModel(
         }
     }
 
+    /**
+     * Envía un correo de restablecimiento de contraseña a la dirección de email proporcionada.
+     */
     fun sendPasswordResetEmail(email: String) {
         if (_uiState.value == AuthUiState.Loading) return
 
@@ -143,6 +191,9 @@ class AuthViewModel(
         }
     }
 
+    /**
+     * Reenvía el correo de verificación al usuario actual (si no está verificado).
+     */
     fun resendVerificationEmail() {
         if (_uiState.value == AuthUiState.Loading) return
 
@@ -162,6 +213,10 @@ class AuthViewModel(
         }
     }
 
+    /**
+     * Elimina permanentemente la cuenta del usuario actual de Firebase Authentication.
+     * Las reglas de Firestore (o Cloud Functions) deberían encargarse de limpiar sus datos.
+     */
     fun deleteAccount() {
         if (_uiState.value == AuthUiState.Loading) return
 
@@ -177,6 +232,10 @@ class AuthViewModel(
         }
     }
 
+    /**
+     * Cierra la sesión del usuario actual.
+     * El [authStateListener] se encargará de actualizar [_isUserLoggedIn].
+     */
     fun signOut() {
         if (_uiState.value == AuthUiState.Loading) return
 
@@ -186,10 +245,19 @@ class AuthViewModel(
         }
     }
 
+    /**
+     * Resetea el estado de la UI a [AuthUiState.Idle].
+     * Útil para limpiar un mensaje de error después de que el usuario lo haya visto.
+     */
     fun resetState() {
         _uiState.value = AuthUiState.Idle
     }
 
+    /**
+     * Mapea las excepciones de Firebase Auth a mensajes de error legibles para el usuario.
+     * @param e La excepción capturada.
+     * @return Un String (desde strings.xml) que describe el error.
+     */
     private fun mapFirebaseAuthException(e: Exception): String {
         return when (e) {
             is FirebaseAuthException -> when (e.errorCode) {

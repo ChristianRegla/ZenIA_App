@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -31,6 +32,10 @@ class HomeViewModel(
 ) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Idle)
     val uiState = _uiState.asStateFlow()
+
+    val esPremium: StateFlow<Boolean> = repositorio.getUsuarioFlow()
+        .map { it?.suscripcion == "premium" }
+        .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), false)
 
     val registros = repositorio.getRegistrosBienestar()
         .catch { _uiState.value = HomeUiState.Error(application.getString(R.string.error_loading_records)) }
@@ -52,7 +57,6 @@ class HomeViewModel(
         checkHealthPermissions()
     }
 
-    @RequiresApi(Build.VERSION_CODES.P)
     fun checkHealthPermissions() {
         if (healthConnectRepository == null) {
             _hasHealthPermissions.value = false
@@ -63,14 +67,13 @@ class HomeViewModel(
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.P)
     fun guardarRegistro(estado: String, notas: String) {
         _uiState.value = HomeUiState.Loading
         viewModelScope.launch {
             try {
                 var avgHeartRate: Int? = null
 
-                if (isHealthConnectAvailable && hasHealthPermissions.value) {
+                if (isHealthConnectAvailable && hasHealthPermissions.value && esPremium.value) {
                     avgHeartRate = healthConnectRepository?.readDailyHeartRateAverage()
                 }
                 val nuevoRegistro = RegistroBienestar(

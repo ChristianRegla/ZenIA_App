@@ -9,6 +9,7 @@ import com.zenia.app.model.EjercicioGuiado
 import com.zenia.app.model.MensajeChatbot
 import com.zenia.app.model.Recurso
 import com.zenia.app.model.RegistroBienestar
+import com.zenia.app.model.Usuario
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -17,6 +18,37 @@ import kotlinx.coroutines.tasks.await
 class ZeniaRepository {
     private val db = Firebase.firestore
     private val auth = Firebase.auth
+
+    suspend fun checkAndCreateUserDocument(userId: String, email: String?) {
+        val userDocRef = db.collection("usuarios").document(userId)
+        val document = userDocRef.get().await()
+
+        if (!document.exists()) {
+            val nuevoUsuario = Usuario(
+                id = userId,
+                email = email ?: "",
+                suscripcion = "free"
+            )
+            userDocRef.set(nuevoUsuario).await()
+        }
+    }
+
+    fun getUsuarioFlow(): Flow<Usuario?> = callbackFlow {
+        val currentUserId = auth.currentUser?.uid
+        if (currentUserId.isNullOrBlank()) {
+            trySend(null)
+            close()
+            return@callbackFlow
+        }
+
+        val listener = db.collection("usuarios").document(currentUserId)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) { close(e); return@addSnapshotListener }
+                val usuario = snapshot?.toObject(Usuario::class.java)
+                trySend(usuario)
+            }
+        awaitClose { listener.remove() }
+    }
 
     fun getRegistrosBienestar(): Flow<List<RegistroBienestar>> = callbackFlow {
         val currentUserId = auth.currentUser?.uid

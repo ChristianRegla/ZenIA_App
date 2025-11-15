@@ -8,7 +8,7 @@ data class EjercicioGuiado(
     val descripcion: String = "",
     val tipo: String = "",
     val duracionMin: Int = 0,
-
+    val esPremium: Boolean = false,
     val urlAudio: String? = null,
 
     val urlImagen: String? = null

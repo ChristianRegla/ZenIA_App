@@ -47,6 +47,7 @@ fun HomeScreen(
 
     val hasPermission by homeViewModel.hasHealthPermissions.collectAsState()
     val isHealthAvailable = homeViewModel.isHealthConnectAvailable
+    val esPremium by homeViewModel.esPremium.collectAsState()
 
     Scaffold { paddingValues ->
         Column(
@@ -64,17 +65,25 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             if (isHealthAvailable) {
-                if (!hasPermission) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = {
-                        permissionLauncher.launch(homeViewModel.healthConnectPermissions)
-                    }) {
-                        Text("Conectar Smartwatch") // (TODO: Mover a strings.xml)
+                if (esPremium) {
+                    if (!hasPermission) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(onClick = {
+                            permissionLauncher.launch(homeViewModel.healthConnectPermissions)
+                        }) {
+                            Text("Conectar Smartwatch") // (TODO: Mover a strings.xml)
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Reloj Conectado ✔\uFE0F") // (TODO: Mover a strings.xml)
                     }
                 } else {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Reloj Conectado ✔\uFE0F") // (TODO: Mover a strings.xml)
+                    Button(onClick = { /* TODO: Navegar a pantalla de suscripción */ }) {
+                        Text("Conectar Smartwatch (Función Premium)")
+                    }
                 }
+
             }
 
             Spacer(modifier = Modifier.height(16.dp))
