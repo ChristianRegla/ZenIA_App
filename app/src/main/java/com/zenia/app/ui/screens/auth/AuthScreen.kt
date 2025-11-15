@@ -13,92 +13,55 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.credentials.CredentialManager
-import androidx.credentials.CustomCredential
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.exceptions.GetCredentialException
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.firebase.auth.GoogleAuthProvider
 import com.zenia.app.R
+import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.viewmodel.AuthUiState
-import com.zenia.app.viewmodel.AuthViewModel
-import kotlinx.coroutines.launch
+
+/**
+ * Clase de datos que agrupa todo el estado necesario para la UI de AuthScreen.
+ * Esto hace que la firma del Composable sea más limpia.
+ */
+data class AuthScreenState(
+    val uiState: AuthUiState,
+    val isRegisterMode: Boolean,
+    val email: String,
+    val password: String,
+    val confirmPassword: String,
+    val snackbarHostState: SnackbarHostState
+)
+
+/**
+ * Clase de datos que agrupa todas las acciones (lambdas) que la UI puede disparar.
+ */
+data class AuthScreenActions(
+    val onEmailChange: (String) -> Unit,
+    val onPasswordChange: (String) -> Unit,
+    val onConfirmPasswordChange: (String) -> Unit,
+    val onLoginOrRegisterClick: () -> Unit,
+    val onGoogleSignInClick: () -> Unit,
+    val onForgotPasswordClick: () -> Unit,
+    val onToggleModeClick: () -> Unit,
+)
 
 @Composable
 fun AuthScreen(
-    authViewModel: AuthViewModel,
+    state: AuthScreenState,
+    actions: AuthScreenActions
 ) {
-    val uiState by authViewModel.uiState.collectAsState()
-
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-
-    var isRegisterMode by remember { mutableStateOf(false) }
-
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-
-    val credentialManager = remember { CredentialManager.create(context) }
-
-    val googleIdOption = remember {
-        GetGoogleIdOption.Builder()
-            .setFilterByAuthorizedAccounts(false)
-            .setServerClientId(context.getString(R.string.web_client_id))
-            .build()
-    }
-
-    LaunchedEffect(uiState) {
-        when (val state = uiState) {
-            is AuthUiState.VerificationSent -> {
-                snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.auth_verification_sent),
-                    duration = SnackbarDuration.Long
-                )
-                authViewModel.resetState()
-            }
-            is AuthUiState.PasswordResetSent -> {
-                snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.auth_password_reset_sent),
-                    duration = SnackbarDuration.Long
-                )
-                authViewModel.resetState()
-            }
-            is AuthUiState.Error -> {
-                snackbarHostState.showSnackbar(
-                    message = state.message,
-                    duration = SnackbarDuration.Short
-                )
-                authViewModel.resetState()
-            }
-            else -> {}
-        }
-    }
-
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = { SnackbarHost(hostState = state.snackbarHostState) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -108,18 +71,18 @@ fun AuthScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-           if (uiState == AuthUiState.Loading) {
+           if (state.uiState == AuthUiState.Loading) {
                CircularProgressIndicator()
            } else {
                Text(
-                   text = if (isRegisterMode) stringResource(R.string.register) else stringResource(R.string.login),
+                   text = if (state.isRegisterMode) stringResource(R.string.register) else stringResource(R.string.login),
                    style = MaterialTheme.typography.headlineMedium
                )
                Spacer(modifier = Modifier.height(32.dp))
 
                OutlinedTextField(
-                   value = email,
-                   onValueChange = { email = it },
+                   value = state.email,
+                   onValueChange = actions.onEmailChange,
                    label = { Text(stringResource(R.string.email)) },
                    modifier = Modifier.fillMaxWidth(),
                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -128,8 +91,8 @@ fun AuthScreen(
                Spacer(modifier = Modifier.height(16.dp))
 
                OutlinedTextField(
-                   value = password,
-                   onValueChange = { password = it },
+                   value = state.password,
+                   onValueChange = actions.onPasswordChange,
                    label = { Text(stringResource(R.string.password)) },
                    modifier = Modifier.fillMaxWidth(),
                    visualTransformation = PasswordVisualTransformation(),
@@ -138,10 +101,10 @@ fun AuthScreen(
                )
                Spacer(modifier = Modifier.height(16.dp))
 
-               if (isRegisterMode) {
+               if (state.isRegisterMode) {
                    OutlinedTextField(
-                       value = confirmPassword,
-                       onValueChange = { confirmPassword = it },
+                       value = state.confirmPassword,
+                       onValueChange = actions.onConfirmPasswordChange,
                        label = { Text(stringResource(R.string.confirmPassword)) },
                        modifier = Modifier.fillMaxWidth(),
                        visualTransformation = PasswordVisualTransformation(),
@@ -152,76 +115,92 @@ fun AuthScreen(
                }
 
                Button(
-                   onClick = {
-                       if (isRegisterMode) {
-                           authViewModel.createUser(email, password, confirmPassword)
-                       } else {
-                           authViewModel.signInWithEmail(email, password)
-                       }
-                   },
+                   onClick = actions.onLoginOrRegisterClick,
                    modifier = Modifier.fillMaxWidth()
                ) {
-                   Text(if (isRegisterMode) stringResource(R.string.register) else stringResource(R.string.login))
+                   Text(if (state.isRegisterMode) stringResource(R.string.register) else stringResource(R.string.login))
                }
                Spacer(modifier = Modifier.height(16.dp))
 
                Button(
-                   onClick = {
-                       scope.launch {
-                           try {
-                               val request = GetCredentialRequest.Builder()
-                                   .addCredentialOption(googleIdOption)
-                                   .build()
-
-                               val result = credentialManager.getCredential(context, request)
-
-                               val credential = result.credential
-                               if (credential is CustomCredential &&
-                                   credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-
-                                   val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-                                   val googleIdToken = googleIdTokenCredential.idToken
-
-                                   val firebaseCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
-
-                                   authViewModel.signInWithGoogle(firebaseCredential)
-                               } else {
-                                   snackbarHostState.showSnackbar(context.getString(R.string.auth_error_not_google_credential))
-                               }
-                           } catch (_: GetCredentialException) {
-                               snackbarHostState.showSnackbar(context.getString(R.string.auth_error_google_canceled))
-                           } catch (e: Exception) {
-                               snackbarHostState.showSnackbar(
-                                   context.getString(R.string.auth_error_unexpected, e.message ?: "Unknown")
-                               )
-                           }
-                       }
-                   },
+                   onClick = actions.onGoogleSignInClick,
                    modifier = Modifier.fillMaxWidth()
                ) {
                    Text(stringResource(R.string.googleLogin))
                }
                Spacer(modifier = Modifier.height(16.dp))
 
-               if (!isRegisterMode) {
+               if (!state.isRegisterMode) {
                    TextButton(
-                       onClick = {
-                           authViewModel.sendPasswordResetEmail(email)
-                       }
+                       onClick = actions.onForgotPasswordClick
                    ) {
                        Text(stringResource(R.string.forgotPassword))
                    }
                }
 
                TextButton(
-                   onClick = { isRegisterMode = !isRegisterMode }
+                   onClick = actions.onToggleModeClick
                ) {
                    Text(
-                       if (isRegisterMode) stringResource(R.string.accountAlready)
+                       if (state.isRegisterMode) stringResource(R.string.accountAlready)
                        else stringResource(R.string.noAccount)
                    )
                }
            }
         }
+    }
+}
+
+@Preview(name = "Modo Login", showBackground = true)
+@Composable
+fun AuthScreenPreview_Login() {
+    val state = AuthScreenState(
+        uiState = AuthUiState.Idle,
+        isRegisterMode = false,
+        email = "",
+        password = "",
+        confirmPassword = "",
+        snackbarHostState = SnackbarHostState()
+    )
+    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {})
+
+    ZenIATheme {
+        AuthScreen(state = state, actions = actions)
+    }
+}
+
+@Preview(name = "Modo Registro", showBackground = true)
+@Composable
+fun AuthScreenPreview_Register() {
+    val state = AuthScreenState(
+        uiState = AuthUiState.Idle,
+        isRegisterMode = true,
+        email = "test@email.com",
+        password = "password123",
+        confirmPassword = "password123",
+        snackbarHostState = SnackbarHostState()
+    )
+    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {})
+
+    ZenIATheme {
+        AuthScreen(state = state, actions = actions)
+    }
+}
+
+@Preview(name = "Modo Cargando", showBackground = true)
+@Composable
+fun AuthScreenPreview_Loading() {
+    val state = AuthScreenState(
+        uiState = AuthUiState.Loading,
+        isRegisterMode = false,
+        email = "",
+        password = "",
+        confirmPassword = "",
+        snackbarHostState = SnackbarHostState()
+    )
+    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {})
+
+    ZenIATheme {
+        AuthScreen(state = state, actions = actions)
     }
 }

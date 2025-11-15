@@ -1,23 +1,44 @@
 package com.zenia.app.ui.navigation
 
+import android.app.Activity
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContract
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.firebase.auth.GoogleAuthProvider
+import com.zenia.app.R
 import com.zenia.app.ui.screens.account.AccountScreen
 import com.zenia.app.ui.screens.auth.AuthScreen
+import com.zenia.app.ui.screens.auth.AuthScreenActions
+import com.zenia.app.ui.screens.auth.AuthScreenState
 import com.zenia.app.ui.screens.home.HomeScreen
 import com.zenia.app.ui.screens.lock.LockScreen
 import com.zenia.app.viewmodel.AppViewModelProvider
+import com.zenia.app.viewmodel.AuthUiState
 import com.zenia.app.viewmodel.AuthViewModel
 import com.zenia.app.viewmodel.HomeViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
+import kotlinx.coroutines.launch
 
 /**
  * Composable principal que gestiona la navegación de toda la aplicación.
@@ -52,9 +73,133 @@ fun AppNavigation() {
         navController = navController,
         startDestination = startDestination
     ) {
+        /**
+         * Pantalla de Autenticación (Login / Registro).
+         * Esta ruta contiene toda la lógica de estado y manejo de eventos
+         * para la [AuthScreen] "tonta".
+         */
         composable(Destinations.AUTH_ROUTE) {
+            // --- 1. Estado y Handlers ---
+            val uiState by authViewModel.uiState.collectAsState()
+
+            // Estado de los campos de texto (se guardan en rotaciones)
+            var email by rememberSaveable { mutableStateOf("") }
+            var password by rememberSaveable { mutableStateOf("") }
+            var confirmPassword by rememberSaveable { mutableStateOf("") }
+
+            // Estado de la UI (Login o Registro)
+            var isRegisterMode by rememberSaveable { mutableStateOf(false) }
+
+            // Handlers de Corutinas y Snackbar
+            val snackbarHostState = remember { SnackbarHostState() }
+            val scope = rememberCoroutineScope()
+            val context = LocalContext.current
+
+            // --- 2. Lógica de Google Sign-In ---
+            val credentialManager = remember { CredentialManager.create(context) }
+            val googleIdOption = remember {
+                GetGoogleIdOption.Builder()
+                    .setFilterByAuthorizedAccounts(false)
+                    .setServerClientId(context.getString(R.string.web_client_id))
+                    .build()
+            }
+
+            // --- 3. Efectos Secundarios (Snackbars) ---
+            LaunchedEffect(uiState) {
+                when (val state = uiState) {
+                    is AuthUiState.VerificationSent -> {
+                        snackbarHostState.showSnackbar(
+                            message = context.getString(R.string.auth_verification_sent),
+                            duration = androidx.compose.material3.SnackbarDuration.Long
+                        )
+                        authViewModel.resetState()
+                    }
+                    is AuthUiState.PasswordResetSent -> {
+                        snackbarHostState.showSnackbar(
+                            message = context.getString(R.string.auth_password_reset_sent),
+                            duration = androidx.compose.material3.SnackbarDuration.Long
+                        )
+                        authViewModel.resetState()
+                    }
+                    is AuthUiState.Error -> {
+                        snackbarHostState.showSnackbar(
+                            message = state.message,
+                            duration = androidx.compose.material3.SnackbarDuration.Short
+                        )
+                        authViewModel.resetState()
+                    }
+                    else -> {}
+                }
+            }
+
+            // --- 4. Definición de Estado y Acciones ---
+            val screenState = AuthScreenState(
+                uiState = uiState,
+                isRegisterMode = isRegisterMode,
+                email = email,
+                password = password,
+                confirmPassword = confirmPassword,
+                snackbarHostState = snackbarHostState
+            )
+
+            val screenActions = AuthScreenActions(
+                onEmailChange = { email = it },
+                onPasswordChange = { password = it },
+                onConfirmPasswordChange = { confirmPassword = it },
+                onToggleModeClick = { isRegisterMode = !isRegisterMode },
+                onForgotPasswordClick = {
+                    authViewModel.sendPasswordResetEmail(email)
+                },
+                onLoginOrRegisterClick = {
+                    if (isRegisterMode) {
+                        authViewModel.createUser(email, password, confirmPassword)
+                    } else {
+                        authViewModel.signInWithEmail(email, password)
+                    }
+                },
+                onGoogleSignInClick = {
+                    scope.launch {
+                        try {
+                            val request = GetCredentialRequest.Builder()
+                                .addCredentialOption(googleIdOption)
+                                .build()
+
+                            val result =
+                                credentialManager.getCredential(context as Activity, request)
+
+                            val credential = result.credential
+                            if (credential is CustomCredential &&
+                                credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+                            ) {
+
+                                val googleIdTokenCredential =
+                                    GoogleIdTokenCredential.createFrom(credential.data)
+                                val firebaseCredential = GoogleAuthProvider.getCredential(
+                                    googleIdTokenCredential.idToken,
+                                    null
+                                )
+                                authViewModel.signInWithGoogle(firebaseCredential)
+                            } else {
+                                snackbarHostState.showSnackbar(context.getString(R.string.auth_error_not_google_credential))
+                            }
+                        } catch (_: GetCredentialException) {
+                            snackbarHostState.showSnackbar(context.getString(R.string.auth_error_google_canceled))
+                        } catch (e: Exception) {
+                            snackbarHostState.showSnackbar(
+                                context.getString(
+                                    R.string.auth_error_unexpected,
+                                    e.message ?: "Unknown"
+                                )
+                            )
+                        }
+                    }
+                }
+            )
+
+            // --- 5. Llama al Composable "Tonto" ---
             AuthScreen(
-                authViewModel = authViewModel
+                state = screenState,
+                actions = screenActions
             )
         }
         composable(Destinations.HOME_ROUTE) {
