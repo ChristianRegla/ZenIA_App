@@ -47,7 +47,6 @@ class HomeViewModel(
     val isHealthConnectAvailable: Boolean = healthConnectRepository != null
 
     val healthConnectPermissions: Set<String>
-        @RequiresApi(Build.VERSION_CODES.P)
         get() = healthConnectRepository?.permissions ?: emptySet()
 
     val permissionRequestContract

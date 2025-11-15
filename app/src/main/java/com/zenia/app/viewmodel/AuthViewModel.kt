@@ -28,23 +28,47 @@ class AuthViewModel(
     private val repositorio: ZeniaRepository,
     private val application: Application
 ) : AndroidViewModel(application) {
+    /**
+     * Expone el email del usuario actualmente autenticado.
+     */
     val userEmail: String?
         get() = auth.currentUser?.email
 
+    /**
+     * Expone si el usuario actual ha verificado su correo electrónico.
+     */
     val isUserVerified: Boolean
         get() = auth.currentUser?.isEmailVerified ?: false
 
+    // StateFlow interno para el estado de la UI (Cargando, Error, etc.)
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
+    /**
+     * Expone el estado de la UI para operaciones asíncronas de autenticación.
+     * La UI observa este Flow para mostrar loaders, snackbars de error, etc.
+     */
     val uiState = _uiState.asStateFlow()
 
+    // StateFlow interno para saber si el usuario está logueado.
     private val _isUserLoggedIn = MutableStateFlow(auth.currentUser != null)
+    /**
+     * Expone un boolean que indica si el usuario está logueado Y verificado.
+     * Este es el "estado de verdad" principal para la navegación de la app.
+     */
     val isUserLoggedIn = _isUserLoggedIn.asStateFlow()
 
+    /**
+     * Listener que se activa cada vez que el estado de autenticación de Firebase cambia (login/logout).
+     * Actualiza [_isUserLoggedIn] basado en si el usuario no es nulo Y su email está verificado.
+     */
     private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
         val user = firebaseAuth.currentUser
+        // La app considera a un usuario "logueado" solo si existe Y ha verificado su email.
         _isUserLoggedIn.value = (user != null && user.isEmailVerified)
     }
 
+    /**
+     * Bloque de inicialización. Se registra el [authStateListener] cuando el ViewModel se crea.
+     */
     init {
         auth.addAuthStateListener(authStateListener)
     }
