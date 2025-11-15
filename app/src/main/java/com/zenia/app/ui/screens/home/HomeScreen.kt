@@ -1,9 +1,6 @@
 package com.zenia.app.ui.screens.home
 
-import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,36 +16,35 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.zenia.app.viewmodel.AppViewModelProvider
-import com.zenia.app.viewmodel.HomeViewModel
+import com.zenia.app.R
+import com.zenia.app.ui.theme.ZenIATheme
 
+/**
+ * Pantalla principal "tonta" (Dumb Composable).
+ * No contiene lógica de estado, solo recibe el estado actual y lambdas
+ * para notificar eventos hacia arriba (al navegador).
+ *
+ * @param esPremium Si el usuario actual es premium.
+ * @param hasPermission Si la app tiene permisos de Health Connect.
+ * @param isHealthAvailable Si Health Connect está disponible en el dispositivo.
+ * @param onSignOut Lambda que se invoca cuando el usuario pulsa "Cerrar Sesión".
+ * @param onNavigateToAccount Lambda que se invoca cuando el usuario pulsa "Mi Cuenta".
+ * @param onConnectSmartwatch Lambda que se invoca cuando el usuario pulsa "Conectar Smartwatch".
+ * @param onNavigateToPremium Lambda que se invoca cuando el usuario pulsa el botón de "Premium".
+ */
 @Composable
 fun HomeScreen(
+    esPremium: Boolean,
+    hasPermission: Boolean,
+    isHealthAvailable: Boolean,
     onSignOut: () -> Unit,
     onNavigateToAccount: () -> Unit,
-    homeViewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    onConnectSmartwatch: () -> Unit,
+    onNavigateToPremium: () -> Unit,
 ) {
-    val dummyContract = object : androidx.activity.result.contract.ActivityResultContract<Set<String>, Set<String>>() {
-        override fun createIntent(context: android.content.Context, input: Set<String>) = android.content.Intent()
-        override fun parseResult(resultCode: Int, intent: android.content.Intent?) = emptySet<String>()
-    }
-
-    val realContract = homeViewModel.permissionRequestContract
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = realContract ?: dummyContract,
-        onResult = { grantedPermissions ->
-            if (grantedPermissions.isNotEmpty()) {
-                homeViewModel.checkHealthPermissions()
-            }
-        }
-    )
-
-    val hasPermission by homeViewModel.hasHealthPermissions.collectAsState()
-    val isHealthAvailable = homeViewModel.isHealthConnectAvailable
-    val esPremium by homeViewModel.esPremium.collectAsState()
-
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -59,7 +55,7 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "¡Bienvenido a ZenIA!",
+                text = stringResource(R.string.home_welcome),
                 style = MaterialTheme.typography.headlineMedium
             )
             Spacer(modifier = Modifier.height(32.dp))
@@ -68,19 +64,16 @@ fun HomeScreen(
                 if (esPremium) {
                     if (!hasPermission) {
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = {
-                            permissionLauncher.launch(homeViewModel.healthConnectPermissions)
-                        }) {
-                            Text("Conectar Smartwatch") // (TODO: Mover a strings.xml)
+                        Button(onClick = onConnectSmartwatch) {
+                            Text(stringResource(R.string.home_connect_watch))
                         }
                     } else {
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text("Reloj Conectado ✔\uFE0F") // (TODO: Mover a strings.xml)
                     }
                 } else {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = { /* TODO: Navegar a pantalla de suscripción */ }) {
-                        Text("Conectar Smartwatch (Función Premium)")
+                    Button(onClick = onNavigateToPremium) {
+                        Text(stringResource(R.string.home_connect_watch_premium))
                     }
                 }
 
@@ -89,13 +82,73 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(onClick = onNavigateToAccount) {
-                Text("Mi Cuenta")
+                Text(stringResource(R.string.home_my_account))
             }
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(onClick = onSignOut) {
-                Text("Cerrar Sesión")
+                Text(stringResource(R.string.sign_out))
             }
         }
+    }
+}
+
+/**
+ * Vista previa para un usuario "Free".
+ * Muestra el botón de "Función Premium".
+ */
+@Preview(name = "Usuario Gratuito", showBackground = true)
+@Composable
+fun HomeScreenPreview_FreeUser() {
+    ZenIATheme {
+        HomeScreen(
+            esPremium = false,
+            hasPermission = false,
+            isHealthAvailable = true,
+            onSignOut = { },
+            onNavigateToAccount = { },
+            onConnectSmartwatch = { },
+            onNavigateToPremium = { }
+        )
+    }
+}
+
+/**
+ * Vista previa para un usuario "Premium" que aún no ha dado permisos.
+ * Muestra el botón normal de "Conectar Smartwatch".
+ */
+@Preview(name = "Premium (Sin Permisos)", showBackground = true)
+@Composable
+fun HomeScreenPreview_Premium_NeedsPermission() {
+    ZenIATheme {
+        HomeScreen(
+            esPremium = true,
+            hasPermission = false,
+            isHealthAvailable = true,
+            onSignOut = { },
+            onNavigateToAccount = { },
+            onConnectSmartwatch = { },
+            onNavigateToPremium = { }
+        )
+    }
+}
+
+/**
+ * Vista previa para un usuario "Premium" que ya conectó su reloj.
+ * Muestra el texto "Reloj Conectado".
+ */
+@Preview(name = "Premium (Conectado)", showBackground = true)
+@Composable
+fun HomeScreenPreview_Premium_Connected() {
+    ZenIATheme {
+        HomeScreen(
+            esPremium = true,
+            hasPermission = true,
+            isHealthAvailable = true,
+            onSignOut = { },
+            onNavigateToAccount = { },
+            onConnectSmartwatch = { },
+            onNavigateToPremium = { }
+        )
     }
 }

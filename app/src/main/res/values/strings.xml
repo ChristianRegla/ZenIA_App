@@ -65,4 +65,10 @@
     <string name="account_verification_sent">Correo de verificación enviado.</string>
     <string name="account_password_reset_sent">Correo enviado. Revisa tu bandeja de entrada para cambiar tu contraseña.</string>
 
+    <string name="home_welcome">¡Bienvenido a ZenIA!</string>
+    <string name="home_connect_watch">Conectar Smartwatch</string>
+    <string name="home_watch_connected">Reloj Conectado ✔\uFE0F</string>
+    <string name="home_connect_watch_premium">Conectar Smartwatch (Función Premium)</string>
+    <string name="home_my_account">Mi Cuenta</string>
+
 </resources>

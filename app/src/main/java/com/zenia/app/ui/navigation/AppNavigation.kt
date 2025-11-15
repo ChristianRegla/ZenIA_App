@@ -1,5 +1,8 @@
 package com.zenia.app.ui.navigation
 
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -56,13 +59,41 @@ fun AppNavigation() {
         }
         composable(Destinations.HOME_ROUTE) {
             val homeViewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
+
+            val dummyContract = object : ActivityResultContract<Set<String>, Set<String>>() {
+                override fun createIntent(context: android.content.Context, input: Set<String>) = Intent()
+                override fun parseResult(resultCode: Int, intent: Intent?) = emptySet<String>()
+            }
+            val realContract = homeViewModel.permissionRequestContract
+            val permissionLauncher = rememberLauncherForActivityResult(
+                contract = realContract ?: dummyContract,
+                onResult = { grantedPermissions ->
+                    if (grantedPermissions.isNotEmpty()) {
+                        homeViewModel.checkHealthPermissions()
+                    }
+                }
+            )
+
+            val esPremium by homeViewModel.esPremium.collectAsState()
+            val hasPermission by homeViewModel.hasHealthPermissions.collectAsState()
+            val isHealthAvailable = homeViewModel.isHealthConnectAvailable
+
             HomeScreen(
+                esPremium = esPremium,
+                hasPermission = hasPermission,
+                isHealthAvailable = isHealthAvailable,
                 onSignOut = {
                     authViewModel.signOut()
                 },
-                homeViewModel = homeViewModel,
                 onNavigateToAccount = {
                     navController.navigate(Destinations.ACCOUNT_ROUTE)
+                },
+                onConnectSmartwatch = {
+                    permissionLauncher.launch(homeViewModel.healthConnectPermissions)
+                },
+                onNavigateToPremium = {
+                    // TODO: Navegar a la futura pantalla de suscripción
+                    // navController.navigate(Destinations.PREMIUM_ROUTE)
                 }
             )
         }

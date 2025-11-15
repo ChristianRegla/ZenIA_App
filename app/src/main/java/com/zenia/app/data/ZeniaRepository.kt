@@ -65,7 +65,7 @@ class ZeniaRepository {
 
         val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
             val currentUserId = firebaseAuth.currentUser?.uid
-            
+
             firestoreListener?.remove()
 
             if (currentUserId.isNullOrBlank()) {
