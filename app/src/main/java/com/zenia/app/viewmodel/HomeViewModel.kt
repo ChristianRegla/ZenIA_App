@@ -24,7 +24,6 @@ sealed interface HomeUiState {
     data class Error(val message: String) : HomeUiState
 }
 
-@RequiresApi(Build.VERSION_CODES.P)
 class HomeViewModel(
     private val repositorio: ZeniaRepository,
     private val healthConnectRepository: HealthConnectRepository?,
@@ -46,6 +45,9 @@ class HomeViewModel(
         @RequiresApi(Build.VERSION_CODES.P)
         get() = healthConnectRepository?.permissions ?: emptySet()
 
+    val permissionRequestContract
+        get() = healthConnectRepository?.getPermissionRequestContract()
+
     init {
         checkHealthPermissions()
     }
@@ -61,14 +63,20 @@ class HomeViewModel(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     fun guardarRegistro(estado: String, notas: String) {
         _uiState.value = HomeUiState.Loading
         viewModelScope.launch {
             try {
+                var avgHeartRate: Int? = null
+
+                if (isHealthConnectAvailable && hasHealthPermissions.value) {
+                    avgHeartRate = healthConnectRepository?.readDailyHeartRateAverage()
+                }
                 val nuevoRegistro = RegistroBienestar(
                     estadoAnimo = estado,
                     notas = notas,
-                    frecuenciaCardiaca = null
+                    frecuenciaCardiaca = avgHeartRate
                 )
                 repositorio.addRegistroBienestar(nuevoRegistro)
                 _uiState.value = HomeUiState.Success

@@ -2,6 +2,7 @@ package com.zenia.app.data
 
 import android.content.Context
 import android.os.Build
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.annotation.RequiresApi
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
@@ -11,7 +12,6 @@ import androidx.health.connect.client.time.TimeRangeFilter
 import java.time.Instant
 import java.time.ZonedDateTime
 
-@RequiresApi(Build.VERSION_CODES.P)
 class HealthConnectRepository(private val context: Context) {
     private lateinit var healthConnectClient: HealthConnectClient
 
@@ -32,6 +32,10 @@ class HealthConnectRepository(private val context: Context) {
     val permissions: Set<String> = setOf(
         HealthPermission.getReadPermission(HeartRateRecord::class)
     )
+
+    fun getPermissionRequestContract(): ActivityResultContract<Set<String>, Set<String>> {
+        return androidx.health.connect.client.PermissionController.createRequestPermissionResultContract()
+    }
 
     suspend fun hasPermissions(): Boolean {
         if (!isClientAvailable) return false
@@ -55,6 +59,30 @@ class HealthConnectRepository(private val context: Context) {
             return response.records
         } catch (e: Exception) {
             return emptyList()
+        }
+    }
+
+    suspend fun readDailyHeartRateAverage(): Int? {
+        if (!isClientAvailable || !hasPermissions()) return null
+        val startTime = ZonedDateTime.now().minusDays(1).toInstant()
+        val endTime = Instant.now()
+
+        try {
+            val request = ReadRecordsRequest(
+                recordType = HeartRateRecord::class,
+                timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
+            )
+            val response = healthConnectClient.readRecords(request)
+
+            val allSamplesBpm = response.records.flatMap { record ->
+                record.samples.map { sample -> sample.beatsPerMinute }
+            }
+
+            if (allSamplesBpm.isEmpty()) return null
+
+            return allSamplesBpm.average().toInt()
+        } catch (e: Exception) {
+            return null
         }
     }
 }

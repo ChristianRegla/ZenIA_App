@@ -24,17 +24,22 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.zenia.app.viewmodel.AppViewModelProvider
 import com.zenia.app.viewmodel.HomeViewModel
 
-@RequiresApi(Build.VERSION_CODES.P)
 @Composable
 fun HomeScreen(
     onSignOut: () -> Unit,
     onNavigateToAccount: () -> Unit,
     homeViewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+    val dummyContract = object : androidx.activity.result.contract.ActivityResultContract<Set<String>, Set<String>>() {
+        override fun createIntent(context: android.content.Context, input: Set<String>) = android.content.Intent()
+        override fun parseResult(resultCode: Int, intent: android.content.Intent?) = emptySet<String>()
+    }
+
+    val realContract = homeViewModel.permissionRequestContract
     val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions(),
-        onResult = { permissionsMap ->
-            if (permissionsMap.values.all { it }) {
+        contract = realContract ?: dummyContract,
+        onResult = { grantedPermissions ->
+            if (grantedPermissions.isNotEmpty()) {
                 homeViewModel.checkHealthPermissions()
             }
         }
@@ -62,7 +67,7 @@ fun HomeScreen(
                 if (!hasPermission) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = {
-                        permissionLauncher.launch(homeViewModel.healthConnectPermissions.toTypedArray())
+                        permissionLauncher.launch(homeViewModel.healthConnectPermissions)
                     }) {
                         Text("Conectar Smartwatch") // (TODO: Mover a strings.xml)
                     }
