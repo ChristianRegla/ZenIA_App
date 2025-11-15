@@ -1,7 +1,9 @@
 package com.zenia.app.data
 
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import com.zenia.app.model.ActividadComunidad
@@ -54,51 +56,79 @@ class ZeniaRepository {
 
     /**
      * Obtiene un Flow en tiempo real del documento del usuario actual ([Usuario]).
-     * Este Flow emite el objeto [Usuario] o `null` si el usuario no está logueado
-     * o el documento (aún) no existe.
+     * Este Flow emite `null` si el usuario cierra sesión.
      *
      * @return Un [Flow] que emite un objeto [Usuario?] nulable.
      */
     fun getUsuarioFlow(): Flow<Usuario?> = callbackFlow {
-        val currentUserId = auth.currentUser?.uid
-        if (currentUserId.isNullOrBlank()) {
-            trySend(null)
-            close()
-            return@callbackFlow
+        var firestoreListener: ListenerRegistration? = null
+
+        val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            val currentUserId = firebaseAuth.currentUser?.uid
+            
+            firestoreListener?.remove()
+
+            if (currentUserId.isNullOrBlank()) {
+                trySend(null)
+            } else {
+                firestoreListener = db.collection("usuarios").document(currentUserId)
+                    .addSnapshotListener { snapshot, e ->
+                        if (e != null) {
+                            trySend(null)
+                            return@addSnapshotListener
+                        }
+                        trySend(snapshot?.toObject(Usuario::class.java))
+                    }
+            }
         }
 
-        val listener = db.collection("usuarios").document(currentUserId)
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) { close(e); return@addSnapshotListener }
-                val usuario = snapshot?.toObject(Usuario::class.java)
-                trySend(usuario)
-            }
-        awaitClose { listener.remove() }
+        auth.addAuthStateListener(authListener)
+
+        awaitClose {
+            auth.removeAuthStateListener(authListener)
+            firestoreListener?.remove()
+        }
     }
 
     /**
      * Obtiene un Flow con la lista de [RegistroBienestar] del usuario actual.
-     * Los registros se emiten en tiempo real y están ordenados por fecha descendente.
+     * Emite una lista vacía si el usuario cierra sesión.
      *
-     * @return Un [Flow] que emite la lista de [RegistroBienestar]. Emite lista vacía si no está logueado.
+     * @return Un [Flow] que emite la lista de [RegistroBienestar].
      */
     fun getRegistrosBienestar(): Flow<List<RegistroBienestar>> = callbackFlow {
-        val currentUserId = auth.currentUser?.uid
-        if (currentUserId.isNullOrBlank()) {
-            trySend(emptyList())
-            close()
-            return@callbackFlow
+        var firestoreListener: ListenerRegistration? = null
+
+        val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            val currentUserId = firebaseAuth.currentUser?.uid
+
+            firestoreListener?.remove()
+
+            if (currentUserId.isNullOrBlank()) {
+                trySend(emptyList())
+            } else {
+                firestoreListener = db.collection("usuarios").document(currentUserId)
+                    .collection("registrosBienestar")
+                    .orderBy("fecha", Query.Direction.DESCENDING)
+                    .addSnapshotListener { snapshot, e ->
+                        if (e != null) {
+                            trySend(emptyList())
+                            return@addSnapshotListener
+                        }
+                        val registros =
+                            snapshot?.toObjects(RegistroBienestar::class.java) ?: emptyList()
+                        trySend(registros)
+                    }
+            }
         }
 
-        val listener = db.collection("usuarios").document(currentUserId)
-            .collection("registrosBienestar")
-            .orderBy("fecha", Query.Direction.DESCENDING)
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) { close(e); return@addSnapshotListener }
-                val registros = snapshot?.toObjects(RegistroBienestar::class.java) ?: emptyList()
-                trySend(registros)
-            }
-        awaitClose { listener.remove() }
+        auth.addAuthStateListener(authListener)
+
+        // Cuando el Flow se cancela, limpia ambos listeners
+        awaitClose {
+            auth.removeAuthStateListener(authListener)
+            firestoreListener?.remove()
+        }
     }
 
     /**
@@ -158,22 +188,35 @@ class ZeniaRepository {
      * @return Un [Flow] que emite la lista de [MensajeChatbot]. Emite lista vacía si no está logueado.
      */
     fun getHistorialChat(): Flow<List<MensajeChatbot>> = callbackFlow {
-        val currentUserId = auth.currentUser?.uid
-        if (currentUserId.isNullOrBlank()) {
-            trySend(emptyList())
-            close()
-            return@callbackFlow
+        var firestoreListener: ListenerRegistration? = null
+
+        val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            val currentUserId = firebaseAuth.currentUser?.uid
+
+            firestoreListener?.remove()
+
+            if (currentUserId.isNullOrBlank()) {
+                trySend(emptyList())
+            } else {
+                firestoreListener = db.collection("usuarios").document(currentUserId)
+                    .collection("chatHistory")
+                    .orderBy("fecha", Query.Direction.ASCENDING)
+                    .addSnapshotListener { snapshot, e ->
+                        if (e != null) {
+                            trySend(emptyList())
+                            return@addSnapshotListener
+                        }
+                        val mensajes = snapshot?.toObjects(MensajeChatbot::class.java) ?: emptyList()
+                        trySend(mensajes)
+                    }
+            }
         }
 
-        val listener = db.collection("usuarios").document(currentUserId)
-            .collection("chatHistory")
-            .orderBy("fecha", Query.Direction.ASCENDING)
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) { close(e); return@addSnapshotListener }
-                val mensajes = snapshot?.toObjects(MensajeChatbot::class.java) ?: emptyList()
-                trySend(mensajes)
-            }
-        awaitClose { listener.remove() }
+        auth.addAuthStateListener(authListener)
+        awaitClose {
+            auth.removeAuthStateListener(authListener)
+            firestoreListener?.remove()
+        }
     }
 
     /**

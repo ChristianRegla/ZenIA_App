@@ -44,43 +44,49 @@ android {
 }
 
 dependencies {
+    // --- Core & Jetpack ---
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.biometric.ktx)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.health.connect.client)
+
+    // --- Compose ---
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+
+    // --- Firebase ---
+    implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
-    implementation(libs.androidx.credentials)
-    implementation(libs.androidx.credentials.play.services.auth)
-    implementation(libs.googleid)
+    implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.functions)
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.firestore)
-    implementation(libs.androidx.navigation.compose)
-    implementation(libs.health.connect.client)
+
+    // --- Google ---
+    implementation(libs.googleid)
+
+    // --- Kotlinx ---
+    implementation(libs.kotlinx.coroutines.android)
+
+    // --- Test ---
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+
+    // --- Debug ---
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-
-    implementation(platform("com.google.firebase:firebase-bom:33.1.1"))
-
-    implementation("com.google.firebase:firebase-auth-ktx")
-
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
-
-    implementation("androidx.biometric:biometric-ktx:1.2.0-alpha05")
-
-    implementation("androidx.datastore:datastore-preferences:1.1.7")
-
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
-
-    implementation("androidx.appcompat:appcompat:1.7.1")
 }
