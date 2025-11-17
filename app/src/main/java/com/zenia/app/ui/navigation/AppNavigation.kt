@@ -1,5 +1,7 @@
 package com.zenia.app.ui.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,6 +24,7 @@ import com.zenia.app.viewmodel.SettingsViewModel
  * Obtiene los ViewModels de autenticación ([AuthViewModel]) y configuración ([SettingsViewModel])
  * para determinar la pantalla de inicio correcta.
  */
+@RequiresApi(Build.VERSION_CODES.P)
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -81,7 +84,6 @@ fun AppNavigation() {
                 settingsViewModel = settingsViewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToAuth = {
-                    // Navega a Auth y limpia todo el historial de atrás.
                     navController.navigate(Destinations.AUTH_ROUTE) {
                         popUpTo(Destinations.HOME_ROUTE) { inclusive = true }
                     }

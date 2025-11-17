@@ -16,10 +16,9 @@
     <string name="common_no">No</string>
 
     <string name="confirmPassword">Confirmar contraseña</string>
-    <string name="googleLogin">Iniciar Sesión con Google</string>
     <string name="forgotPassword">¿Olvidaste tu contraseña?</string>
-    <string name="accountAlready">¿Ya tienes cuenta? Inicia sesión</string>
-    <string name="noAccount">¿No tienes una cuenta? Regístrate</string>
+    <string name="accountAlready">¿Ya tienes cuenta?</string>
+    <string name="noAccount">¿No tienes una cuenta?</string>
 
     <string name="lock_title">Desbloquear ZenIA</string>
     <string name="lock_subtitle">Confirma tu identidad para continuar</string>
@@ -70,7 +69,12 @@
     <string name="home_watch_connected">Reloj Conectado ✔\uFE0F</string>
     <string name="home_connect_watch_premium">Conectar Smartwatch (Función Premium)</string>
     <string name="home_my_account">Mi Cuenta</string>
+    <string name="home_connect_watch_help">¿Problemas para conectar? Otorga el permiso manualmente aquí.</string>
 
     <string name="lock_retry_button">Reintentar</string>
+
+    <string name="background_image_desc">Imagen de fondo</string>
+    <string name="divider_or">O</string>
+    <string name="googleLogin">Continuar con Google</string>
 
 </resources>

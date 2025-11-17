@@ -1,11 +1,16 @@
 package com.zenia.app.ui.screens.home
 
 import android.content.Intent
+import android.os.Build
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContract
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.zenia.app.viewmodel.AppViewModelProvider
 import com.zenia.app.viewmodel.HomeViewModel
@@ -15,6 +20,7 @@ import com.zenia.app.viewmodel.HomeViewModel
  * Obtiene el estado de [HomeViewModel], maneja la lógica de Health Connect
  * y pasa el estado y las acciones a [HomeScreen].
  */
+@RequiresApi(Build.VERSION_CODES.P)
 @Composable
 fun HomeRoute(
     onNavigateToAccount: () -> Unit,
@@ -23,6 +29,7 @@ fun HomeRoute(
 ) {
     // 1. Obtiene el ViewModel
     val homeViewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    val context = LocalContext.current
 
     // 2. Define el Launcher de Permisos
     val dummyContract = object : ActivityResultContract<Set<String>, Set<String>>() {
@@ -54,6 +61,25 @@ fun HomeRoute(
         onConnectSmartwatch = {
             permissionLauncher.launch(homeViewModel.healthConnectPermissions)
         },
-        onNavigateToPremium = onNavigateToPremium
+        onNavigateToPremium = onNavigateToPremium,
+        onNavigateToManualPermission = {
+            val intent = Intent(HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS)
+
+            val oldPackage = "com.google.android.apps.healthdata"
+            val newPackage = "com.google.android.healthconnect.controller"
+
+            try {
+                intent.setPackage(oldPackage)
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                Log.w("HomeRoute", "No se encontró el paquete antiguo de Health Connect. Intentando con el nuevo...")
+                try {
+                    intent.setPackage(newPackage)
+                    context.startActivity(intent)
+                } catch (e2: Exception) {
+                    Log.e("HomeRoute", "No se pudo abrir Health Connect con ninguno de los paquetes.", e2)
+                }
+            }
+        }
     )
 }

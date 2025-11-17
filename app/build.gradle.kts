@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)
+    implementation(libs.material)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.androidx.navigation.compose)
@@ -78,6 +79,7 @@ dependencies {
 
     // --- Kotlinx ---
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.constraintlayout.compose)
 
     // --- Test ---
     testImplementation(libs.junit)

@@ -17,10 +17,9 @@
 
     <!-- Pantalla: Autenticación (AuthScreen) -->
     <string name="confirmPassword">Confirm Password</string>
-    <string name="googleLogin">Sign In with Google</string>
     <string name="forgotPassword">Forgot your password?</string>
-    <string name="accountAlready">Already have an account? Log In</string>
-    <string name="noAccount">Don\'t have an account? Register</string>
+    <string name="accountAlready">Already have an account?</string>
+    <string name="noAccount">Don\'t have an account?</string>
 
     <!-- Pantalla: Bloqueo (LockScreen) -->
     <string name="lock_title">Unlock ZenIA</string>
@@ -74,6 +73,11 @@
     <string name="home_watch_connected">Watch Connected ✔\uFE0F</string>
     <string name="home_connect_watch_premium">Connect Smartwatch (Premium Feature)</string>
     <string name="home_my_account">My Account</string>
+    <string name="home_connect_watch_help">Trouble connecting? Grant permission manually here.</string>
+
+    <string name="background_image_desc">Background image</string>
+    <string name="divider_or">OR</string>
+    <string name="googleLogin">Continue with Google</string>
 
     <string name="lock_retry_button">Retry</string>
 

@@ -32,6 +32,9 @@ googleid = "1.1.1"
 
 # --- Kotlinx ---
 kotlinxCoroutines = "1.8.0"
+constraintlayoutCompose = "1.0.1"
+
+material = "1.13.0"
 
 
 [libraries]
@@ -80,7 +83,9 @@ googleid = { group = "com.google.android.libraries.identity.googleid", name = "g
 
 # --- Kotlinx ---
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
+androidx-constraintlayout-compose = { group = "androidx.constraintlayout", name = "constraintlayout-compose", version.ref = "constraintlayoutCompose" }
 
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
