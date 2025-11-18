@@ -29,6 +29,10 @@ class HealthConnectRepository(private val context: Context) {
         }
     }
 
+    fun getAvailabilityStatus(): Int {
+        return HealthConnectClient.getSdkStatus(context)
+    }
+
     val permissions: Set<String> = setOf(
         HealthPermission.getReadPermission(HeartRateRecord::class)
     )
@@ -63,7 +67,7 @@ class HealthConnectRepository(private val context: Context) {
     }
 
     suspend fun readDailyHeartRateAverage(): Int? {
-        if (!isClientAvailable || !hasPermissions()) return null
+        if (!isClientAvailable) return null
         val startTime = ZonedDateTime.now().minusDays(1).toInstant()
         val endTime = Instant.now()
 

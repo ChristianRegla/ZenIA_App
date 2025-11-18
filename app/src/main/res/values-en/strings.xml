@@ -79,6 +79,15 @@
     <string name="divider_or">OR</string>
     <string name="googleLogin">Continue with Google</string>
 
+    <string name="auth_terms_prefix">I accept the</string>
+    <string name="auth_terms_and_conditions">Terms of Use</string>
+    <string name="auth_terms_conjunction">and the</string>
+    <string name="auth_privacy_policy">Privacy Policy</string>
+    <string name="auth_error_terms_not_accepted">You must accept the Terms and Privacy Policy</string>
+
+    <string name="home_install_health_connect">Install Health Connect app</string>
+    <string name="home_health_connect_missing">Health Connect app from Google is required to synchronize your watch.</string>
+
     <string name="lock_retry_button">Retry</string>
 
 </resources>

@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,8 +9,25 @@ plugins {
     alias(libs.plugins.google.firebase.crashlytics)
 }
 
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+
 android {
     namespace = "com.zenia.app"
+
+    signingConfigs {
+        create("release") {
+            if (localProperties.containsKey("ZENIA_KEYSTORE_PATH")) {
+                storeFile = file(localProperties["ZENIA_KEYSTORE_PATH"] as String)
+                storePassword = localProperties["ZENIA_KEYSTORE_PASSWORD"] as String
+                keyAlias = localProperties["ZENIA_KEY_ALIAS"] as String
+                keyPassword = localProperties["ZENIA_KEY_PASSWORD"] as String
+            }
+        }
+    }
     compileSdk {
         version = release(36)
     }
@@ -23,12 +43,14 @@ android {
     }
 
     buildTypes {
-        release {
+        getByName("release") { // <-- Se usa getByName("release") en .kts
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Se usa '=' para la asignación
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

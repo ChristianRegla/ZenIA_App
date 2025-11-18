@@ -1,6 +1,7 @@
 package com.zenia.app.ui.screens.home
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -14,6 +15,7 @@ import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.zenia.app.viewmodel.AppViewModelProvider
 import com.zenia.app.viewmodel.HomeViewModel
+import androidx.core.net.toUri
 
 /**
  * Composable "inteligente" (Smart Composable) para la ruta principal (Home).
@@ -49,13 +51,13 @@ fun HomeRoute(
     // 3. Recolecta todos los estados necesarios
     val esPremium by homeViewModel.esPremium.collectAsState()
     val hasPermission by homeViewModel.hasHealthPermissions.collectAsState()
-    val isHealthAvailable = homeViewModel.isHealthConnectAvailable
+    val healthConnectStatus = homeViewModel.healthConnectStatus
 
     // 4. Pasa los estados y las lambdas a la HomeScreen "tonta"
     HomeScreen(
         esPremium = esPremium,
         hasPermission = hasPermission,
-        isHealthAvailable = isHealthAvailable,
+        healthConnectStatus = healthConnectStatus,
         onSignOut = onSignOut,
         onNavigateToAccount = onNavigateToAccount,
         onConnectSmartwatch = {
@@ -79,6 +81,19 @@ fun HomeRoute(
                 } catch (e2: Exception) {
                     Log.e("HomeRoute", "No se pudo abrir Health Connect con ninguno de los paquetes.", e2)
                 }
+            }
+        },
+        onInstallHealthConnect = {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    data = "market://details?id=com.google.android.apps.healthdata".toUri()
+                    setPackage("com.android.vending")
+                }
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                val webIntent = Intent(Intent.ACTION_VIEW,
+                    "https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata".toUri())
+                context.startActivity(webIntent)
             }
         }
     )

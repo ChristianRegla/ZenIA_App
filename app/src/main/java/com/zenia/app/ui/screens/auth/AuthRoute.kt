@@ -13,6 +13,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
@@ -36,19 +38,18 @@ fun AuthRoute(
 ) {
     // --- 1. Estado y Handlers ---
     val uiState by authViewModel.uiState.collectAsState()
-
-    // Estado de los campos de texto (se guardan en rotaciones)
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var confirmPassword by rememberSaveable { mutableStateOf("") }
-
-    // Estado de la UI (Login o Registro)
     var isRegisterMode by rememberSaveable { mutableStateOf(false) }
+    var termsAccepted by rememberSaveable { mutableStateOf(false) }
 
     // Handlers de Corutinas y Snackbar
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
+    val termsNotAcceptedMessage = stringResource(R.string.auth_error_terms_not_accepted)
 
     // --- 2. Lógica de Google Sign-In ---
     val credentialManager = remember { CredentialManager.create(context) }
@@ -94,7 +95,8 @@ fun AuthRoute(
         email = email,
         password = password,
         confirmPassword = confirmPassword,
-        snackbarHostState = snackbarHostState
+        snackbarHostState = snackbarHostState,
+        termsAccepted = termsAccepted
     )
 
     val screenActions = AuthScreenActions(
@@ -107,7 +109,11 @@ fun AuthRoute(
         },
         onLoginOrRegisterClick = {
             if (isRegisterMode) {
-                authViewModel.createUser(email, password, confirmPassword)
+                if (!termsAccepted) {
+                    scope.launch { snackbarHostState.showSnackbar(termsNotAcceptedMessage) }
+                } else {
+                    authViewModel.createUser(email, password, confirmPassword)
+                }
             } else {
                 authViewModel.signInWithEmail(email, password)
             }
@@ -146,6 +152,15 @@ fun AuthRoute(
                     )
                 }
             }
+        },
+        onToggleTermsAccepted = { termsAccepted = it },
+        onTermsClick = {
+            // TODO: Reemplaza esta URL por tu URL real de Términos y Condiciones
+            uriHandler.openUri("https://www.tu-sitio-web.com/terminos")
+        },
+        onPrivacyPolicyClick = {
+            // TODO: Reemplaza esta URL por tu URL real de Aviso de Privacidad
+            uriHandler.openUri("https://www.tu-sitio-web.com/privacidad")
         }
     )
 

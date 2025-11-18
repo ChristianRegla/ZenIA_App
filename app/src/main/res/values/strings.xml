@@ -77,4 +77,13 @@
     <string name="divider_or">O</string>
     <string name="googleLogin">Continuar con Google</string>
 
+    <string name="auth_terms_prefix">Acepto los</string>
+    <string name="auth_terms_and_conditions">Términos de Uso</string>
+    <string name="auth_terms_conjunction">y el</string>
+    <string name="auth_privacy_policy">Aviso de Privacidad</string>
+    <string name="auth_error_terms_not_accepted">Debes aceptar los Términos y el Aviso de Privacidad</string>
+
+    <string name="home_install_health_connect">Instalar Health Connect</string>
+    <string name="home_health_connect_missing">Se requiere la app Health Connect de Google para sincronizar tu reloj.</string>
+
 </resources>

@@ -3,6 +3,7 @@ package com.zenia.app.viewmodel
 import android.app.Application
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -74,6 +75,14 @@ class HomeViewModel(
      */
     val hasHealthPermissions: StateFlow<Boolean> = _hasHealthPermissions.asStateFlow()
 
+    // Exponemos el estado completo del SDK.
+    val healthConnectStatus: Int
+        get() = healthConnectRepository?.getAvailabilityStatus() ?: HealthConnectClient.SDK_UNAVAILABLE
+
+    // Helper para saber si podemos intentar operaciones (solo si está instalado Y disponible)
+    val isHealthConnectFullyAvailable: Boolean
+        get() = healthConnectStatus == HealthConnectClient.SDK_AVAILABLE
+
     /**
      * Indica si el SDK de Health Connect está disponible en el dispositivo.
      * Se basa en si [healthConnectRepository] pudo ser inicializado.
@@ -106,7 +115,7 @@ class HomeViewModel(
      * y actualiza el [hasHealthPermissions] StateFlow.
      */
     fun checkHealthPermissions() {
-        if (healthConnectRepository == null) {
+        if (!isHealthConnectFullyAvailable || healthConnectRepository == null) {
             _hasHealthPermissions.value = false
             return
         }

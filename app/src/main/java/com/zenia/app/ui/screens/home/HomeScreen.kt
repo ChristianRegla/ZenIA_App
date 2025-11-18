@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.health.connect.client.HealthConnectClient
 import com.zenia.app.R
 import com.zenia.app.ui.theme.ZenIATheme
 
@@ -41,12 +42,13 @@ import com.zenia.app.ui.theme.ZenIATheme
 fun HomeScreen(
     esPremium: Boolean,
     hasPermission: Boolean,
-    isHealthAvailable: Boolean,
+    healthConnectStatus: Int,
     onSignOut: () -> Unit,
     onNavigateToAccount: () -> Unit,
     onConnectSmartwatch: () -> Unit,
     onNavigateToPremium: () -> Unit,
-    onNavigateToManualPermission: () -> Unit
+    onNavigateToManualPermission: () -> Unit,
+    onInstallHealthConnect: () -> Unit
 ) {
     Scaffold { paddingValues ->
         Column(
@@ -63,31 +65,55 @@ fun HomeScreen(
             )
             Spacer(modifier = Modifier.height(32.dp))
 
-            if (isHealthAvailable) {
-                if (esPremium) {
-                    if (!hasPermission) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = onConnectSmartwatch) {
-                            Text(stringResource(R.string.home_connect_watch))
-                        }
+            when (healthConnectStatus) {
+                HealthConnectClient.SDK_AVAILABLE -> {
+                    if (esPremium) {
+                        if (!hasPermission) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(onClick = onConnectSmartwatch) {
+                                Text(stringResource(R.string.home_connect_watch))
+                            }
 
-                        Spacer(modifier = Modifier.height(8.dp))
-                        TextButton(onClick = onNavigateToManualPermission) {
-                            Text(
-                                text = stringResource(R.string.home_connect_watch_help),
-                                textAlign = TextAlign.Center
-                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            TextButton(onClick = onNavigateToManualPermission) {
+                                Text(
+                                    text = stringResource(R.string.home_connect_watch_help),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
                     } else {
                         Spacer(modifier = Modifier.height(16.dp))
-                    }
-                } else {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = onNavigateToPremium) {
-                        Text(stringResource(R.string.home_connect_watch_premium))
+                        Button(onClick = onNavigateToPremium) {
+                            Text(stringResource(R.string.home_connect_watch_premium))
+                        }
                     }
                 }
+                HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED -> {
+                    if (esPremium) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = stringResource(R.string.home_health_connect_missing),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(onClick = onInstallHealthConnect) {
+                            Text(stringResource(R.string.home_install_health_connect))
+                        }
+                    } else {
+                        // Si no es premium, mostramos el botón premium normal
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(onClick = onNavigateToPremium) {
+                            Text(stringResource(R.string.home_connect_watch_premium))
+                        }
+                    }
+                }
+                else -> {
 
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -115,12 +141,13 @@ fun HomeScreenPreview_FreeUser() {
         HomeScreen(
             esPremium = false,
             hasPermission = false,
-            isHealthAvailable = true,
+            healthConnectStatus = 0,
             onSignOut = { },
             onNavigateToAccount = { },
             onConnectSmartwatch = { },
             onNavigateToPremium = { },
-            onNavigateToManualPermission = { }
+            onNavigateToManualPermission = { },
+            onInstallHealthConnect = { }
         )
     }
 }
@@ -136,12 +163,13 @@ fun HomeScreenPreview_Premium_NeedsPermission() {
         HomeScreen(
             esPremium = true,
             hasPermission = false,
-            isHealthAvailable = true,
+            healthConnectStatus =  0,
             onSignOut = { },
             onNavigateToAccount = { },
             onConnectSmartwatch = { },
             onNavigateToPremium = { },
-            onNavigateToManualPermission = { }
+            onNavigateToManualPermission = { },
+            onInstallHealthConnect = { }
         )
     }
 }
@@ -157,12 +185,13 @@ fun HomeScreenPreview_Premium_Connected() {
         HomeScreen(
             esPremium = true,
             hasPermission = true,
-            isHealthAvailable = true,
+            healthConnectStatus = 0,
             onSignOut = { },
             onNavigateToAccount = { },
             onConnectSmartwatch = { },
             onNavigateToPremium = { },
-            onNavigateToManualPermission = { }
+            onNavigateToManualPermission = { },
+            onInstallHealthConnect = { }
         )
     }
 }
