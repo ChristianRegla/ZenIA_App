@@ -56,8 +56,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.zenia.app.R
 import com.zenia.app.ui.theme.ZenIATheme
-import com.zenia.app.viewmodel.AuthUiState
-
 /**
  * Clase de datos que agrupa todo el estado necesario para la UI de AuthScreen.
  * Esto hace que la firma del Composable sea más limpia.
@@ -342,13 +340,11 @@ private fun TermsAndConditionsCheckbox(
     onTermsClick: () -> Unit,
     onPrivacyPolicyClick: () -> Unit
 ) {
-    // Strings para los enlaces
     val termsText = stringResource(R.string.auth_terms_and_conditions)
     val policyText = stringResource(R.string.auth_privacy_policy)
     val prefix = stringResource(R.string.auth_terms_prefix)
     val conjunction = stringResource(R.string.auth_terms_conjunction)
 
-    // Construye el texto clickeable
     val annotatedString = buildAnnotatedString {
         append("$prefix ") // "Acepto los
 
@@ -368,7 +364,7 @@ private fun TermsAndConditionsCheckbox(
         pushLink(
             LinkAnnotation.Clickable(
                 tag = "POLICY",
-                linkInteractionListener = { onPrivacyPolicyClick() } // <-- Llama a la acción
+                linkInteractionListener = { onPrivacyPolicyClick() }
             )
         )
         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White, textDecoration = TextDecoration.Underline)) {

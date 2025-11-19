@@ -15,8 +15,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.os.LocaleListCompat
 import com.zenia.app.R
 import com.zenia.app.ui.screens.lock.canAuthenticate
-import com.zenia.app.viewmodel.AuthUiState
-import com.zenia.app.viewmodel.AuthViewModel
+import com.zenia.app.ui.screens.auth.AuthUiState
+import com.zenia.app.ui.screens.auth.AuthViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
 import java.util.Locale
 

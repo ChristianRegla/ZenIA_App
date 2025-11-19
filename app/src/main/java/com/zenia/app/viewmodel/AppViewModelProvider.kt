@@ -5,6 +5,8 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.zenia.app.ZeniaApplication
+import com.zenia.app.ui.screens.auth.AuthViewModel
+import com.zenia.app.ui.screens.home.HomeViewModel
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {

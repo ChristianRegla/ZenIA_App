@@ -1,4 +1,4 @@
-package com.zenia.app.viewmodel
+package com.zenia.app.ui.screens.auth
 
 sealed interface AuthUiState {
     object Idle: AuthUiState

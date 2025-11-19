@@ -1,24 +1,21 @@
-package com.zenia.app.viewmodel
+package com.zenia.app.ui.screens.home
 
 import android.app.Application
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.R
 import com.zenia.app.data.HealthConnectRepository
 import com.zenia.app.data.ZeniaRepository
 import com.zenia.app.model.RegistroBienestar
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-
 /**
  * Define los posibles estados de la UI para la pantalla principal,
  * específicamente para operaciones asíncronas como guardar un registro.
@@ -29,7 +26,6 @@ sealed interface HomeUiState {
     object Success : HomeUiState
     data class Error(val message: String) : HomeUiState
 }
-
 /**
  * ViewModel para la [HomeScreen].
  * Se encarga de gestionar el estado de la UI, obtener los registros de bienestar,
@@ -49,23 +45,20 @@ class HomeViewModel(
      */
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Idle)
     val uiState = _uiState.asStateFlow()
-
     /**
      * Expone un boolean que indica si el usuario actual tiene una suscripción "premium".
      * Se actualiza en tiempo real observando el documento del usuario en Firestore.
      */
     val esPremium: StateFlow<Boolean> = repositorio.getUsuarioFlow()
         .map { it?.suscripcion == "premium" }
-        .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), false)
-
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     /**
      * Expone el flujo de registros de bienestar del usuario desde Firestore,
      * ordenados por fecha descendente. Maneja errores de carga.
      */
     val registros = repositorio.getRegistrosBienestar()
         .catch { _uiState.value = HomeUiState.Error(application.getString(R.string.error_loading_records)) }
-        .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), emptyList())
-
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     /**
      * StateFlow interno para rastrear si se tienen los permisos de Health Connect.
      */
@@ -74,34 +67,28 @@ class HomeViewModel(
      * Expone si la app tiene (o no) los permisos necesarios de Health Connect.
      */
     val hasHealthPermissions: StateFlow<Boolean> = _hasHealthPermissions.asStateFlow()
-
     // Exponemos el estado completo del SDK.
     val healthConnectStatus: Int
         get() = healthConnectRepository?.getAvailabilityStatus() ?: HealthConnectClient.SDK_UNAVAILABLE
-
     // Helper para saber si podemos intentar operaciones (solo si está instalado Y disponible)
     val isHealthConnectFullyAvailable: Boolean
         get() = healthConnectStatus == HealthConnectClient.SDK_AVAILABLE
-
     /**
      * Indica si el SDK de Health Connect está disponible en el dispositivo.
      * Se basa en si [healthConnectRepository] pudo ser inicializado.
      */
     val isHealthConnectAvailable: Boolean = healthConnectRepository != null
-
     /**
      * Expone el conjunto de permisos de Health Connect que la app requiere (ej. leer ritmo cardíaco).
      */
     val healthConnectPermissions: Set<String>
         get() = healthConnectRepository?.permissions ?: emptySet()
-
     /**
      * Expone el 'contrato' de ActivityResult que la UI debe usar para solicitar
      * los permisos de Health Connect.
      */
     val permissionRequestContract
         get() = healthConnectRepository?.getPermissionRequestContract()
-
     /**
      * Bloque de inicialización.
      * Comprueba los permisos de Health Connect en cuanto se crea el ViewModel.
@@ -109,7 +96,6 @@ class HomeViewModel(
     init {
         checkHealthPermissions()
     }
-
     /**
      * Comprueba si la app tiene actualmente los permisos de Health Connect
      * y actualiza el [hasHealthPermissions] StateFlow.
@@ -123,7 +109,6 @@ class HomeViewModel(
             _hasHealthPermissions.value = healthConnectRepository.hasPermissions()
         }
     }
-
     /**
      * Guarda un nuevo registro de bienestar en Firestore.
      * Si el usuario es [esPremium] y [hasHealthPermissions], también intenta

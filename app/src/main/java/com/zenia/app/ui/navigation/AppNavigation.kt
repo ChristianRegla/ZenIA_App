@@ -14,7 +14,7 @@ import com.zenia.app.ui.screens.auth.AuthRoute
 import com.zenia.app.ui.screens.home.HomeRoute
 import com.zenia.app.ui.screens.lock.LockRoute
 import com.zenia.app.viewmodel.AppViewModelProvider
-import com.zenia.app.viewmodel.AuthViewModel
+import com.zenia.app.ui.screens.auth.AuthViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
 
 /**

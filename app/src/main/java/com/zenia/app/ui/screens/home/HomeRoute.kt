@@ -1,7 +1,6 @@
 package com.zenia.app.ui.screens.home
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -14,7 +13,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.zenia.app.viewmodel.AppViewModelProvider
-import com.zenia.app.viewmodel.HomeViewModel
 import androidx.core.net.toUri
 
 /**

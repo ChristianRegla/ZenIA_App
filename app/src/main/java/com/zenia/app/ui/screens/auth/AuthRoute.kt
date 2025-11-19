@@ -23,8 +23,8 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.GoogleAuthProvider
 import com.zenia.app.R
-import com.zenia.app.viewmodel.AuthUiState
-import com.zenia.app.viewmodel.AuthViewModel
+import com.zenia.app.ui.screens.auth.AuthUiState
+import com.zenia.app.ui.screens.auth.AuthViewModel
 import kotlinx.coroutines.launch
 
 /**
@@ -155,12 +155,10 @@ fun AuthRoute(
         },
         onToggleTermsAccepted = { termsAccepted = it },
         onTermsClick = {
-            // TODO: Reemplaza esta URL por tu URL real de Términos y Condiciones
-            uriHandler.openUri("https://www.tu-sitio-web.com/terminos")
+            uriHandler.openUri("https://zenia-official.me/terminos")
         },
         onPrivacyPolicyClick = {
-            // TODO: Reemplaza esta URL por tu URL real de Aviso de Privacidad
-            uriHandler.openUri("https://www.tu-sitio-web.com/privacidad")
+            uriHandler.openUri("https://zenia-official.me/privacidad")
         }
     )
 

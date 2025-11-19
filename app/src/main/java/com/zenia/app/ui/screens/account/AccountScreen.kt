@@ -45,8 +45,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import com.zenia.app.R
-import com.zenia.app.viewmodel.AuthUiState
-import com.zenia.app.viewmodel.AuthViewModel
+import com.zenia.app.ui.screens.auth.AuthUiState
+import com.zenia.app.ui.screens.auth.AuthViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
 import com.zenia.app.ui.screens.lock.canAuthenticate
 import com.zenia.app.ui.theme.ZenIATheme

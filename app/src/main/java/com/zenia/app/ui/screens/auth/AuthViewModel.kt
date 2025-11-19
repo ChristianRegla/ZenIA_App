@@ -1,4 +1,4 @@
-package com.zenia.app.viewmodel
+package com.zenia.app.ui.screens.auth
 
 import android.app.Application
 import android.util.Patterns
@@ -293,7 +293,8 @@ class AuthViewModel(
                 "ERROR_REQUIRES_RECENT_LOGIN" -> application.getString(R.string.auth_error_requires_recent_login)
                 else -> application.getString(R.string.auth_error_default, e.message ?: "Unknown")
             }
-            else -> e.message?.let { application.getString(R.string.auth_error_unexpected, it) } ?: application.getString(R.string.auth_error_unexpected, "Unknown")
+            else -> e.message?.let { application.getString(R.string.auth_error_unexpected, it) } ?: application.getString(
+                R.string.auth_error_unexpected, "Unknown")
         }
     }
 }
