@@ -3,7 +3,6 @@ package com.zenia.app.ui.screens.auth
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -12,10 +11,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -67,7 +66,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import com.zenia.app.R
 import com.zenia.app.ui.theme.ZenIATheme
 /**
@@ -83,7 +85,6 @@ data class AuthScreenState(
     val snackbarHostState: SnackbarHostState,
     val termsAccepted: Boolean
 )
-
 /**
  * Clase de datos que agrupa todas las acciones (lambdas) que la UI puede disparar.
  */
@@ -105,7 +106,6 @@ fun AuthScreen(
     state: AuthScreenState,
     actions: AuthScreenActions
 ) {
-    var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
     ZenIATheme {
         Scaffold(
@@ -132,227 +132,323 @@ fun AuthScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .systemBarsPadding()
             ) {
-                val isPortraitPhone = this.maxHeight > 600.dp && this.maxHeight > maxWidth
+                val rawHeight = maxHeight
+                val rawWidth = maxWidth
 
-                if (isPortraitPhone) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 32.dp)
-                            .imePadding()
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.app_name),
-                                style = MaterialTheme.typography.displayLarge,
-                                fontFamily = FontFamily(Font(R.font.lobster_regular)),
-                                color = Color.White,
-                                textAlign = TextAlign.Center
-                            )
+                val isPortraitPhone = rawHeight > 600.dp && rawHeight > rawWidth
 
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .verticalScroll(rememberScrollState())
-                                    .padding(bottom = 32.dp), // Padding inferior estético
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Bottom
-                            ) {
-                                AuthFormContent(state, actions, passwordVisible) { passwordVisible = !passwordVisible }
-                            }
-                        }
-                    }
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 32.dp)
-                            .imePadding(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .widthIn(max = 480.dp)
-                                .verticalScroll(rememberScrollState()),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Spacer(modifier = Modifier.height(32.dp))
-                            Text(
-                                text = stringResource(id = R.string.app_name),
-                                style = MaterialTheme.typography.displayLarge,
-                                fontFamily = FontFamily(Font(R.font.lobster_regular)),
-                                color = Color.White,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(32.dp))
-                            AuthFormContent(state, actions, passwordVisible) { passwordVisible = !passwordVisible }
-                            Spacer(modifier = Modifier.height(32.dp))
-                        }
-                    }
-                }
+                val bottomPadding = if (isPortraitPhone) 32.dp else 0.dp
+                val adjustedMinHeight = rawHeight - bottomPadding
+                val contentAlignment = if (isPortraitPhone) Alignment.BottomCenter else Alignment.Center
+                AuthContent(
+                    state = state,
+                    actions = actions,
+                    minHeight = adjustedMinHeight,
+                    isPortraitPhone = isPortraitPhone,
+                    bottomPadding = bottomPadding,
+                    contentAlignment = contentAlignment
+                )
             }
         }
     }
 }
 
 @Composable
-fun AuthFormContent(
+private fun AuthContent(
     state: AuthScreenState,
     actions: AuthScreenActions,
-    passwordVisible: Boolean,
-    onTogglePasswordVisibility: () -> Unit
+    minHeight: Dp,
+    isPortraitPhone: Boolean,
+    bottomPadding: Dp,
+    contentAlignment: Alignment
 ) {
-    if (state.uiState == AuthUiState.Loading) {
-        CircularProgressIndicator(color = Color.White)
-    } else {
-        TextField(
-            value = state.email,
-            onValueChange = actions.onEmailChange,
-            label = { Text(stringResource(R.string.email)) },
-            shape = RoundedCornerShape(15.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent,
-                focusedLabelColor = Color.Black,
-                unfocusedLabelColor = Color.LightGray,
-                cursorColor = Color.Black
-            ),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
-        Spacer(modifier = Modifier.height(16.dp))
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp)
+            .padding(bottom = bottomPadding),
+        contentAlignment = contentAlignment
+    ) {
+        Column(
+            modifier = Modifier
+                .widthIn(max = 480.dp)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .imePadding(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            ConstraintLayout(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(if (isPortraitPhone) Modifier.heightIn(min = minHeight) else Modifier)
+            ) {
+                val (
+                    appName, emailField, passwordField, confirmPasswordField,
+                    forgotPassword, loginButton, divider, googleButton,
+                    toggleModeText, termsCheckbox, loader
+                ) = createRefs()
 
-        TextField(
-            value = state.password,
-            onValueChange = actions.onPasswordChange,
-            label = { Text(stringResource(R.string.password)) },
-            shape = RoundedCornerShape(15.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent,
-                focusedLabelColor = Color.Black,
-                unfocusedLabelColor = Color.LightGray,
-                cursorColor = Color.Black
-            ),
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                IconButton(onClick = onTogglePasswordVisibility) {
-                    Icon(imageVector = image, contentDescription = "Toggle visibility")
-                }
-            },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = if (state.isRegisterMode) ImeAction.Next else ImeAction.Done
-            ),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
+                // Título de la App (Se centra en el espacio vacío superior)
+                Text(
+                    text = stringResource(id = R.string.app_name),
+                    style = MaterialTheme.typography.displayLarge,
+                    fontFamily = FontFamily(Font(R.font.lobster_regular)),
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .constrainAs(appName) {
+                            top.linkTo(parent.top)
+                            bottom.linkTo(emailField.top)
+                            centerHorizontallyTo(parent)
+                        }
+                )
 
-        if (state.isRegisterMode) {
-            Spacer(modifier = Modifier.height(16.dp))
-            TextField(
-                value = state.confirmPassword,
-                onValueChange = actions.onConfirmPasswordChange,
-                label = { Text(stringResource(R.string.confirmPassword)) },
-                shape = RoundedCornerShape(15.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent,
-                    focusedLabelColor = Color.Black,
-                    unfocusedLabelColor = Color.LightGray,
-                    cursorColor = Color.Black
-                ),
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+                if (state.uiState == AuthUiState.Loading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .constrainAs(loader) {
+                                top.linkTo(appName.bottom)
+                                bottom.linkTo(parent.bottom)
+                                centerHorizontallyTo(parent)
+                            }
+                    )
+                } else {
+                    // Campos del Formulario
+                    TextField(
+                        value = state.email,
+                        onValueChange = actions.onEmailChange,
+                        label = { Text(stringResource(R.string.email)) },
+                        shape = RoundedCornerShape(15.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedLabelColor = Color.Black,
+                            unfocusedLabelColor = Color.LightGray,
+                            cursorColor = Color.Black
+                        ),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .constrainAs(emailField) {
+                                bottom.linkTo(passwordField.top, margin = 16.dp)
+                                centerHorizontallyTo(parent)
+                            }
+                    )
 
-            Spacer(modifier = Modifier.height(10.dp))
+                    TextField(
+                        value = state.password,
+                        onValueChange = actions.onPasswordChange,
+                        label = { Text(stringResource(R.string.password)) },
+                        shape = RoundedCornerShape(15.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedLabelColor = Color.Black,
+                            unfocusedLabelColor = Color.LightGray,
+                            cursorColor = Color.Black
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .constrainAs(passwordField) {
+                                if (state.isRegisterMode) {
+                                    bottom.linkTo(confirmPasswordField.top, margin = 16.dp)
+                                } else {
+                                    bottom.linkTo(forgotPassword.top)
+                                }
+                                centerHorizontallyTo(parent)
+                            },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            val image = if (passwordVisible)
+                                Icons.Filled.Visibility
+                            else
+                                Icons.Filled.VisibilityOff
 
-            TermsAndConditionsCheckbox(
-                checked = state.termsAccepted,
-                onCheckedChange = actions.onToggleTermsAccepted,
-                onTermsClick = actions.onTermsClick,
-                onPrivacyPolicyClick = actions.onPrivacyPolicyClick,
-                modifier = Modifier.fillMaxWidth()
-            )
-        } else {
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
-                TextButton(onClick = actions.onForgotPasswordClick) {
-                    Text(text = stringResource(id = R.string.forgotPassword), color = Color.White)
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(imageVector = image, contentDescription = "Toggle password visibility")
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = if (state.isRegisterMode) ImeAction.Next else ImeAction.Done
+                        ),
+                        singleLine = true
+                    )
+
+                    if (state.isRegisterMode) {
+                        TextField(
+                            value = state.confirmPassword,
+                            onValueChange = actions.onConfirmPasswordChange,
+                            label = { Text(stringResource(R.string.confirmPassword)) },
+                            shape = RoundedCornerShape(15.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black,
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White,
+                                focusedBorderColor = Color.Transparent,
+                                unfocusedBorderColor = Color.Transparent,
+                                focusedLabelColor = Color.Black,
+                                unfocusedLabelColor = Color.LightGray,
+                                cursorColor = Color.Black
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .constrainAs(confirmPasswordField) {
+                                    bottom.linkTo(termsCheckbox.top, margin = 10.dp)
+                                    centerHorizontallyTo(parent)
+                                },
+                            visualTransformation = PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            singleLine = true
+                        )
+
+                        TermsAndConditionsCheckbox(
+                            checked = state.termsAccepted,
+                            onCheckedChange = actions.onToggleTermsAccepted,
+                            onTermsClick = actions.onTermsClick,
+                            onPrivacyPolicyClick = actions.onPrivacyPolicyClick,
+                            modifier = Modifier
+                                .constrainAs(termsCheckbox) {
+                                    bottom.linkTo(loginButton.top, margin = 10.dp)
+                                    centerHorizontallyTo(parent)
+                                    width = Dimension.fillToConstraints
+                                }
+                        )
+                    } else {
+                        TextButton(
+                            onClick = actions.onForgotPasswordClick,
+                            modifier = Modifier
+                                .constrainAs(forgotPassword) {
+                                    bottom.linkTo(loginButton.top, margin = 10.dp)
+                                    start.linkTo(loginButton.start)
+                                }
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.forgotPassword),
+                                color = Color.White
+                            )
+                        }
+                    }
+
+                    Button(
+                        onClick = actions.onLoginOrRegisterClick,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorResource(id = R.color.azul_oscuro)
+                        ),
+                        shape = RoundedCornerShape(50.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .constrainAs(loginButton) {
+                                bottom.linkTo(divider.top, margin = 16.dp)
+                                centerHorizontallyTo(parent)
+                            },
+                        enabled = state.uiState != AuthUiState.Loading
+                    ) {
+                        if (state.uiState == AuthUiState.Loading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = Color.White,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = if (state.isRegisterMode) stringResource(R.string.register) else stringResource(R.string.login),
+                                color = Color.White
+                            )
+                        }
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .constrainAs(divider) {
+                                bottom.linkTo(googleButton.top, margin = 16.dp)
+                                start.linkTo(parent.start)
+                                end.linkTo(parent.end)
+                            }
+                    ) {
+                        HorizontalDivider(modifier = Modifier.weight(1f), thickness = 1.dp, color = Color.White)
+                        Text(
+                            text = stringResource(R.string.divider_or),
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        )
+                        HorizontalDivider(modifier = Modifier.weight(1f), thickness = 1.dp, color = Color.White)
+                    }
+
+                    Button(
+                        onClick = actions.onGoogleSignInClick,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorResource(id = R.color.google)
+                        ),
+                        shape = RoundedCornerShape(50.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .constrainAs(googleButton) {
+                                bottom.linkTo(toggleModeText.top, margin = 16.dp)
+                                start.linkTo(parent.start)
+                                end.linkTo(parent.end)
+                            },
+                        enabled = state.uiState != AuthUiState.Loading
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.image_continuar_google_group),
+                            contentDescription = stringResource(R.string.googleLogin),
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = stringResource(R.string.googleLogin),
+                            color = Color.Black
+                        )
+                    }
+
+                    Text(
+                        text = buildAnnotatedString {
+                            val text1 = if (state.isRegisterMode) stringResource(R.string.accountAlready)
+                            else stringResource(R.string.noAccount)
+                            val text2 = if (state.isRegisterMode) stringResource(R.string.login)
+                            else stringResource(R.string.register)
+                            append(text1)
+                            append(" ")
+                            withStyle(
+                                style = SpanStyle(
+                                    textDecoration = TextDecoration.Underline,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append(text2)
+                            }
+                        },
+                        color = Color.White,
+                        modifier = Modifier
+                            .clickable { actions.onToggleModeClick() }
+                            .constrainAs(toggleModeText) {
+                                bottom.linkTo(parent.bottom)
+                                centerHorizontallyTo(parent)
+                            }
+                    )
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = actions.onLoginOrRegisterClick,
-            colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.azul_oscuro)),
-            shape = RoundedCornerShape(50.dp),
-            modifier = Modifier.fillMaxWidth().height(50.dp),
-            enabled = state.uiState != AuthUiState.Loading
-        ) {
-            Text(text = if (state.isRegisterMode) stringResource(R.string.register) else stringResource(R.string.login), color = Color.White)
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            HorizontalDivider(modifier = Modifier.weight(1f), thickness = 1.dp, color = Color.White)
-            Text(text = stringResource(R.string.divider_or), color = Color.White, modifier = Modifier.padding(horizontal = 8.dp))
-            HorizontalDivider(modifier = Modifier.weight(1f), thickness = 1.dp, color = Color.White)
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = actions.onGoogleSignInClick,
-            colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.google)),
-            shape = RoundedCornerShape(50.dp),
-            modifier = Modifier.fillMaxWidth().height(50.dp),
-            enabled = state.uiState != AuthUiState.Loading
-        ) {
-            Icon(painter = painterResource(id = R.drawable.image_continuar_google_group), contentDescription = null, tint = Color.Unspecified, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(text = stringResource(R.string.googleLogin), color = Color.Black)
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = buildAnnotatedString {
-                val text1 = if (state.isRegisterMode) stringResource(R.string.accountAlready) else stringResource(R.string.noAccount)
-                val text2 = if (state.isRegisterMode) stringResource(R.string.login) else stringResource(R.string.register)
-                append(text1); append(" ")
-                withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline, fontWeight = FontWeight.Bold)) { append(text2) }
-            },
-            color = Color.White,
-            modifier = Modifier.clickable { actions.onToggleModeClick() }
-        )
     }
 }
 
