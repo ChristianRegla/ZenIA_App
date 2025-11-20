@@ -102,6 +102,7 @@ dependencies {
     // --- Kotlinx ---
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.constraintlayout.compose)
+    implementation(libs.androidx.compose.foundation.layout)
 
     // --- Test ---
     testImplementation(libs.junit)
@@ -113,4 +114,6 @@ dependencies {
     // --- Debug ---
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    implementation(libs.androidx.compose.material.icons.extended)
 }
