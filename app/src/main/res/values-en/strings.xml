@@ -90,4 +90,10 @@
 
     <string name="lock_retry_button">Retry</string>
 
+    <string name="nav_home">Home</string>
+    <string name="nav_relax">Relax</string>
+    <string name="nav_bot">ZenIA</string>
+    <string name="nav_diary">Journal</string>
+    <string name="nav_resources">Resources</string>
+
 </resources>

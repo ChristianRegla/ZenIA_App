@@ -191,7 +191,6 @@ private fun AuthContent(
                     toggleModeText, termsCheckbox, loader
                 ) = createRefs()
 
-                // Título de la App (Se centra en el espacio vacío superior)
                 Text(
                     text = stringResource(id = R.string.app_name),
                     style = MaterialTheme.typography.displayLarge,

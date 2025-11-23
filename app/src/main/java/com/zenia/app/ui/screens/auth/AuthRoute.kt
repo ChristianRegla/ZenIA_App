@@ -155,10 +155,10 @@ fun AuthRoute(
         },
         onToggleTermsAccepted = { termsAccepted = it },
         onTermsClick = {
-            uriHandler.openUri("https://zenia-official.me/terminos")
+            uriHandler.openUri("https://zenia-official.me/terminos/")
         },
         onPrivacyPolicyClick = {
-            uriHandler.openUri("https://zenia-official.me/privacidad")
+            uriHandler.openUri("https://zenia-official.me/privacidad/")
         }
     )
 

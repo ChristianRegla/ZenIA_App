@@ -86,4 +86,10 @@
     <string name="home_install_health_connect">Instalar Health Connect</string>
     <string name="home_health_connect_missing">Se requiere la app Health Connect de Google para sincronizar tu reloj.</string>
 
+    <string name="nav_home">Inicio</string>
+    <string name="nav_relax">Relajación</string>
+    <string name="nav_bot">ZenIA</string>
+    <string name="nav_diary">Diario</string>
+    <string name="nav_resources">Recursos</string>
+
 </resources>

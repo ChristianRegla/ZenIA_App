@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.zenia.app.ui.screens.MainScreen
 import com.zenia.app.ui.screens.account.AccountRoute
 import com.zenia.app.ui.screens.auth.AuthRoute
 import com.zenia.app.ui.screens.home.HomeRoute
@@ -64,12 +65,15 @@ fun AppNavigation() {
          * La lógica de esta pantalla está contenida en [HomeRoute].
          */
         composable(Destinations.HOME_ROUTE) {
-            HomeRoute(
-                onSignOut = { authViewModel.signOut() },
-                onNavigateToAccount = { navController.navigate(Destinations.ACCOUNT_ROUTE) },
-                onNavigateToPremium = {
-                    // TODO: Navegar a la futura pantalla de suscripción
-                    // navController.navigate(Destinations.PREMIUM_ROUTE)
+            MainScreen(
+                onSignOut = {
+                    authViewModel.signOut()
+                    navController.navigate(Destinations.AUTH_ROUTE) {
+                        popUpTo(Destinations.HOME_ROUTE) { inclusive = true }
+                    }
+                },
+                onNavigateToAccount = {
+                    navController.navigate(Destinations.ACCOUNT_ROUTE)
                 }
             )
         }
