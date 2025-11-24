@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -49,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -128,26 +128,27 @@ fun AuthScreen(
                 )
             }
 
-            BoxWithConstraints(
+            val configuration = LocalConfiguration.current
+            val screenHeight = configuration.screenHeightDp.dp
+            val screenWidth = configuration.screenWidthDp.dp
+
+            val isPortraitPhone = screenHeight > 600.dp && screenHeight > screenWidth
+
+            val bottomPadding = if (isPortraitPhone) 32.dp else 0.dp
+            val adjustedMinHeight = screenHeight - bottomPadding
+
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                val rawHeight = maxHeight
-                val rawWidth = maxWidth
-
-                val isPortraitPhone = rawHeight > 600.dp && rawHeight > rawWidth
-
-                val bottomPadding = if (isPortraitPhone) 32.dp else 0.dp
-                val adjustedMinHeight = rawHeight - bottomPadding
-                val contentAlignment = if (isPortraitPhone) Alignment.BottomCenter else Alignment.Center
                 AuthContent(
                     state = state,
                     actions = actions,
                     minHeight = adjustedMinHeight,
                     isPortraitPhone = isPortraitPhone,
                     bottomPadding = bottomPadding,
-                    contentAlignment = contentAlignment
+                    contentAlignment = if (isPortraitPhone) Alignment.BottomCenter else Alignment.Center
                 )
             }
         }
@@ -168,6 +169,7 @@ private fun AuthContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .imePadding()
             .padding(horizontal = 32.dp)
             .padding(bottom = bottomPadding),
         contentAlignment = contentAlignment
