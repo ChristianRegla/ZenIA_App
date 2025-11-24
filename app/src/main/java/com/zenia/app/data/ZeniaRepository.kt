@@ -220,6 +220,33 @@ class ZeniaRepository {
     }
 
     /**
+     * Elimina todos los mensajes del historial de chat del usuario actual.
+     * Utiliza un Batch para hacerlo de manera eficiente y atómica.
+     */
+    suspend fun deleteChatHistory() {
+        val currentUserId = auth.currentUser?.uid
+        if (currentUserId.isNullOrBlank()) return
+
+        val chatCollection = db.collection("usuarios")
+            .document(currentUserId)
+            .collection("chatHistory")
+
+        val snapshot = chatCollection.get().await()
+
+        if (snapshot.isEmpty) return
+
+        val batches = snapshot.documents.chunked(500)
+
+        for (batchDocs in batches) {
+            val batch = db.batch()
+            for (document in batchDocs) {
+                batch.delete(document.reference)
+            }
+            batch.commit().await()
+        }
+    }
+
+    /**
      * Añade un nuevo [RegistroBienestar] a la subcolección del usuario actual.
      * Es una función suspendida (asíncrona).
      *

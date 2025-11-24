@@ -7,6 +7,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.zenia.app.ZeniaApplication
 import com.zenia.app.ui.screens.auth.AuthViewModel
 import com.zenia.app.ui.screens.home.HomeViewModel
+import com.zenia.app.ui.screens.recursos.RecursosViewModel
+import com.zenia.app.ui.screens.zenia.ZeniaChatViewModel
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {
@@ -29,6 +31,18 @@ object AppViewModelProvider {
         initializer {
             SettingsViewModel(
                 zeniaApplication().container.userPreferencesRepository
+            )
+        }
+
+        initializer {
+            RecursosViewModel(
+                zeniaApplication().container.zeniaRepository
+            )
+        }
+
+        initializer {
+            ZeniaChatViewModel(
+                zeniaApplication().container.zeniaRepository
             )
         }
     }

@@ -14,9 +14,9 @@ import com.zenia.app.ui.components.ZeniaBottomBar
 import com.zenia.app.ui.navigation.BottomNavItem
 import com.zenia.app.ui.screens.diary.DiarioScreen
 import com.zenia.app.ui.screens.home.HomeRoute
+import com.zenia.app.ui.screens.recursos.RecursosRoute
 import com.zenia.app.ui.screens.relax.RelajacionScreen
-import com.zenia.app.ui.screens.resources.RecursosScreen
-import com.zenia.app.ui.screens.zenia.ZeniaBotScreen
+import com.zenia.app.ui.screens.zenia.ZeniaBotRoute
 import com.zenia.app.ui.theme.ZenIATheme
 
 @Composable
@@ -54,7 +54,7 @@ fun MainScreen(
                     }
 
                     composable(BottomNavItem.Zenia.route) {
-                        ZeniaBotScreen()
+                        ZeniaBotRoute()
                     }
 
                     composable(BottomNavItem.Diario.route) {
@@ -62,7 +62,7 @@ fun MainScreen(
                     }
 
                     composable(BottomNavItem.Recursos.route) {
-                        RecursosScreen()
+                        RecursosRoute()
                     }
                 }
             }
