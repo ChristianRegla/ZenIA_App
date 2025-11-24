@@ -8,4 +8,8 @@ object Destinations {
     const val SETTINGS_ROUTE = "settings"
     const val ABOUT_ROUTE = "about"
     const val FORGOT_PASSWORD_ROUTE = "forgot_password"
+    const val HELP_CENTER_ROUTE = "help_center"
+    const val DONATIONS_ROUTE = "donations"
+    const val PRIVACY_POLICY_ROUTE = "privacy_policy"
+
 }

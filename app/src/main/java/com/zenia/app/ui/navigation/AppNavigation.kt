@@ -17,6 +17,10 @@ import com.zenia.app.ui.screens.lock.LockRoute
 import com.zenia.app.viewmodel.AppViewModelProvider
 import com.zenia.app.ui.screens.auth.AuthViewModel
 import com.zenia.app.ui.screens.auth.ForgotPasswordScreen
+import com.zenia.app.ui.screens.settings.DonationsRoute
+import com.zenia.app.ui.screens.settings.HelpCenterRoute
+import com.zenia.app.ui.screens.settings.PrivacyRoute
+import com.zenia.app.ui.screens.settings.SettingsRoute
 import com.zenia.app.viewmodel.SettingsViewModel
 
 /**
@@ -90,7 +94,49 @@ fun AppNavigation() {
                 },
                 onNavigateToAccount = {
                     navController.navigate(Destinations.ACCOUNT_ROUTE)
+                },
+                onNavigateToSettings = {
+                    navController.navigate(Destinations.SETTINGS_ROUTE)
                 }
+            )
+        }
+
+        composable(Destinations.SETTINGS_ROUTE) {
+            // Instanciamos el ViewModel (asumiendo que tienes el Factory configurado)
+            val settingsViewModel: SettingsViewModel = viewModel(
+                factory = AppViewModelProvider.Factory
+            )
+
+            SettingsRoute(
+                settingsViewModel = settingsViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToHelp = {
+                    navController.navigate(Destinations.HELP_CENTER_ROUTE)
+                },
+                onNavigateToDonations = {
+                    navController.navigate(Destinations.DONATIONS_ROUTE)
+                },
+                onNavigateToPrivacy = {
+                    navController.navigate(Destinations.PRIVACY_POLICY_ROUTE)
+                }
+            )
+        }
+
+        composable(Destinations.HELP_CENTER_ROUTE) {
+            HelpCenterRoute(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Destinations.DONATIONS_ROUTE) {
+            DonationsRoute(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Destinations.PRIVACY_POLICY_ROUTE) {
+            PrivacyRoute(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
