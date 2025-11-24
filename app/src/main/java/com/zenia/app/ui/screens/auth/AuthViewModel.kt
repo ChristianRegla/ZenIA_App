@@ -66,6 +66,14 @@ class AuthViewModel(
         _isUserLoggedIn.value = (user != null && user.isEmailVerified)
     }
 
+    // Estado para el temporizador de reenvío (0 significa listo para enviar)
+    private val _resendTimer = MutableStateFlow(0)
+    val resendTimer = _resendTimer.asStateFlow()
+
+    // Estado para saber si ya se envió al menos una vez (para mostrar el mensaje de Spam)
+    private val _emailSentSuccess = MutableStateFlow(false)
+    val emailSentSuccess = _emailSentSuccess.asStateFlow()
+
     /**
      * Bloque de inicialización. Se registra el [authStateListener] cuando el ViewModel se crea.
      */
@@ -197,7 +205,7 @@ class AuthViewModel(
      * Envía un correo de restablecimiento de contraseña a la dirección de email proporcionada.
      */
     fun sendPasswordResetEmail(email: String) {
-        if (_uiState.value == AuthUiState.Loading) return
+        if (_resendTimer.value > 0) return
 
         if (!isValidEmail(email)) {
             _uiState.value = AuthUiState.Error(application.getString(R.string.auth_error_invalid_email))
@@ -209,10 +217,29 @@ class AuthViewModel(
             try {
                 auth.sendPasswordResetEmail(email).await()
                 _uiState.value = AuthUiState.PasswordResetSent
+                _emailSentSuccess.value = true
+                startResendTimer()
             } catch (e: Exception) {
                 _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
             }
         }
+    }
+
+    private fun startResendTimer() {
+        viewModelScope.launch {
+            _resendTimer.value = 60
+            while (_resendTimer.value > 0) {
+                kotlinx.coroutines.delay(1000)
+                _resendTimer.value -= 1
+            }
+        }
+    }
+
+    // Limpia el estado cuando salimos de la pantalla
+    fun resetForgotPasswordState() {
+        _resendTimer.value = 0
+        _emailSentSuccess.value = false
+        _uiState.value = AuthUiState.Idle
     }
 
     /**

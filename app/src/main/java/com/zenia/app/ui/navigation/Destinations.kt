@@ -7,4 +7,5 @@ object Destinations {
     const val LOCK_ROUTE = "lock"
     const val SETTINGS_ROUTE = "settings"
     const val ABOUT_ROUTE = "about"
+    const val FORGOT_PASSWORD_ROUTE = "forgot_password"
 }

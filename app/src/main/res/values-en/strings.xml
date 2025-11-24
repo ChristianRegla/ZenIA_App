@@ -96,4 +96,12 @@
     <string name="nav_diary">Journal</string>
     <string name="nav_resources">Resources</string>
 
+    <string name="forgot_password_title">Recover Password</string>
+    <string name="forgot_password_instructions">Enter your email and we will send you an email to recover your password</string>
+    <string name="forgot_password_button_recover">Recover Password</string>
+    <string name="forgot_password_button_resend">Resend Email</string>
+    <string name="forgot_password_button_timer">Resend in %1$ds</string>
+    <string name="forgot_password_spam_warning">Important: If you cannot find the email in your inbox, please check your Spam or Junk folder.</string>
+    <string name="nav_back_desc">Back</string>
+
 </resources>

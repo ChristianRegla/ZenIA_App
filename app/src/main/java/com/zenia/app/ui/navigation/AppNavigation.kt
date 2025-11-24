@@ -16,6 +16,7 @@ import com.zenia.app.ui.screens.home.HomeRoute
 import com.zenia.app.ui.screens.lock.LockRoute
 import com.zenia.app.viewmodel.AppViewModelProvider
 import com.zenia.app.ui.screens.auth.AuthViewModel
+import com.zenia.app.ui.screens.auth.ForgotPasswordScreen
 import com.zenia.app.viewmodel.SettingsViewModel
 
 /**
@@ -57,7 +58,22 @@ fun AppNavigation() {
          * La lógica de esta pantalla está contenida en [AuthRoute].
          */
         composable(Destinations.AUTH_ROUTE) {
-            AuthRoute(authViewModel = authViewModel)
+            AuthRoute(
+                authViewModel = authViewModel,
+                onNavigateToForgotPassword = {
+                    navController.navigate(Destinations.FORGOT_PASSWORD_ROUTE)
+                }
+            )
+        }
+
+        composable(Destinations.FORGOT_PASSWORD_ROUTE) {
+            ForgotPasswordScreen(
+                viewModel = authViewModel,
+                onNavigateBack = {
+                    authViewModel.resetForgotPasswordState() // Limpiamos al salir
+                    navController.popBackStack()
+                }
+            )
         }
 
         /**

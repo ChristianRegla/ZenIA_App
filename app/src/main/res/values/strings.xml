@@ -90,6 +90,14 @@
     <string name="nav_relax">Relajación</string>
     <string name="nav_bot">ZenIA</string>
     <string name="nav_diary">Diario</string>
+
     <string name="nav_resources">Recursos</string>
+    <string name="forgot_password_title">Recuperar contraseña</string>
+    <string name="forgot_password_instructions">Ingresa tu correo y te enviaremos un correo para que puedas recuperar tu contraseña</string>
+    <string name="forgot_password_button_recover">Recuperar contraseña</string>
+    <string name="forgot_password_button_resend">Reenviar correo</string>
+    <string name="forgot_password_button_timer">Reenviar en %1$ds</string>
+    <string name="forgot_password_spam_warning">Importante: Si no encuentras el correo en tu bandeja de entrada, por favor revisa tu carpeta de Spam o Correo no deseado.</string>
+    <string name="nav_back_desc">Atrás</string>
 
 </resources>

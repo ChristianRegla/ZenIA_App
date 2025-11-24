@@ -1,43 +1,37 @@
 package com.zenia.app.ui.navigation
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.ui.graphics.vector.ImageVector
 import com.zenia.app.R
 
 sealed class BottomNavItem(
     val route: String,
     @StringRes val titleRes: Int,
-    val icon: ImageVector
+    @DrawableRes val iconRes: Int
 ) {
     object Inicio : BottomNavItem(
         route = "home_tab",
         titleRes = R.string.nav_home,
-        icon = Icons.Default.Home
+        iconRes = R.drawable.ic_home
     )
     object Relajacion : BottomNavItem(
         route = "relax_tab",
         titleRes = R.string.nav_relax,
-        icon = Icons.Default.Favorite
+        iconRes = R.drawable.ic_relax
     )
     object Zenia : BottomNavItem(
         route = "zenia_bot_tab",
         titleRes = R.string.nav_bot,
-        icon = Icons.AutoMirrored.Filled.Chat
+        iconRes = R.drawable.ic_chat
     )
     object Diario : BottomNavItem(
         route = "diary_tab",
         titleRes = R.string.nav_diary,
-        icon = Icons.Default.DateRange
+        iconRes = R.drawable.ic_journal
     )
     object Recursos : BottomNavItem(
         route = "resources_tab",
         titleRes = R.string.nav_resources,
-        icon = Icons.Default.Book
+        iconRes = R.drawable.ic_resources
     )
 }

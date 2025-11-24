@@ -34,7 +34,8 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun AuthRoute(
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    onNavigateToForgotPassword: () -> Unit
 ) {
     // --- 1. Estado y Handlers ---
     val uiState by authViewModel.uiState.collectAsState()
@@ -104,9 +105,7 @@ fun AuthRoute(
         onPasswordChange = { password = it },
         onConfirmPasswordChange = { confirmPassword = it },
         onToggleModeClick = { isRegisterMode = !isRegisterMode },
-        onForgotPasswordClick = {
-            authViewModel.sendPasswordResetEmail(email)
-        },
+        onForgotPasswordClick = onNavigateToForgotPassword,
         onLoginOrRegisterClick = {
             if (isRegisterMode) {
                 if (!termsAccepted) {

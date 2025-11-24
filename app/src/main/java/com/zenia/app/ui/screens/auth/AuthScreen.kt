@@ -57,6 +57,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -71,7 +72,14 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.zenia.app.R
+import com.zenia.app.ui.theme.Lobster
+import com.zenia.app.ui.theme.Nunito
+import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZenIATheme
+import com.zenia.app.ui.theme.ZeniaInputBackground
+import com.zenia.app.ui.theme.ZeniaInputLabel
+import com.zenia.app.ui.theme.ZeniaTeal
+
 /**
  * Clase de datos que agrupa todo el estado necesario para la UI de AuthScreen.
  * Esto hace que la firma del Composable sea más limpia.
@@ -124,7 +132,7 @@ fun AuthScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color(0xBF295E84))
+                        .background(ZeniaTeal.copy(alpha = 0.75f))
                 )
             }
 
@@ -194,7 +202,14 @@ private fun AuthContent(
                 ) = createRefs()
 
                 Text(
-                    text = stringResource(id = R.string.app_name),
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(fontFamily = Lobster)) {
+                            append("Zen")
+                        }
+                        withStyle(style = SpanStyle(fontFamily = RobotoFlex, fontStyle = FontStyle.Italic)) {
+                            append("IA")
+                        }
+                    },
                     style = MaterialTheme.typography.displayLarge,
                     fontFamily = FontFamily(Font(R.font.lobster_regular)),
                     color = Color.White,
@@ -223,17 +238,18 @@ private fun AuthContent(
                     TextField(
                         value = state.email,
                         onValueChange = actions.onEmailChange,
-                        label = { Text(stringResource(R.string.email)) },
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = Nunito),
+                        label = { Text(stringResource(R.string.email), fontFamily = Nunito) },
                         shape = RoundedCornerShape(15.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = Color.Black,
                             unfocusedTextColor = Color.Black,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
+                            focusedContainerColor = ZeniaInputBackground,
+                            unfocusedContainerColor = ZeniaInputBackground,
                             focusedBorderColor = Color.Transparent,
                             unfocusedBorderColor = Color.Transparent,
-                            focusedLabelColor = Color.Black,
-                            unfocusedLabelColor = Color.LightGray,
+                            focusedLabelColor = ZeniaInputLabel,
+                            unfocusedLabelColor = ZeniaInputLabel,
                             cursorColor = Color.Black
                         ),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -249,17 +265,18 @@ private fun AuthContent(
                     TextField(
                         value = state.password,
                         onValueChange = actions.onPasswordChange,
-                        label = { Text(stringResource(R.string.password)) },
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = Nunito),
+                        label = { Text(stringResource(R.string.password), fontFamily = Nunito) },
                         shape = RoundedCornerShape(15.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = Color.Black,
                             unfocusedTextColor = Color.Black,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
+                            focusedContainerColor = ZeniaInputBackground,
+                            unfocusedContainerColor = ZeniaInputBackground,
                             focusedBorderColor = Color.Transparent,
                             unfocusedBorderColor = Color.Transparent,
-                            focusedLabelColor = Color.Black,
-                            unfocusedLabelColor = Color.LightGray,
+                            focusedLabelColor = ZeniaInputLabel,
+                            unfocusedLabelColor = ZeniaInputLabel,
                             cursorColor = Color.Black
                         ),
                         modifier = Modifier
@@ -294,17 +311,18 @@ private fun AuthContent(
                         TextField(
                             value = state.confirmPassword,
                             onValueChange = actions.onConfirmPasswordChange,
-                            label = { Text(stringResource(R.string.confirmPassword)) },
+                            textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = Nunito),
+                            label = { Text(stringResource(R.string.confirmPassword), fontFamily = Nunito) },
                             shape = RoundedCornerShape(15.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.Black,
                                 unfocusedTextColor = Color.Black,
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White,
+                                focusedContainerColor = ZeniaInputBackground,
+                                unfocusedContainerColor = ZeniaInputBackground,
                                 focusedBorderColor = Color.Transparent,
                                 unfocusedBorderColor = Color.Transparent,
-                                focusedLabelColor = Color.Black,
-                                unfocusedLabelColor = Color.LightGray,
+                                focusedLabelColor = ZeniaInputLabel,
+                                unfocusedLabelColor = ZeniaInputLabel,
                                 cursorColor = Color.Black
                             ),
                             modifier = Modifier
@@ -336,12 +354,14 @@ private fun AuthContent(
                             modifier = Modifier
                                 .constrainAs(forgotPassword) {
                                     bottom.linkTo(loginButton.top, margin = 10.dp)
-                                    start.linkTo(loginButton.start)
+                                    centerHorizontallyTo(parent)
                                 }
                         ) {
                             Text(
                                 text = stringResource(id = R.string.forgotPassword),
-                                color = Color.White
+                                color = Color.White,
+                                fontFamily = Nunito,
+                                fontWeight = FontWeight.SemiBold
                             )
                         }
                     }
@@ -349,7 +369,7 @@ private fun AuthContent(
                     Button(
                         onClick = actions.onLoginOrRegisterClick,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = colorResource(id = R.color.azul_oscuro)
+                            containerColor = MaterialTheme.colorScheme.primary
                         ),
                         shape = RoundedCornerShape(50.dp),
                         modifier = Modifier
@@ -370,7 +390,9 @@ private fun AuthContent(
                         } else {
                             Text(
                                 text = if (state.isRegisterMode) stringResource(R.string.register) else stringResource(R.string.login),
-                                color = Color.White
+                                color = Color.White,
+                                fontFamily = Nunito,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }
@@ -388,6 +410,7 @@ private fun AuthContent(
                         Text(
                             text = stringResource(R.string.divider_or),
                             color = Color.White,
+                            fontFamily = Nunito,
                             modifier = Modifier.padding(horizontal = 8.dp)
                         )
                         HorizontalDivider(modifier = Modifier.weight(1f), thickness = 1.dp, color = Color.White)
@@ -418,25 +441,29 @@ private fun AuthContent(
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = stringResource(R.string.googleLogin),
-                            color = Color.Black
+                            color = Color.Black,
+                            fontFamily = Nunito,
+                            fontWeight = FontWeight.Bold
                         )
                     }
 
                     Text(
                         text = buildAnnotatedString {
-                            val text1 = if (state.isRegisterMode) stringResource(R.string.accountAlready)
-                            else stringResource(R.string.noAccount)
-                            val text2 = if (state.isRegisterMode) stringResource(R.string.login)
-                            else stringResource(R.string.register)
-                            append(text1)
-                            append(" ")
-                            withStyle(
-                                style = SpanStyle(
-                                    textDecoration = TextDecoration.Underline,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            ) {
-                                append(text2)
+                            withStyle(style = SpanStyle(fontFamily = Nunito)) {
+                                val text1 = if (state.isRegisterMode) stringResource(R.string.accountAlready)
+                                else stringResource(R.string.noAccount)
+                                val text2 = if (state.isRegisterMode) stringResource(R.string.login)
+                                else stringResource(R.string.register)
+                                append(text1)
+                                append(" ")
+                                withStyle(
+                                    style = SpanStyle(
+                                        textDecoration = TextDecoration.Underline,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                ) {
+                                    append(text2)
+                                }
                             }
                         },
                         color = Color.White,
@@ -471,31 +498,33 @@ private fun TermsAndConditionsCheckbox(
     val conjunction = stringResource(R.string.auth_terms_conjunction)
 
     val annotatedString = buildAnnotatedString {
-        append("$prefix ") // "Acepto los
+        withStyle(style = SpanStyle(fontFamily = Nunito)) {
+            append("$prefix ") // "Acepto los
 
-        pushLink(
-            LinkAnnotation.Clickable(
-                tag = "TERMS",
-                linkInteractionListener = { onTermsClick() }
+            pushLink(
+                LinkAnnotation.Clickable(
+                    tag = "TERMS",
+                    linkInteractionListener = { onTermsClick() }
+                )
             )
-        )
-        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White, textDecoration = TextDecoration.Underline)) {
-            append(termsText) // "Términos de Uso"
-        }
-        pop()
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White, textDecoration = TextDecoration.Underline)) {
+                append(termsText) // "Términos de Uso"
+            }
+            pop()
 
-        append(" $conjunction ") // " y el "
+            append(" $conjunction ") // " y el "
 
-        pushLink(
-            LinkAnnotation.Clickable(
-                tag = "POLICY",
-                linkInteractionListener = { onPrivacyPolicyClick() }
+            pushLink(
+                LinkAnnotation.Clickable(
+                    tag = "POLICY",
+                    linkInteractionListener = { onPrivacyPolicyClick() }
+                )
             )
-        )
-        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White, textDecoration = TextDecoration.Underline)) {
-            append(policyText) // "Aviso de Privacidad"
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White, textDecoration = TextDecoration.Underline)) {
+                append(policyText) // "Aviso de Privacidad"
+            }
+            pop()
         }
-        pop()
     }
 
     Row(
