@@ -51,8 +51,8 @@ class HealthConnectRepository(private val context: Context) {
     suspend fun readDailyHeartRate(): List<HeartRateRecord> {
         if (!isClientAvailable) return emptyList()
 
-        val startTime = ZonedDateTime.now().minusDays(1).toInstant()
         val endTime = Instant.now()
+        val startTime = endTime.minus(1, java.time.temporal.ChronoUnit.DAYS)
 
         try {
             val request = ReadRecordsRequest(
@@ -68,8 +68,9 @@ class HealthConnectRepository(private val context: Context) {
 
     suspend fun readDailyHeartRateAverage(): Int? {
         if (!isClientAvailable) return null
-        val startTime = ZonedDateTime.now().minusDays(1).toInstant()
+
         val endTime = Instant.now()
+        val startTime = endTime.minus(1, java.time.temporal.ChronoUnit.DAYS)
 
         try {
             val request = ReadRecordsRequest(
