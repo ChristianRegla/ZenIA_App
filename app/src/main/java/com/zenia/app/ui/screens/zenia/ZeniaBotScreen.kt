@@ -1,5 +1,11 @@
 package com.zenia.app.ui.screens.zenia
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,16 +53,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.zenia.app.R
 import com.zenia.app.model.MensajeChatbot
+import com.zenia.app.ui.theme.ZenIATheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ZeniaBotScreen(
     uiState: ChatUiState,
+    isTyping: Boolean,
     onSendMessage: (String) -> Unit,
     onClearChat: () -> Unit
 ) {
@@ -117,9 +127,10 @@ fun ZeniaBotScreen(
                         )
                     }
                     is ChatUiState.Success -> {
-                        LaunchedEffect(uiState.mensajes.size) {
-                            if (uiState.mensajes.isNotEmpty()) {
-                                listState.animateScrollToItem(uiState.mensajes.size - 1)
+                        LaunchedEffect(uiState.mensajes.size, isTyping) {
+                            val totalItems = uiState.mensajes.size + (if (isTyping) 1 else 0)
+                            if (totalItems > 0) {
+                                listState.animateScrollToItem(totalItems - 1)
                             }
                         }
 
@@ -131,6 +142,12 @@ fun ZeniaBotScreen(
                         ) {
                             items(uiState.mensajes) { mensaje ->
                                 ChatBubble(mensaje)
+                            }
+
+                            if (isTyping) {
+                                item {
+                                    TypingBubble()
+                                }
                             }
                         }
                     }
@@ -244,5 +261,110 @@ fun ChatBubble(mensaje: MensajeChatbot) {
                 style = MaterialTheme.typography.bodyMedium
             )
         }
+    }
+}
+
+@Composable
+fun TypingBubble() {
+    // Reutilizamos el estilo de la burbuja de la IA (gris)
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Surface(
+            shape = RoundedCornerShape(
+                topStart = 16.dp, topEnd = 16.dp,
+                bottomStart = 2.dp, bottomEnd = 16.dp
+            ),
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            modifier = Modifier.padding(vertical = 4.dp)
+        ) {
+            // Contenedor de los puntos
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                // 3 Puntos saltarines
+                TypingDot(delayMillis = 0)
+                TypingDot(delayMillis = 150)
+                TypingDot(delayMillis = 300)
+            }
+        }
+    }
+}
+
+@Composable
+fun TypingDot(delayMillis: Int) {
+    val transition = rememberInfiniteTransition(label = "typing")
+
+    val offsetY by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = -10f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 600, delayMillis = delayMillis, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "offset"
+    )
+
+    Box(
+        modifier = Modifier
+            .size(8.dp)
+            .graphicsLayer { translationY = offsetY }
+            .background(MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f), CircleShape)
+    )
+}
+
+private val mensajesPrueba = listOf(
+    MensajeChatbot(id = "1", emisor = "usuario", texto = "Hola, me siento un poco ansioso hoy."),
+    MensajeChatbot(id = "2", emisor = "ia", texto = "Entiendo. ¿Quieres que probemos un ejercicio de respiración?"),
+    MensajeChatbot(id = "3", emisor = "usuario", texto = "Sí, por favor."),
+    MensajeChatbot(id = "4", emisor = "ia", texto = "Perfecto. Inhala profundamente durante 4 segundos...")
+)
+
+@Preview(name = "Chat - Modo Claro", showBackground = true)
+@Composable
+fun ZeniaBotPreview_Light() {
+    ZenIATheme {
+        ZeniaBotScreen(
+            uiState = ChatUiState.Success(mensajesPrueba),
+            isTyping = false,
+            onSendMessage = {},
+            onClearChat = {}
+        )
+    }
+}
+
+@Preview(name = "Chat - Modo Oscuro", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun ZeniaBotPreview_Dark() {
+    ZenIATheme {
+        ZeniaBotScreen(
+            uiState = ChatUiState.Success(mensajesPrueba),
+            isTyping = false,
+            onSendMessage = {},
+            onClearChat = {}
+        )
+    }
+}
+
+/**
+ * SIMULACIÓN DE TECLADO ABIERTO
+ * Usamos 'heightDp = 300' para simular que el teclado está ocupando
+ * la mitad inferior de la pantalla.
+ * Esto verifica que el 'imePadding' y el 'weight(1f)' funcionen:
+ * la barra de texto debe seguir visible abajo y la lista debe tener scroll.
+ */
+@Preview(name = "Simulación Teclado Abierto", showBackground = true, heightDp = 300)
+@Composable
+fun ZeniaBotPreview_KeyboardOpen() {
+    ZenIATheme {
+        ZeniaBotScreen(
+            uiState = ChatUiState.Success(mensajesPrueba + mensajesPrueba),
+            isTyping = false,
+            onSendMessage = {},
+            onClearChat = {}
+        )
     }
 }

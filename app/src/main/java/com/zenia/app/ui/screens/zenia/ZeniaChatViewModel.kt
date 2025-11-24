@@ -5,8 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.ZeniaRepository
 import com.zenia.app.model.MensajeChatbot
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -30,6 +32,9 @@ class ZeniaChatViewModel(
             initialValue = ChatUiState.Loading
         )
 
+    private val _isTyping = MutableStateFlow(false)
+    val isTyping = _isTyping.asStateFlow()
+
     fun enviarMensaje(texto: String) {
         if (texto.isBlank()) return
 
@@ -40,6 +45,7 @@ class ZeniaChatViewModel(
             )
 
             repositorio.addChatMessage(mensajeUsuario)
+            _isTyping.value = true
             simularRespuestaIA()
         }
     }
@@ -66,6 +72,7 @@ class ZeniaChatViewModel(
             emisor = "ia",
             texto = respuestasRandom.random()
         )
+        _isTyping.value = false
         repositorio.addChatMessage(mensajeIA)
     }
 }

@@ -10,9 +10,11 @@ import com.zenia.app.viewmodel.AppViewModelProvider
 fun ZeniaBotRoute() {
     val viewModel: ZeniaChatViewModel = viewModel(factory = AppViewModelProvider.Factory)
     val uiState by viewModel.uiState.collectAsState()
+    val isTyping by viewModel.isTyping.collectAsState()
 
     ZeniaBotScreen(
         uiState = uiState,
+        isTyping = isTyping,
         onSendMessage = { viewModel.enviarMensaje(it) },
         onClearChat = { viewModel.eliminarHistorial() }
     )
