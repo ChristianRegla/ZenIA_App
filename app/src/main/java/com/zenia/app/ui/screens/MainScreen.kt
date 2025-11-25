@@ -20,6 +20,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.zenia.app.ui.components.ZeniaBottomBar
 import com.zenia.app.ui.navigation.BottomNavItem
+import com.zenia.app.ui.screens.diary.DiarioRoute
 import com.zenia.app.ui.screens.diary.DiarioScreen
 import com.zenia.app.ui.screens.home.HomeRoute
 import com.zenia.app.ui.screens.recursos.RecursosRoute
@@ -88,7 +89,7 @@ fun MainScreen(
                     }
 
                     composable(BottomNavItem.Diario.route) {
-                        DiarioScreen()
+                        DiarioRoute()
                     }
 
                     composable(BottomNavItem.Recursos.route) {

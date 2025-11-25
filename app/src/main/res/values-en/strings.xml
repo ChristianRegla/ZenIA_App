@@ -104,4 +104,15 @@
     <string name="forgot_password_spam_warning">Important: If you cannot find the email in your inbox, please check your Spam or Junk folder.</string>
     <string name="nav_back_desc">Back</string>
 
+    <string name="settings_title">Menu</string>
+    <string name="settings_profile_picture_desc">Profile picture</string>
+    <string name="settings_btn_premium">Go Premium</string>
+    <string name="settings_item_help_center">Help Center</string>
+    <string name="settings_item_donations">Donations</string>
+    <string name="settings_item_privacy">Privacy Policy</string>
+    <string name="settings_item_logout">Log Out</string>
+
+    <string name="settings_placeholder_name">Slappy</string>
+    <string name="settings_placeholder_email">slappy@vallarta.com</string>
+
 </resources>

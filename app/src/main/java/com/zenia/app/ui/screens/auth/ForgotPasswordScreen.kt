@@ -45,6 +45,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.zenia.app.R
+import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.Nunito
 import com.zenia.app.ui.theme.ZeniaInputBackground
 import com.zenia.app.ui.theme.ZeniaInputLabel
@@ -81,26 +82,9 @@ fun ForgotPasswordScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.forgot_password_title),
-                        fontFamily = Nunito,
-                        color = Color.White
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.nav_back_desc),
-                            tint = Color.White
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = ZeniaTeal
-                )
+            ZeniaTopBar(
+                title = stringResource(R.string.forgot_password_title),
+                onNavigateBack = onNavigateBack
             )
         },
         containerColor = Color.White

@@ -2,6 +2,7 @@ package com.zenia.app.ui.screens.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,11 +37,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zenia.app.R
+import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.Nunito
+import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaInputLabel
 import com.zenia.app.ui.theme.ZeniaSlateGrey
@@ -50,35 +54,22 @@ import com.zenia.app.viewmodel.SettingsViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    viewModel: SettingsViewModel,
+    name: String,
+    email: String,
+    onNavigateToProfile: () -> Unit,
     onNavigateBack: () -> Unit,
+    onNavigateToPremium: () -> Unit,
     onNavigateToHelp: () -> Unit,
     onNavigateToDonations: () -> Unit,
     onNavigateToPrivacy: () -> Unit,
+    onSignOut: () -> Unit
 ) {
     ZenIATheme {
         Scaffold(
             topBar = {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            text = "Menú",
-                            fontFamily = Nunito,
-                            color = Color.White
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Atrás",
-                                tint = Color.White
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = ZeniaTeal
-                    )
+                ZeniaTopBar(
+                    title = stringResource(R.string.settings_title),
+                    onNavigateBack = onNavigateBack
                 )
             },
             containerColor = Color.White
@@ -101,33 +92,51 @@ fun SettingsScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Person,
-                        contentDescription = "Foto de perfil",
+                        contentDescription = stringResource(R.string.settings_profile_picture_desc),
                         modifier = Modifier.size(60.dp),
                         tint = Color.Gray
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = "Slappy", // TODO: Obtener del ViewModel
-                    fontFamily = Nunito,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 22.sp,
-                    color = Color.Black
-                )
-                Text(
-                    text = "slappy@vallarta.com", // TODO: Obtener del ViewModel
-                    fontFamily = Nunito,
-                    fontSize = 14.sp,
-                    color = ZeniaSlateGrey
-                )
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable(onClick = onNavigateToProfile)
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = name,
+                            fontFamily = RobotoFlex,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 22.sp,
+                            color = Color.Black
+                        )
+                        Text(
+                            text = email,
+                            fontFamily = RobotoFlex,
+                            fontSize = 14.sp,
+                            color = ZeniaSlateGrey
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = "Ir al perfil",
+                        tint = ZeniaInputLabel
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Button(
-                    onClick = { /* TODO: Navegar a Premium */ },
+                    onClick = onNavigateToPremium,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFD946EF) // Color morado/rosa tipo "Premium"
+                        containerColor = Color(0xFFD946EF)
                     ),
                     shape = RoundedCornerShape(50),
                     modifier = Modifier
@@ -135,8 +144,8 @@ fun SettingsScreen(
                         .height(48.dp)
                 ) {
                     Text(
-                        text = "Conviértete en premium",
-                        fontFamily = Nunito,
+                        text = stringResource(R.string.settings_btn_premium),
+                        fontFamily = RobotoFlex,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
@@ -145,35 +154,35 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 SettingsItem(
-                    iconRes = R.drawable.ic_help_center, // Asegúrate de tener este drawable
-                    text = "Centro de ayuda",
+                    iconRes = R.drawable.ic_help_center,
+                    text = stringResource(R.string.settings_item_help_center),
                     onClick = onNavigateToHelp
                 )
 
                 SettingsDivider()
 
                 SettingsItem(
-                    iconRes = R.drawable.ic_donations, // Asegúrate de tener este drawable
-                    text = "Donaciones",
+                    iconRes = R.drawable.ic_donations,
+                    text = stringResource(R.string.settings_item_donations),
                     onClick = onNavigateToDonations
                 )
 
                 SettingsDivider()
 
                 SettingsItem(
-                    iconRes = R.drawable.ic_privacy_policy, // Asegúrate de tener este drawable
-                    text = "Políticas de privacidad",
+                    iconRes = R.drawable.ic_privacy_policy,
+                    text = stringResource(R.string.settings_item_privacy),
                     onClick = onNavigateToPrivacy
                 )
 
                 SettingsDivider()
 
                 SettingsItem(
-                    iconRes = R.drawable.ic_logout, // Asegúrate de tener este drawable
-                    text = "Cerrar sesión",
-                    textColor = Color.Red.copy(alpha = 0.8f), // Destacamos cerrar sesión
+                    iconRes = R.drawable.ic_logout,
+                    text = stringResource(R.string.settings_item_logout),
+                    textColor = Color.Red.copy(alpha = 0.8f),
                     showArrow = false,
-                    onClick = {  }
+                    onClick = onSignOut
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -197,7 +206,6 @@ private fun SettingsItem(
             .padding(horizontal = 24.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Icono Izquierdo
         Icon(
             painter = painterResource(id = iconRes),
             contentDescription = null,
@@ -207,22 +215,20 @@ private fun SettingsItem(
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Texto
         Text(
             text = text,
-            fontFamily = Nunito,
+            fontFamily = RobotoFlex,
             fontSize = 16.sp,
             color = textColor,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.weight(1f)
         )
 
-        // Flecha derecha (opcional)
         if (showArrow) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                tint = ZeniaInputLabel // Un gris suave
+                tint = ZeniaInputLabel
             )
         }
     }

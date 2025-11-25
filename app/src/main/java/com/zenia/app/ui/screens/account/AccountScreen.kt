@@ -45,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import com.zenia.app.R
+import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.screens.auth.AuthUiState
 import com.zenia.app.ui.screens.auth.AuthViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
@@ -89,16 +90,9 @@ fun AccountScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = state.snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.account_title)) },
-                navigationIcon = {
-                    IconButton(onClick = actions.onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back)
-                        )
-                    }
-                }
+            ZeniaTopBar(
+                onNavigateBack = actions.onNavigateBack,
+                title = stringResource(R.string.account_title)
             )
         }
     ) { paddingValues ->

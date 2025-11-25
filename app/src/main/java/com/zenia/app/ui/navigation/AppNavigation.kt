@@ -110,6 +110,12 @@ fun AppNavigation() {
             SettingsRoute(
                 settingsViewModel = settingsViewModel,
                 onNavigateBack = { navController.popBackStack() },
+                onNavigateToProfile = {
+                    navController.navigate(Destinations.ACCOUNT_ROUTE)
+                },
+                onNavigateToPremium = {
+
+                },
                 onNavigateToHelp = {
                     navController.navigate(Destinations.HELP_CENTER_ROUTE)
                 },
@@ -118,7 +124,13 @@ fun AppNavigation() {
                 },
                 onNavigateToPrivacy = {
                     navController.navigate(Destinations.PRIVACY_POLICY_ROUTE)
-                }
+                },
+                onSignOut = {
+                    authViewModel.signOut()
+                    navController.navigate(Destinations.AUTH_ROUTE) {
+                        popUpTo(Destinations.HOME_ROUTE) { inclusive = true }
+                    }
+                },
             )
         }
 

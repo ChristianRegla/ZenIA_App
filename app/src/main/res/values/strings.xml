@@ -100,4 +100,15 @@
     <string name="forgot_password_spam_warning">Importante: Si no encuentras el correo en tu bandeja de entrada, por favor revisa tu carpeta de Spam o Correo no deseado.</string>
     <string name="nav_back_desc">Atrás</string>
 
+    <string name="settings_title">Menú</string>
+    <string name="settings_profile_picture_desc">Foto de perfil</string>
+    <string name="settings_btn_premium">Conviértete en premium</string>
+    <string name="settings_item_help_center">Centro de ayuda</string>
+    <string name="settings_item_donations">Donaciones</string>
+    <string name="settings_item_privacy">Políticas de privacidad</string>
+    <string name="settings_item_logout">Cerrar sesión</string>
+
+    <string name="settings_placeholder_name">Slappy</string>
+    <string name="settings_placeholder_email">slappy@vallarta.com</string>
+
 </resources>
