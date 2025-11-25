@@ -13,7 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -35,6 +36,9 @@ import androidx.compose.ui.unit.sp
 import com.zenia.app.ui.theme.Nunito
 import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZenIATheme
+import com.zenia.app.ui.theme.ZeniaExercise
+import com.zenia.app.ui.theme.ZeniaFeelings
+import com.zenia.app.ui.theme.ZeniaMind
 import com.zenia.app.ui.theme.ZeniaStreak
 import com.zenia.app.ui.theme.ZeniaTeal
 import java.time.LocalDate
@@ -143,6 +147,39 @@ fun DayCell(dayState: CalendarDayState) {
         if (dayState.hasEntry) {
             Box(
                 modifier = Modifier
+                    .height(16.dp)
+                    .wrapContentWidth()
+                    .align(Alignment.TopStart)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(start = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .height(16.dp)
+                            .width(4.dp)
+                            .background(ZeniaFeelings)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .height(16.dp)
+                            .width(4.dp)
+                            .background(ZeniaMind)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .height(16.dp)
+                            .width(4.dp)
+                            .background(ZeniaExercise)
+                    )
+                }
+            }
+
+
+            Box(
+                modifier = Modifier
                     .fillMaxWidth()
                     .height(28.dp)
                     .align(Alignment.BottomCenter)
@@ -161,6 +198,18 @@ fun DayCell(dayState: CalendarDayState) {
                 .padding(end = 8.dp, bottom = 4.dp)
         )
     }
+}
+
+@Composable
+fun DayBookmark() {
+    Box(
+        modifier = Modifier
+            .height(16.dp)
+            .width(4.dp)
+            .padding(horizontal = 2.dp)
+            .clip(shape = RoundedCornerShape(5.dp))
+            .background(ZeniaFeelings)
+    )
 }
 
 @Preview(showBackground = true, showSystemUi = true)

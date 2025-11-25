@@ -19,3 +19,7 @@ val ZeniaStreak = Color(0xFFA3E2FF)
 
 val ZeniaPremiumPurple = Color(0xFFD946EF)
 val ZeniaPremiumBackground = Color(0xFFBFACFF)
+
+val ZeniaFeelings = Color(0xFFFF9D00)
+val ZeniaMind = Color(0xFF00A8F0)
+val ZeniaExercise = Color(0xFF00BCC9)
