@@ -47,11 +47,15 @@ fun HomeScreen(
     onNavigateToPremium: () -> Unit,
     onNavigateToManualPermission: () -> Unit,
     onInstallHealthConnect: () -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onNotificationClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
-            HomeTopBar(onSettingsClick = onSettingsClick)
+            HomeTopBar(
+                onSettingsClick = onSettingsClick,
+                onNotificationClick = onNotificationClick
+            )
         }
     ) { paddingValues ->
         Column(
@@ -151,7 +155,8 @@ fun HomeScreenPreview_FreeUser() {
             onNavigateToPremium = { },
             onNavigateToManualPermission = { },
             onInstallHealthConnect = { },
-            onSettingsClick = { }
+            onSettingsClick = { },
+            onNotificationClick = { }
         )
     }
 }
@@ -174,7 +179,8 @@ fun HomeScreenPreview_Premium_NeedsPermission() {
             onNavigateToPremium = { },
             onNavigateToManualPermission = { },
             onInstallHealthConnect = { },
-            onSettingsClick = { }
+            onSettingsClick = { },
+            onNotificationClick = { }
         )
     }
 }
@@ -197,7 +203,8 @@ fun HomeScreenPreview_Premium_Connected() {
             onNavigateToPremium = { },
             onNavigateToManualPermission = { },
             onInstallHealthConnect = { },
-            onSettingsClick = { }
+            onSettingsClick = { },
+            onNotificationClick = { }
         )
     }
 }

@@ -26,6 +26,7 @@ fun HomeRoute(
     onNavigateToAccount: () -> Unit,
     onNavigateToPremium: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNotificationClick: () -> Unit,
     onSignOut: () -> Unit
 ) {
     // 1. Obtiene el ViewModel
@@ -95,6 +96,7 @@ fun HomeRoute(
                 context.startActivity(webIntent)
             }
         },
-        onSettingsClick = onNavigateToSettings
+        onSettingsClick = onNavigateToSettings,
+        onNotificationClick = onNotificationClick
     )
 }

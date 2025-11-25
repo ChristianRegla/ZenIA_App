@@ -17,6 +17,8 @@ import com.zenia.app.ui.screens.lock.LockRoute
 import com.zenia.app.viewmodel.AppViewModelProvider
 import com.zenia.app.ui.screens.auth.AuthViewModel
 import com.zenia.app.ui.screens.auth.ForgotPasswordScreen
+import com.zenia.app.ui.screens.notifications.NotificationsRoute
+import com.zenia.app.ui.screens.premium.PremiumRoute
 import com.zenia.app.ui.screens.settings.DonationsRoute
 import com.zenia.app.ui.screens.settings.HelpCenterRoute
 import com.zenia.app.ui.screens.settings.PrivacyRoute
@@ -97,7 +99,16 @@ fun AppNavigation() {
                 },
                 onNavigateToSettings = {
                     navController.navigate(Destinations.SETTINGS_ROUTE)
+                },
+                onNotificationClick = {
+                    navController.navigate(Destinations.NOTIFICATIONS_ROUTE)
                 }
+            )
+        }
+
+        composable(Destinations.NOTIFICATIONS_ROUTE) {
+            NotificationsRoute(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
@@ -114,7 +125,7 @@ fun AppNavigation() {
                     navController.navigate(Destinations.ACCOUNT_ROUTE)
                 },
                 onNavigateToPremium = {
-
+                    navController.navigate(Destinations.PREMIUM_ROUTE)
                 },
                 onNavigateToHelp = {
                     navController.navigate(Destinations.HELP_CENTER_ROUTE)
@@ -131,6 +142,12 @@ fun AppNavigation() {
                         popUpTo(Destinations.HOME_ROUTE) { inclusive = true }
                     }
                 },
+            )
+        }
+
+        composable(Destinations.PREMIUM_ROUTE) {
+            PremiumRoute(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

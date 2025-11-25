@@ -18,11 +18,12 @@ import com.zenia.app.ui.theme.ZeniaTeal
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopBar(
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onNotificationClick: () -> Unit
 ) {
     CenterAlignedTopAppBar(
         navigationIcon = {
-            IconButton(onClick = { /* TODO: Navegación a Notificaciones */ }) {
+            IconButton(onClick = onNotificationClick) {
                 Icon(
                     imageVector = Icons.Default.Notifications,
                     contentDescription = "Notificaciones",

@@ -11,5 +11,6 @@ object Destinations {
     const val HELP_CENTER_ROUTE = "help_center"
     const val DONATIONS_ROUTE = "donations"
     const val PRIVACY_POLICY_ROUTE = "privacy_policy"
-
+    const val NOTIFICATIONS_ROUTE = "notifications"
+    const val PREMIUM_ROUTE = "premium"
 }

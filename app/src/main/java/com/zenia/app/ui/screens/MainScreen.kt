@@ -32,7 +32,8 @@ import com.zenia.app.ui.theme.ZenIATheme
 fun MainScreen(
     onSignOut: () -> Unit,
     onNavigateToAccount: () -> Unit,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    onNotificationClick: () -> Unit
 ) {
     val bottomNavController = rememberNavController()
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
@@ -76,7 +77,8 @@ fun MainScreen(
                             onSignOut = onSignOut,
                             onNavigateToAccount = onNavigateToAccount,
                             onNavigateToPremium = { /* TODO */ },
-                            onNavigateToSettings = onNavigateToSettings
+                            onNavigateToSettings = onNavigateToSettings,
+                            onNotificationClick = onNotificationClick
                         )
                     }
 
