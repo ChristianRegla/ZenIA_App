@@ -13,6 +13,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.ZenIATheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -23,18 +24,9 @@ fun DonationsScreen(
     ZenIATheme {
         Scaffold(
             topBar = {
-                CenterAlignedTopAppBar(
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Atrás",
-                            )
-                        }
-                    },
-                    title = {
-                        Text(text = "Donaciones")
-                    }
+                ZeniaTopBar(
+                    title = "Donaciones",
+                    onNavigateBack = onNavigateBack
                 )
             }
         ) { paddingValues ->

@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 fun PrivacyRoute(
     onNavigateBack: () -> Unit
 ) {
-    DonationsScreen(
+    PrivacyScreen(
         onNavigateBack = onNavigateBack
     )
 }
