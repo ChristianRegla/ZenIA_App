@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,9 +16,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -49,7 +52,8 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiarioScreen(
-    uiState: DiarioUiState
+    uiState: DiarioUiState,
+    onDateClick: (LocalDate) -> Unit
 ) {
     ZenIATheme {
         Scaffold(
@@ -62,15 +66,6 @@ fun DiarioScreen(
                     .padding(top = innerPadding.calculateTopPadding())
                     .padding(16.dp)
             ) {
-                Text(
-                    text = uiState.currentMonth.month.getDisplayName(TextStyle.FULL, Locale("es", "ES"))
-                        .replaceFirstChar { it.uppercase() } + " " + uiState.currentMonth.year,
-                    fontFamily = Nunito,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -87,18 +82,12 @@ fun DiarioScreen(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(7),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(24.dp),
+                    contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
-                    items(uiState.calendarDays) { dayState ->
-                        if (dayState.date == LocalDate.MIN) {
-                            Box(modifier = Modifier.size(48.dp))
-                        } else {
-                            DayCell(dayState = dayState)
-                        }
+                    items(uiState.months) { monthState ->
+                        MonthSection(monthState = monthState, onDateClick = onDateClick)
                     }
                 }
             }
@@ -107,7 +96,51 @@ fun DiarioScreen(
 }
 
 @Composable
-fun DayCell(dayState: CalendarDayState) {
+fun MonthSection(
+    monthState: MonthState,
+    onDateClick: (LocalDate) -> Unit
+) {
+    Column {
+        Text(
+            text = monthState.yearMonth.month.getDisplayName(TextStyle.FULL, Locale("es", "ES"))
+                .replaceFirstChar { it.uppercase() } + " " + monthState.yearMonth.year,
+            fontFamily = Nunito,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
+        )
+
+        // Grilla del Mes
+        // Truco: Usamos height fijo calculado o un wrapper para que LazyVerticalGrid funcione dentro de LazyColumn
+        // O mejor aún, usamos un Layout personalizado simple o items fijos si el grid no scrollea por sí mismo.
+        // Para simplificar y evitar conflictos de scroll anidado, aquí usamos un grid de altura "wrap content"
+        // calculando cuántas filas tiene.
+
+        val rows = (monthState.days.size + 6) / 7 // Cálculo de filas
+        val height = rows * 56 // 48dp celda + 8dp espacio aprox
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(7),
+            userScrollEnabled = false,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.height(height.dp)
+        ) {
+            items(monthState.days) { dayState ->
+                if (dayState.date == LocalDate.MIN) {
+                    Box(modifier = Modifier.size(48.dp))
+                } else {
+                    DayCell(dayState = dayState, onClick = onDateClick)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DayCell(
+    dayState: CalendarDayState,
+    onClick: (LocalDate) -> Unit
+) {
     val backgroundShape = when (dayState.streakShape) {
         StreakShape.Single -> RoundedCornerShape(topStart = 5.dp, bottomStart = 5.dp, topEnd = 0.dp, bottomEnd = 0.dp)
         StreakShape.Start -> RoundedCornerShape(topStart = 5.dp, bottomStart = 5.dp, topEnd = 0.dp, bottomEnd = 0.dp)
@@ -141,7 +174,7 @@ fun DayCell(dayState: CalendarDayState) {
             .background(MaterialTheme.colorScheme.primaryContainer)
             .then(if (!dayState.hasEntry) borderModifier else Modifier)
             .clickable(enabled = !dayState.isFuture) {
-                /* Click action */
+                onClick(dayState.date)
             },
     ) {
         if (dayState.hasEntry) {
@@ -212,34 +245,34 @@ fun DayBookmark() {
     )
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun DiarioScreenPreview() {
-    val today = LocalDate.now()
-    val dummyDays = (1..28).map { day ->
-        val date = today.withDayOfMonth(day)
-        val shape = when (day) {
-            19 -> StreakShape.Start
-            20 -> StreakShape.Middle
-            21 -> StreakShape.End
-            5 -> StreakShape.Single
-            else -> StreakShape.None
-        }
-        val hasEntry = shape != StreakShape.None
-
-        CalendarDayState(
-            date = date,
-            isCurrentMonth = true,
-            isFuture = false,
-            hasEntry = hasEntry,
-            streakShape = shape
-        )
-    }
-
-    val dummyState = DiarioUiState(
-        currentMonth = YearMonth.now(),
-        calendarDays = dummyDays
-    )
-
-    DiarioScreen(uiState = dummyState)
-}
+//@Preview(showBackground = true, showSystemUi = true)
+//@Composable
+//fun DiarioScreenPreview() {
+//    val today = LocalDate.now()
+//    val dummyDays = (1..28).map { day ->
+//        val date = today.withDayOfMonth(day)
+//        val shape = when (day) {
+//            19 -> StreakShape.Start
+//            20 -> StreakShape.Middle
+//            21 -> StreakShape.End
+//            5 -> StreakShape.Single
+//            else -> StreakShape.None
+//        }
+//        val hasEntry = shape != StreakShape.None
+//
+//        CalendarDayState(
+//            date = date,
+//            isCurrentMonth = true,
+//            isFuture = false,
+//            hasEntry = hasEntry,
+//            streakShape = shape
+//        )
+//    }
+//
+//    val dummyState = DiarioUiState(
+//        currentMonth = YearMonth.now(),
+//        calendarDays = dummyDays
+//    )
+//
+//    DiarioScreen(uiState = dummyState)
+//}

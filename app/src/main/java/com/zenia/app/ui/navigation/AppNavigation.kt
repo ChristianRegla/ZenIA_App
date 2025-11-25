@@ -6,9 +6,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.zenia.app.ui.screens.MainScreen
 import com.zenia.app.ui.screens.account.AccountRoute
 import com.zenia.app.ui.screens.auth.AuthRoute
@@ -17,6 +19,8 @@ import com.zenia.app.ui.screens.lock.LockRoute
 import com.zenia.app.viewmodel.AppViewModelProvider
 import com.zenia.app.ui.screens.auth.AuthViewModel
 import com.zenia.app.ui.screens.auth.ForgotPasswordScreen
+import com.zenia.app.ui.screens.diary.DiarioRoute
+import com.zenia.app.ui.screens.diary.DiaryEntryScreen
 import com.zenia.app.ui.screens.notifications.NotificationsRoute
 import com.zenia.app.ui.screens.premium.PremiumRoute
 import com.zenia.app.ui.screens.settings.DonationsRoute
@@ -24,6 +28,7 @@ import com.zenia.app.ui.screens.settings.HelpCenterRoute
 import com.zenia.app.ui.screens.settings.PrivacyRoute
 import com.zenia.app.ui.screens.settings.SettingsRoute
 import com.zenia.app.viewmodel.SettingsViewModel
+import java.time.LocalDate
 
 /**
  * Composable principal que gestiona la navegación de toda la aplicación.
@@ -102,7 +107,31 @@ fun AppNavigation() {
                 },
                 onNotificationClick = {
                     navController.navigate(Destinations.NOTIFICATIONS_ROUTE)
+                },
+                onNavigateToDiaryEntry = { date ->
+                    navController.navigate(Destinations.createDiaryEntryRoute(date))
                 }
+            )
+        }
+
+        composable(Destinations.DIARY_ROUTE) {
+            DiarioRoute(
+                onNavigateToEntry = { date ->
+                    navController.navigate(Destinations.createDiaryEntryRoute(date))
+                }
+            )
+        }
+
+        composable(
+            route = Destinations.DIARY_ENTRY_ROUTE,
+            arguments = listOf(navArgument("date") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val dateString = backStackEntry.arguments?.getString("date")
+            val date = LocalDate.parse(dateString)
+
+            DiaryEntryScreen(
+                date = date,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

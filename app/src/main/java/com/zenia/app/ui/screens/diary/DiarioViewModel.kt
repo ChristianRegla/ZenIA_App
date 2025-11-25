@@ -27,6 +27,24 @@ class DiarioViewModel : ViewModel() {
     }
 
     fun loadCalendar(month: YearMonth) {
+        val currentMonth = YearMonth.now()
+        val monthsList = mutableListOf<MonthState>()
+
+        val startMonth = currentMonth.minusMonths(2)
+        val endMonth = currentMonth.plusMonths(2)
+
+        var tempMonth = startMonth
+        while (!tempMonth.isAfter(endMonth)) {
+            monthsList.add(generateMonthState(tempMonth))
+            tempMonth = tempMonth.plusMonths(1)
+        }
+
+        _uiState.update {
+            it.copy(months = monthsList)
+        }
+    }
+
+    private fun generateMonthState(month: YearMonth): MonthState {
         val today = LocalDate.now()
         val days = mutableListOf<CalendarDayState>()
 
@@ -39,21 +57,16 @@ class DiarioViewModel : ViewModel() {
             days.add(CalendarDayState(LocalDate.MIN, isCurrentMonth = false, isFuture = false, hasEntry = false))
         }
 
-        // 2. Días reales del mes
         for (i in 1..daysInMonthCount) {
             val date = month.atDay(i)
             val isFuture = date.isAfter(today)
             val hasEntry = entries.contains(date)
-
-            // Aquí calculamos la forma directamente
             val shape = if (hasEntry) calculateShapeForDate(date, entries) else StreakShape.None
 
             days.add(CalendarDayState(date, true, isFuture, hasEntry, shape))
         }
 
-        _uiState.update {
-            it.copy(currentMonth = month, calendarDays = days)
-        }
+        return MonthState(yearMonth = month, days = days)
     }
 
     private fun calculateShapeForDate(date: LocalDate, entries: Set<LocalDate>): StreakShape {

@@ -27,13 +27,15 @@ import com.zenia.app.ui.screens.recursos.RecursosRoute
 import com.zenia.app.ui.screens.relax.RelajacionScreen
 import com.zenia.app.ui.screens.zenia.ZeniaBotRoute
 import com.zenia.app.ui.theme.ZenIATheme
+import java.time.LocalDate
 
 @Composable
 fun MainScreen(
     onSignOut: () -> Unit,
     onNavigateToAccount: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onNotificationClick: () -> Unit
+    onNotificationClick: () -> Unit,
+    onNavigateToDiaryEntry: (LocalDate) -> Unit
 ) {
     val bottomNavController = rememberNavController()
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
@@ -91,7 +93,9 @@ fun MainScreen(
                     }
 
                     composable(BottomNavItem.Diario.route) {
-                        DiarioRoute()
+                        DiarioRoute(
+                            onNavigateToEntry = onNavigateToDiaryEntry
+                        )
                     }
 
                     composable(BottomNavItem.Recursos.route) {

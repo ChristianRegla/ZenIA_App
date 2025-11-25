@@ -15,8 +15,12 @@ data class CalendarDayState(
     val streakShape: StreakShape = StreakShape.None
 )
 
+data class MonthState(
+    val yearMonth: YearMonth,
+    val days: List<CalendarDayState>
+)
+
 data class DiarioUiState(
-    val currentMonth: YearMonth = YearMonth.now(),
-    val calendarDays: List<CalendarDayState> = emptyList(),
+    val months: List<MonthState> = emptyList(),
     val isLoading: Boolean = false
 )
