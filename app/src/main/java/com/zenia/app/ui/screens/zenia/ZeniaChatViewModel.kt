@@ -55,7 +55,7 @@ class ZeniaChatViewModel(
             try{
                 repositorio.deleteChatHistory()
             } catch (e: Exception) {
-                // Manejar el error
+                e.printStackTrace()
             }
         }
     }

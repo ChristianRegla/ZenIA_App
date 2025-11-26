@@ -14,18 +14,30 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 class UserPreferencesRepository(context: Context) {
     private val dataStore = context.dataStore
 
-    private object PreferencesKeys {
-        val IS_BIOMETRIC_ENABLED = booleanPreferencesKey("is_biometric_enabled")
+    companion object {
+        private val IS_BIOMETRIC_ENABLED = booleanPreferencesKey("is_biometric_enabled")
+        private val ALLOW_WEAK_BIOMETRICS = booleanPreferencesKey("allow_weak_biometrics")
     }
 
     val isBiometricEnabled: Flow<Boolean> = dataStore.data
         .map { preferences ->
-            preferences[PreferencesKeys.IS_BIOMETRIC_ENABLED] ?: false
+            preferences[IS_BIOMETRIC_ENABLED] ?: false
+        }
+
+    val allowWeakBiometrics: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[ALLOW_WEAK_BIOMETRICS] ?: false
         }
 
     suspend fun setBiometricEnabled(isEnabled: Boolean) {
         dataStore.edit { preferences ->
-            preferences[PreferencesKeys.IS_BIOMETRIC_ENABLED] = isEnabled
+            preferences[IS_BIOMETRIC_ENABLED] = isEnabled
+        }
+    }
+
+    suspend fun saveAllowWeakBiometrics(allow: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[ALLOW_WEAK_BIOMETRICS] = allow
         }
     }
 }

@@ -138,10 +138,6 @@ fun AppNavigation() {
         }
 
         composable(Destinations.SETTINGS_ROUTE) {
-            val settingsViewModel: SettingsViewModel = viewModel(
-                factory = AppViewModelProvider.Factory
-            )
-
             SettingsRoute(
                 settingsViewModel = settingsViewModel,
                 onNavigateBack = { navController.popBackStack() },

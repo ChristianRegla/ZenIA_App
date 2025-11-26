@@ -26,9 +26,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,7 +42,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zenia.app.R
@@ -202,20 +198,31 @@ fun MonthSection(
             modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
         )
 
-        val rows = (monthState.days.size + 6) / 7
-        val height = rows * 56
+        val weeks = monthState.days.chunked(7)
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(7),
-            userScrollEnabled = false,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.height(height.dp)
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(monthState.days) { dayState ->
-                if (dayState.date == LocalDate.MIN) {
-                    Box(modifier = Modifier.size(48.dp))
-                } else {
-                    DayCell(dayState = dayState, onClick = onDateClick)
+            weeks.forEach { weekDays ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    val days = if (weekDays.size < 7) {
+                        weekDays + List(7 - weekDays.size) { CalendarDayState(LocalDate.MIN, false, false, false, StreakShape.None) }
+                    } else {
+                        weekDays
+                    }
+
+                    days.forEach { dayState ->
+                        Box(modifier = Modifier.weight(1f)) {
+                            if (dayState.date == LocalDate.MIN) {
+                                Box(modifier = Modifier.size(49.dp))
+                            } else {
+                                DayCell(dayState = dayState, onClick = onDateClick)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -300,7 +307,7 @@ fun DayCell(
 
     Box(
         modifier = Modifier
-            .height(48.dp)
+            .size(49.dp)
             .padding(horizontal = 2.dp)
             .clip(shape = RoundedCornerShape(5.dp))
             .background(MaterialTheme.colorScheme.primaryContainer)

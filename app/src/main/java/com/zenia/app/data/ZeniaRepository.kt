@@ -279,4 +279,29 @@ class ZeniaRepository {
         db.collection("usuarios").document(currentUserId)
             .collection("chatHistory").add(mensaje).await()
     }
+
+    suspend fun deleteUserData(userId: String) {
+        try {
+            val registrosRef = db.collection("usuarios").document(userId).collection("registrosBienestar")
+            val registrosSnapshot = registrosRef.get().await()
+            val batch = db.batch()
+
+            for (doc in registrosSnapshot.documents) {
+                batch.delete(doc.reference)
+            }
+
+            val chatRef = db.collection("usuarios").document(userId).collection("chatHistory")
+            val chatSnapshot = chatRef.get().await()
+            for (doc in chatSnapshot.documents) {
+                batch.delete(doc.reference)
+            }
+
+            val userRef = db.collection("usuarios").document(userId)
+            batch.delete(userRef)
+
+            batch.commit().await()
+        } catch (e: Exception) {
+            throw e
+        }
+    }
 }

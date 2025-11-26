@@ -16,9 +16,22 @@ class SettingsViewModel(private val userPreferencesRepository: UserPreferencesRe
             initialValue = false
         )
 
+    val allowWeakBiometrics: StateFlow<Boolean> = userPreferencesRepository.allowWeakBiometrics
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
     fun setBiometricEnabled(isEnabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setBiometricEnabled(isEnabled)
+        }
+    }
+
+    fun setWeakBiometricsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.saveAllowWeakBiometrics(enabled)
         }
     }
 }

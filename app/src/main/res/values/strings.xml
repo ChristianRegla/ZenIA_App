@@ -20,8 +20,6 @@
     <string name="accountAlready">¿Ya tienes cuenta?</string>
     <string name="noAccount">¿No tienes una cuenta?</string>
 
-    <string name="lock_title">Desbloquear ZenIA</string>
-    <string name="lock_subtitle">Confirma tu identidad para continuar</string>
     <string name="lock_waiting">Esperando autenticación…</string>
     <string name="lock_auth_failed">No se pudo verificar la identidad.</string>
 
@@ -114,5 +112,19 @@
     <string name="diary_today">Hoy</string>
     <string name="diary_empty_title">Aún no has escrito nada hoy.</string>
     <string name="diary_empty_subtitle">¡Toca para empezar!</string>
+
+    <string name="lock_content_description_fingerprint">Huella Digital</string>
+    <string name="lock_title">ZenIA Protegida</string>
+    <string name="lock_subtitle">Tu diario y tus conversaciones están seguros.\nDesbloquea para continuar.</string>
+    <string name="lock_btn_unlock">Desbloquear</string>
+    <string name="lock_footer_trouble">¿No eres tú o no puedes desbloquear?</string>
+    <string name="lock_btn_sign_out">Cerrar Sesión</string>
+
+    <string name="biometric_title">Desbloquear ZenIA</string>
+    <string name="biometric_subtitle">Usa tu huella o el patrón del dispositivo</string>
+    <string name="biometric_error_prefix">Error: %1$s</string>
+
+    <string name="account_biometrics_weak_label">Permitir reconocimiento facial 2D</string>
+    <string name="account_biometrics_weak_warning">Nota: El reconocimiento facial estándar es menos seguro que la huella digital.</string>
 
 </resources>

@@ -22,8 +22,6 @@
     <string name="noAccount">Don\'t have an account?</string>
 
     <!-- Pantalla: Bloqueo (LockScreen) -->
-    <string name="lock_title">Unlock ZenIA</string>
-    <string name="lock_subtitle">Confirm your identity to continue</string>
     <string name="lock_waiting">Waiting for authentication…</string>
     <string name="lock_auth_failed">Could not verify identity.</string>
 
@@ -118,5 +116,19 @@
     <string name="diary_today">Today</string>
     <string name="diary_empty_title">You haven\'t written anything yet today.</string>
     <string name="diary_empty_subtitle">Tap to start!</string>
+
+    <string name="lock_content_description_fingerprint">Fingerprint</string>
+    <string name="lock_title">ZenIA Protected</string>
+    <string name="lock_subtitle">Your journal and conversations are safe.\nUnlock to continue.</string>
+    <string name="lock_btn_unlock">Unlock</string>
+    <string name="lock_footer_trouble">Not you or can\'t unlock?</string>
+    <string name="lock_btn_sign_out">Log Out</string>
+
+    <string name="biometric_title">Unlock ZenIA</string>
+    <string name="biometric_subtitle">Use your fingerprint or device pattern</string>
+    <string name="biometric_error_prefix">Error: %1$s</string>
+
+    <string name="account_biometrics_weak_label">Allow standard face unlock</string>
+    <string name="account_biometrics_weak_warning">Note: Standard face unlock is less secure than fingerprint.</string>
 
 </resources>

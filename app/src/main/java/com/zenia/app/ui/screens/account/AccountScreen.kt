@@ -10,36 +10,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -47,9 +35,6 @@ import androidx.core.os.LocaleListCompat
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.screens.auth.AuthUiState
-import com.zenia.app.ui.screens.auth.AuthViewModel
-import com.zenia.app.viewmodel.SettingsViewModel
-import com.zenia.app.ui.screens.lock.canAuthenticate
 import com.zenia.app.ui.theme.ZenIATheme
 import java.util.Locale
 
@@ -60,8 +45,10 @@ data class AccountScreenState(
     val uiState: AuthUiState,
     val userEmail: String?,
     val isVerified: Boolean,
-    val canUseBiometrics: Boolean,
     val isBiometricEnabled: Boolean,
+    val allowWeakBiometrics: Boolean,
+    val canUseStrongBiometrics: Boolean,
+    val canUseWeakBiometrics: Boolean,
     val currentLanguage: String,
     val showDeleteDialog: Boolean,
     val snackbarHostState: SnackbarHostState
@@ -73,6 +60,7 @@ data class AccountScreenState(
 data class AccountScreenActions(
     val onNavigateBack: () -> Unit,
     val onBiometricToggle: (Boolean) -> Unit,
+    val onWeakBiometricToggle: (Boolean) -> Unit,
     val onLanguageChange: (String) -> Unit,
     val onDeleteAccountClick: () -> Unit,
     val onResendVerificationClick: () -> Unit,
@@ -120,16 +108,19 @@ fun AccountScreen(
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-            if (state.canUseBiometrics) {
+            if (state.canUseStrongBiometrics || state.canUseWeakBiometrics) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = stringResource(R.string.account_biometrics_label),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.account_biometrics_label),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
                     Switch(
                         checked = state.isBiometricEnabled,
                         onCheckedChange = actions.onBiometricToggle
@@ -141,6 +132,38 @@ fun AccountScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+
+            if (state.isBiometricEnabled && state.canUseWeakBiometrics) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, bottom = 8.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.account_biometrics_weak_label),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Switch(
+                            checked = state.allowWeakBiometrics,
+                            onCheckedChange = actions.onWeakBiometricToggle,
+                            modifier = Modifier.scale(0.8f)
+                        )
+                    }
+
+                    if (state.allowWeakBiometrics) {
+                        Text(
+                            text = stringResource(R.string.account_biometrics_weak_warning),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -235,65 +258,5 @@ fun AccountScreen(
                 }
             }
         )
-    }
-}
-
-@Preview(name = "Cuenta Verificada", showBackground = true)
-@Composable
-fun AccountScreenPreview_Verified() {
-    val state = AccountScreenState(
-        uiState = AuthUiState.Idle,
-        userEmail = "test@zenia.app",
-        isVerified = true,
-        canUseBiometrics = true,
-        isBiometricEnabled = true,
-        currentLanguage = "es",
-        showDeleteDialog = false,
-        snackbarHostState = SnackbarHostState()
-    )
-    val actions = AccountScreenActions({}, {}, {}, {}, {}, {}, {}, {})
-
-    ZenIATheme {
-        AccountScreen(state = state, actions = actions)
-    }
-}
-
-@Preview(name = "Cuenta No Verificada", showBackground = true)
-@Composable
-fun AccountScreenPreview_NotVerified() {
-    val state = AccountScreenState(
-        uiState = AuthUiState.Idle,
-        userEmail = "test@zenia.app",
-        isVerified = false,
-        canUseBiometrics = true,
-        isBiometricEnabled = false,
-        currentLanguage = "en",
-        showDeleteDialog = false,
-        snackbarHostState = SnackbarHostState()
-    )
-    val actions = AccountScreenActions({}, {}, {}, {}, {}, {}, {}, {})
-
-    ZenIATheme {
-        AccountScreen(state = state, actions = actions)
-    }
-}
-
-@Preview(name = "Diálogo de Borrado", showBackground = true)
-@Composable
-fun AccountScreenPreview_DeleteDialog() {
-    val state = AccountScreenState(
-        uiState = AuthUiState.Idle,
-        userEmail = "test@zenia.app",
-        isVerified = true,
-        canUseBiometrics = true,
-        isBiometricEnabled = true,
-        currentLanguage = "es",
-        showDeleteDialog = true,
-        snackbarHostState = SnackbarHostState()
-    )
-    val actions = AccountScreenActions({}, {}, {}, {}, {}, {}, {}, {})
-
-    ZenIATheme {
-        AccountScreen(state = state, actions = actions)
     }
 }
