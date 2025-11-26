@@ -93,9 +93,7 @@ fun MainScreen(
                     }
 
                     composable(BottomNavItem.Diario.route) {
-                        DiarioRoute(
-                            onNavigateToEntry = onNavigateToDiaryEntry
-                        )
+                        DiarioRoute()
                     }
 
                     composable(BottomNavItem.Recursos.route) {

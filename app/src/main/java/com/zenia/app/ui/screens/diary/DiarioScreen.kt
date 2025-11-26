@@ -1,5 +1,15 @@
 package com.zenia.app.ui.screens.diary
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -8,7 +18,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,12 +30,14 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,9 +54,9 @@ import com.zenia.app.ui.theme.ZeniaExercise
 import com.zenia.app.ui.theme.ZeniaFeelings
 import com.zenia.app.ui.theme.ZeniaMind
 import com.zenia.app.ui.theme.ZeniaStreak
-import com.zenia.app.ui.theme.ZeniaTeal
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -53,43 +64,106 @@ import java.util.Locale
 @Composable
 fun DiarioScreen(
     uiState: DiarioUiState,
-    onDateClick: (LocalDate) -> Unit
+    onDateSelected: (LocalDate) -> Unit,
+    onBackToCalendar: () -> Unit
 ) {
+    BackHandler(enabled = uiState.selectedDate != null) {
+        onBackToCalendar()
+    }
+
+    val isEntryView = uiState.selectedDate != null
     ZenIATheme {
         Scaffold(
-            containerColor = Color.White
+            containerColor = Color.White,
         ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White)
-                    .padding(top = innerPadding.calculateTopPadding())
-                    .padding(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    listOf("D", "L", "M", "M", "J", "V", "S").forEach { day ->
-                        Text(
-                            text = day,
-                            fontFamily = Nunito,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Gray,
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center
-                        )
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column {
+                    AnimatedVisibility(
+                        visible = isEntryView,
+                        enter = fadeIn() + slideInVertically(),
+                        exit = fadeOut() + slideOutVertically()
+                    ) {
+                        if (uiState.selectedDate != null) {
+                            MiniCalendarTopBar(
+                                selectedDate = uiState.selectedDate,
+                                onBackClick = onBackToCalendar,
+                                onDateClick = onDateSelected
+                            )
+                        }
+                    }
+
+                    Box(modifier = Modifier.weight(1f)) {
+                        AnimatedContent(
+                            targetState = uiState.selectedDate,
+                            transitionSpec = {
+                                if (targetState != null) {
+                                    slideInHorizontally { width -> width } + fadeIn() togetherWith
+                                            slideOutHorizontally { width -> -width } + fadeOut()
+                                } else {
+                                    slideInHorizontally { width -> -width } + fadeIn() togetherWith
+                                            slideOutHorizontally { width -> width } + fadeOut()
+                                }
+                            },
+                            label = "DiarioTransition"
+                        ) { date ->
+                            if (date != null) {
+                                DiaryEntryContent(date = date)
+                            } else {
+                                Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
+                                    CalendarListView(
+                                        uiState = uiState,
+                                        onDateClick = onDateSelected
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(24.dp),
-                    contentPadding = PaddingValues(bottom = 16.dp)
-                ) {
-                    items(uiState.months) { monthState ->
-                        MonthSection(monthState = monthState, onDateClick = onDateClick)
-                    }
-                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CalendarListView(uiState: DiarioUiState, onDateClick: (LocalDate) -> Unit) {
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(Unit) {
+        val currentMonthIndex = uiState.months.indexOfFirst {
+            it.yearMonth == YearMonth.now()
+        }
+        if (currentMonthIndex != -1) {
+            listState.scrollToItem(currentMonthIndex)
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(vertical = 16.dp, horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            listOf("D", "L", "M", "M", "J", "V", "S").forEach { day ->
+                Text(
+                    text = day,
+                    fontFamily = Nunito,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Gray,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+            contentPadding = PaddingValues(bottom = 16.dp, start = 16.dp, end = 16.dp)
+        ) {
+            items(uiState.months) { monthState ->
+                MonthSection(monthState = monthState, onDateClick = onDateClick)
             }
         }
     }
@@ -110,14 +184,8 @@ fun MonthSection(
             modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
         )
 
-        // Grilla del Mes
-        // Truco: Usamos height fijo calculado o un wrapper para que LazyVerticalGrid funcione dentro de LazyColumn
-        // O mejor aún, usamos un Layout personalizado simple o items fijos si el grid no scrollea por sí mismo.
-        // Para simplificar y evitar conflictos de scroll anidado, aquí usamos un grid de altura "wrap content"
-        // calculando cuántas filas tiene.
-
-        val rows = (monthState.days.size + 6) / 7 // Cálculo de filas
-        val height = rows * 56 // 48dp celda + 8dp espacio aprox
+        val rows = (monthState.days.size + 6) / 7
+        val height = rows * 56
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
@@ -132,6 +200,42 @@ fun MonthSection(
                     DayCell(dayState = dayState, onClick = onDateClick)
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun DiaryEntryContent(date: LocalDate) {
+    val dateFormatter = DateTimeFormatter.ofPattern("d 'de' MMMM, yyyy", Locale("es", "ES"))
+    val formattedDate = date.format(dateFormatter)
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = formattedDate,
+            fontFamily = Nunito,
+            fontSize = 18.sp,
+            color = Color.Gray,
+            modifier = Modifier.padding(bottom = 32.dp)
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .background(Color(0xFFF5F5F5), RoundedCornerShape(16.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Aún no has escrito nada hoy.\n¡Toca para empezar!",
+                textAlign = TextAlign.Center,
+                fontFamily = Nunito,
+                color = Color.Gray
+            )
         }
     }
 }

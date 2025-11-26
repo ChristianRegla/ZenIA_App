@@ -22,5 +22,6 @@ data class MonthState(
 
 data class DiarioUiState(
     val months: List<MonthState> = emptyList(),
+    val selectedDate: LocalDate? = null,
     val isLoading: Boolean = false
 )

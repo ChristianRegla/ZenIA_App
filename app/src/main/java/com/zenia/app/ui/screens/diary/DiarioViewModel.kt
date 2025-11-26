@@ -44,6 +44,18 @@ class DiarioViewModel : ViewModel() {
         }
     }
 
+    fun onDateSelected(date: LocalDate) {
+        _uiState.update {
+            it.copy(selectedDate = date)
+        }
+    }
+
+    fun onBackToCalendar() {
+        _uiState.update {
+            it.copy(selectedDate = null)
+        }
+    }
+
     private fun generateMonthState(month: YearMonth): MonthState {
         val today = LocalDate.now()
         val days = mutableListOf<CalendarDayState>()

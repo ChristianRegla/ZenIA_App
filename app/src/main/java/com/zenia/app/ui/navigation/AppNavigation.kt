@@ -115,11 +115,7 @@ fun AppNavigation() {
         }
 
         composable(Destinations.DIARY_ROUTE) {
-            DiarioRoute(
-                onNavigateToEntry = { date ->
-                    navController.navigate(Destinations.createDiaryEntryRoute(date))
-                }
-            )
+            DiarioRoute()
         }
 
         composable(
@@ -142,7 +138,6 @@ fun AppNavigation() {
         }
 
         composable(Destinations.SETTINGS_ROUTE) {
-            // Instanciamos el ViewModel (asumiendo que tienes el Factory configurado)
             val settingsViewModel: SettingsViewModel = viewModel(
                 factory = AppViewModelProvider.Factory
             )

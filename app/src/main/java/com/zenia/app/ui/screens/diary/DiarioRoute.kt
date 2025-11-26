@@ -9,12 +9,12 @@ import java.time.LocalDate
 @Composable
 fun DiarioRoute(
     viewModel: DiarioViewModel = viewModel(),
-    onNavigateToEntry: (LocalDate) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     DiarioScreen(
         uiState = uiState,
-        onDateClick = onNavigateToEntry
+        onDateSelected = viewModel::onDateSelected,
+        onBackToCalendar = viewModel::onBackToCalendar
     )
 }
