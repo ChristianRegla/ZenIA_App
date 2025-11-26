@@ -1,10 +1,12 @@
 package com.zenia.app.ui.screens.diary
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -23,74 +25,103 @@ class DiarioViewModel : ViewModel() {
     )
 
     init {
-        loadCalendar(YearMonth.now())
+        loadYearData(LocalDate.now().year)
     }
 
-    fun loadCalendar(month: YearMonth) {
-        val currentMonth = YearMonth.now()
-        val monthsList = mutableListOf<MonthState>()
+    fun loadYearData(year: Int) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
 
-        val startMonth = currentMonth.minusMonths(2)
-        val endMonth = currentMonth.plusMonths(2)
+            val today = LocalDate.now()
+            val monthsList = mutableListOf<MonthState>()
+            var monthIndexMatchesToday: Int? = null
 
-        var tempMonth = startMonth
-        while (!tempMonth.isAfter(endMonth)) {
-            monthsList.add(generateMonthState(tempMonth))
-            tempMonth = tempMonth.plusMonths(1)
+            for (month in 1..12) {
+                val yearMonth = YearMonth.of(year, month)
+                val days = generateDaysForMonth(yearMonth, today)
+                monthsList.add(MonthState(yearMonth, days))
+
+                if (year == today.year && month == today.monthValue) {
+                    monthIndexMatchesToday = month - 1
+                }
+            }
+
+            _uiState.update {
+                it.copy(
+                    selectedYear = year,
+                    months = monthsList,
+                    currentMonthIndex = monthIndexMatchesToday,
+                    isLoading = false,
+                    scrollTargetIndex = monthIndexMatchesToday ?: 0
+                )
+            }
+        }
+    }
+
+    fun changeYear(increment: Int) {
+        val newYear = _uiState.value.selectedYear + increment
+        loadYearData(newYear)
+    }
+
+    fun jumpToToday() {
+        val todayYear = LocalDate.now().year
+        loadYearData(todayYear)
+    }
+
+    fun selectDate(date: LocalDate) {
+        _uiState.update { it.copy(selectedDate = date) }
+    }
+
+    fun clearSelection() {
+        val lastSelectedDate = _uiState.value.selectedDate
+        val currentYearInView = _uiState.value.selectedYear
+
+        val targetIndex = if (lastSelectedDate != null && lastSelectedDate.year == currentYearInView) {
+            lastSelectedDate.monthValue - 1
+        } else {
+            _uiState.value.currentMonthIndex ?: 0
         }
 
         _uiState.update {
-            it.copy(months = monthsList)
+            it.copy(
+                selectedDate = null,
+                scrollTargetIndex = targetIndex
+            )
         }
     }
 
-    fun onDateSelected(date: LocalDate) {
-        _uiState.update {
-            it.copy(selectedDate = date)
-        }
+    fun resetScrollTarget() {
+        _uiState.update { it.copy(scrollTargetIndex = null) }
     }
 
-    fun onBackToCalendar() {
-        _uiState.update {
-            it.copy(selectedDate = null)
-        }
-    }
+    private fun generateDaysForMonth(yearMonth: YearMonth, today: LocalDate): List<CalendarDayState> {
+        val firstDayOfMonth = yearMonth.atDay(1)
+        val lastDayOfMonth = yearMonth.atEndOfMonth()
 
-    private fun generateMonthState(month: YearMonth): MonthState {
-        val today = LocalDate.now()
+        val firstDayOfWeekVal = firstDayOfMonth.dayOfWeek.value
+        val emptyDaysCount = if (firstDayOfWeekVal == 7) 0 else firstDayOfWeekVal
+
         val days = mutableListOf<CalendarDayState>()
 
-        val firstDayOfMonth = month.atDay(1)
-        val daysInMonthCount = month.lengthOfMonth()
-
-        val startPadding = firstDayOfMonth.dayOfWeek.value % 7
-
-        for (i in 0 until startPadding) {
-            days.add(CalendarDayState(LocalDate.MIN, isCurrentMonth = false, isFuture = false, hasEntry = false))
+        repeat(emptyDaysCount) {
+            days.add(CalendarDayState(LocalDate.MIN, false, false, false, StreakShape.None))
         }
 
-        for (i in 1..daysInMonthCount) {
-            val date = month.atDay(i)
+        for (day in 1..lastDayOfMonth.dayOfMonth) {
+            val date = yearMonth.atDay(day)
             val isFuture = date.isAfter(today)
-            val hasEntry = entries.contains(date)
-            val shape = if (hasEntry) calculateShapeForDate(date, entries) else StreakShape.None
+            val hasEntry = false // TODO: Conectar con datos reales
 
-            days.add(CalendarDayState(date, true, isFuture, hasEntry, shape))
+            days.add(
+                CalendarDayState(
+                    date = date,
+                    isCurrentMonth = true,
+                    isFuture = isFuture,
+                    hasEntry = hasEntry,
+                    streakShape = StreakShape.None // TODO: Calcular rachas
+                )
+            )
         }
-
-        return MonthState(yearMonth = month, days = days)
-    }
-
-    private fun calculateShapeForDate(date: LocalDate, entries: Set<LocalDate>): StreakShape {
-        val hasPrev = entries.contains(date.minusDays(1))
-        val hasNext = entries.contains(date.plusDays(1))
-
-        return when {
-            !hasPrev && !hasNext -> StreakShape.Single
-            !hasPrev && hasNext -> StreakShape.Start
-            hasPrev && hasNext -> StreakShape.Middle
-            hasPrev && !hasNext -> StreakShape.End
-            else -> StreakShape.Single
-        }
+        return days
     }
 }

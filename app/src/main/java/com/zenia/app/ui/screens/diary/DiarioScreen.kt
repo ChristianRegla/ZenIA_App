@@ -5,11 +5,10 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,6 +17,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,14 +26,24 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Today
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,7 +64,6 @@ import com.zenia.app.ui.theme.ZeniaMind
 import com.zenia.app.ui.theme.ZeniaStreak
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.time.format.TextStyle
@@ -64,7 +73,10 @@ import java.util.Locale
 fun DiarioScreen(
     uiState: DiarioUiState,
     onDateSelected: (LocalDate) -> Unit,
-    onBackToCalendar: () -> Unit
+    onBackToCalendar: () -> Unit,
+    onYearChange: (Int) -> Unit,
+    onJumpToToday: () -> Unit,
+    onScrollConsumed: () -> Unit
 ) {
     BackHandler(enabled = uiState.selectedDate != null) {
         onBackToCalendar()
@@ -91,30 +103,25 @@ fun DiarioScreen(
                 }
             }
         ) { innerPadding ->
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+
+                // Animación entre vista de Lista y Entrada Diaria
                 AnimatedContent(
                     targetState = uiState.selectedDate,
-                    transitionSpec = {
-                        if (targetState != null) {
-                            slideInHorizontally { width -> width } + fadeIn() togetherWith
-                                    slideOutHorizontally { width -> -width } + fadeOut()
-                        } else {
-                            slideInHorizontally { width -> -width } + fadeIn() togetherWith
-                                    slideOutHorizontally { width -> width } + fadeOut()
-                        }
-                    },
-                    label = "DiarioTransition",
-                    modifier = Modifier.padding(top = if (isEntryView) innerPadding.calculateTopPadding() else 0.dp)
+                    label = "DiarioTransition"
                 ) { date ->
                     if (date != null) {
+                        // Vista de detalle (DiaryEntryScreen o similar)
                         DiaryEntryContent(date = date)
                     } else {
-                        Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
-                            CalendarListView(
-                                uiState = uiState,
-                                onDateClick = onDateSelected
-                            )
-                        }
+                        // Vista de Calendario Principal
+                        CalendarViewWithControls(
+                            uiState = uiState,
+                            onDateClick = onDateSelected,
+                            onYearChange = onYearChange,
+                            onJumpToToday = onJumpToToday,
+                            onScrollConsumed = onScrollConsumed
+                        )
                     }
                 }
             }
@@ -123,57 +130,132 @@ fun DiarioScreen(
 }
 
 @Composable
-fun CalendarListView(uiState: DiarioUiState, onDateClick: (LocalDate) -> Unit) {
+fun CalendarViewWithControls(
+    uiState: DiarioUiState,
+    onDateClick: (LocalDate) -> Unit,
+    onYearChange: (Int) -> Unit,
+    onJumpToToday: () -> Unit,
+    onScrollConsumed: () -> Unit
+) {
     val listState = rememberLazyListState()
+    val todayYear = remember { LocalDate.now().year }
 
-    LaunchedEffect(Unit) {
-        val currentMonthIndex = uiState.months.indexOfFirst {
-            it.yearMonth == YearMonth.now()
-        }
-        if (currentMonthIndex != -1) {
-            listState.scrollToItem(currentMonthIndex)
+    LaunchedEffect(uiState.scrollTargetIndex) {
+        uiState.scrollTargetIndex?.let { index ->
+            listState.scrollToItem(index)
+            onScrollConsumed()
         }
     }
 
-    val dayHeaders = remember {
-        val days = listOf(
+    val showFab by remember {
+        derivedStateOf {
+            val isCurrentYear = uiState.selectedYear == todayYear
+            val isCurrentMonthVisible = if (uiState.currentMonthIndex != null) {
+                listState.layoutInfo.visibleItemsInfo.any { it.index == uiState.currentMonthIndex }
+            } else {
+                false
+            }
+            !isCurrentYear || (isCurrentYear && !isCurrentMonthVisible)
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column {
+            YearSelectorHeader(
+                year = uiState.selectedYear,
+                onPrev = { onYearChange(-1) },
+                onNext = { onYearChange(1) }
+            )
+
+            DaysOfWeekHeader()
+
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
+                itemsIndexed(uiState.months) { index, monthState ->
+                    MonthSection(monthState = monthState, onDateClick = onDateClick)
+                }
+            }
+        }
+
+        AnimatedVisibility(
+            visible = showFab,
+            enter = scaleIn() + fadeIn(),
+            exit = scaleOut() + fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 24.dp)
+        ) {
+            ExtendedFloatingActionButton(
+                onClick = onJumpToToday,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White,
+                icon = { Icon(Icons.Default.Today, "Ir a hoy") },
+                text = { Text("Hoy") }
+            )
+        }
+    }
+}
+
+@Composable
+fun DaysOfWeekHeader() {
+    val days = remember {
+        val daysOfWeek = listOf(
             DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.TUESDAY,
             DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY,
             DayOfWeek.SATURDAY
         )
-        days.map {
-            it.getDisplayName(TextStyle.NARROW, Locale.getDefault())
-        }
+        daysOfWeek.map { it.getDisplayName(TextStyle.NARROW, Locale.getDefault()) }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(vertical = 16.dp, horizontal = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            dayHeaders.forEach { day ->
-                Text(
-                    text = day,
-                    fontFamily = Nunito,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Gray,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center
-                )
-            }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(vertical = 8.dp, horizontal = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        days.forEach { day ->
+            Text(
+                text = day,
+                fontFamily = Nunito,
+                fontWeight = FontWeight.Bold,
+                color = Color.Gray,
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.Center
+            )
         }
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-            contentPadding = PaddingValues(bottom = 16.dp, start = 16.dp, end = 16.dp)
-        ) {
-            items(uiState.months) { monthState ->
-                MonthSection(monthState = monthState, onDateClick = onDateClick)
-            }
+    }
+}
+
+@Composable
+fun YearSelectorHeader(
+    year: Int,
+    onPrev: () -> Unit,
+    onNext: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onPrev) {
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Año anterior")
+        }
+
+        Text(
+            text = year.toString(),
+            fontSize = 24.sp,
+            fontFamily = Nunito,
+            fontWeight = FontWeight.Bold
+        )
+
+        IconButton(onClick = onNext) {
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Año siguiente")
         }
     }
 }
@@ -184,24 +266,14 @@ fun MonthSection(
     onDateClick: (LocalDate) -> Unit
 ) {
     Column {
-        val monthTitle = remember(monthState.yearMonth) {
-            val month = monthState.yearMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
-            val year = monthState.yearMonth.year
-            month.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } + " " + year
-        }
+        // CORRECCIÓN PROBLEMA 2: Líneas arriba y abajo del título
+        MonthHeader(monthState = monthState)
 
-        Text(
-            text = monthTitle,
-            fontFamily = Nunito,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
-        )
-
+        // Grid Manual usando Column + Row para mejor rendimiento
         val weeks = monthState.days.chunked(7)
-
         Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             weeks.forEach { weekDays ->
                 Row(
@@ -209,7 +281,9 @@ fun MonthSection(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     val days = if (weekDays.size < 7) {
-                        weekDays + List(7 - weekDays.size) { CalendarDayState(LocalDate.MIN, false, false, false, StreakShape.None) }
+                        weekDays + List(7 - weekDays.size) {
+                            CalendarDayState(LocalDate.MIN, false, false, false, StreakShape.None)
+                        }
                     } else {
                         weekDays
                     }
@@ -217,7 +291,7 @@ fun MonthSection(
                     days.forEach { dayState ->
                         Box(modifier = Modifier.weight(1f)) {
                             if (dayState.date == LocalDate.MIN) {
-                                Box(modifier = Modifier.size(49.dp))
+                                Box(modifier = Modifier.height(48.dp))
                             } else {
                                 DayCell(dayState = dayState, onClick = onDateClick)
                             }
@@ -226,6 +300,36 @@ fun MonthSection(
                 }
             }
         }
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+fun MonthHeader(monthState: MonthState) {
+    val monthTitle = remember(monthState.yearMonth) {
+        val month = monthState.yearMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+        month.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+    }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        HorizontalDivider(
+            color = Color.LightGray.copy(alpha = 0.5f),
+            thickness = 1.dp
+        )
+
+        Text(
+            text = monthTitle,
+            fontFamily = Nunito,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .padding(vertical = 12.dp)
+                .padding(start = 16.dp)
+        )
+        HorizontalDivider(
+            color = Color.LightGray.copy(alpha = 0.5f),
+            thickness = 1.dp
+        )
     }
 }
 
@@ -382,35 +486,3 @@ fun DayBookmark() {
             .background(ZeniaFeelings)
     )
 }
-
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//fun DiarioScreenPreview() {
-//    val today = LocalDate.now()
-//    val dummyDays = (1..28).map { day ->
-//        val date = today.withDayOfMonth(day)
-//        val shape = when (day) {
-//            19 -> StreakShape.Start
-//            20 -> StreakShape.Middle
-//            21 -> StreakShape.End
-//            5 -> StreakShape.Single
-//            else -> StreakShape.None
-//        }
-//        val hasEntry = shape != StreakShape.None
-//
-//        CalendarDayState(
-//            date = date,
-//            isCurrentMonth = true,
-//            isFuture = false,
-//            hasEntry = hasEntry,
-//            streakShape = shape
-//        )
-//    }
-//
-//    val dummyState = DiarioUiState(
-//        currentMonth = YearMonth.now(),
-//        calendarDays = dummyDays
-//    )
-//
-//    DiarioScreen(uiState = dummyState)
-//}

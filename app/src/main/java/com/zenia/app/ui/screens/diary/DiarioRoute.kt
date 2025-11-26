@@ -14,7 +14,10 @@ fun DiarioRoute(
 
     DiarioScreen(
         uiState = uiState,
-        onDateSelected = viewModel::onDateSelected,
-        onBackToCalendar = viewModel::onBackToCalendar
+        onDateSelected = { date -> viewModel.selectDate(date) },
+        onBackToCalendar = { viewModel.clearSelection() },
+        onYearChange = { increment -> viewModel.changeYear(increment) },
+        onJumpToToday = { viewModel.jumpToToday() },
+        onScrollConsumed = { viewModel.resetScrollTarget() }
     )
 }

@@ -21,7 +21,10 @@ data class MonthState(
 )
 
 data class DiarioUiState(
+    val selectedYear: Int = LocalDate.now().year,
+    val currentMonthIndex: Int? = null,
     val months: List<MonthState> = emptyList(),
     val selectedDate: LocalDate? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val scrollTargetIndex: Int? = null
 )
