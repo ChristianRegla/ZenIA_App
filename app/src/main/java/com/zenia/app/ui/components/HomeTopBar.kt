@@ -11,7 +11,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import com.zenia.app.R
 import com.zenia.app.ui.theme.Lobster
 import com.zenia.app.ui.theme.ZeniaTeal
 
@@ -25,7 +27,7 @@ fun HomeTopBar(
         navigationIcon = {
             IconButton(onClick = onNotificationClick) {
                 Icon(
-                    imageVector = Icons.Default.Notifications,
+                    painter = painterResource(R.drawable.ic_notifications),
                     contentDescription = "Notificaciones",
                     tint = Color.White
                 )
@@ -43,7 +45,7 @@ fun HomeTopBar(
         actions = {
             IconButton(onClick = onSettingsClick) {
                 Icon(
-                    imageVector = Icons.Default.Menu,
+                    painter = painterResource(R.drawable.ic_menu),
                     contentDescription = "Configuración",
                     tint = Color.White
                 )

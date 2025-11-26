@@ -115,4 +115,8 @@
     <string name="settings_placeholder_name">Slappy</string>
     <string name="settings_placeholder_email">slappy@vallarta.com</string>
 
+    <string name="diary_today">Today</string>
+    <string name="diary_empty_title">You haven\'t written anything yet today.</string>
+    <string name="diary_empty_subtitle">Tap to start!</string>
+
 </resources>

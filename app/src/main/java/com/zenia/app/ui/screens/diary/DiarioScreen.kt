@@ -32,21 +32,23 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.zenia.app.R
 import com.zenia.app.ui.theme.Nunito
 import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZenIATheme
@@ -54,13 +56,14 @@ import com.zenia.app.ui.theme.ZeniaExercise
 import com.zenia.app.ui.theme.ZeniaFeelings
 import com.zenia.app.ui.theme.ZeniaMind
 import com.zenia.app.ui.theme.ZeniaStreak
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.time.format.TextStyle
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiarioScreen(
     uiState: DiarioUiState,
@@ -72,50 +75,49 @@ fun DiarioScreen(
     }
 
     val isEntryView = uiState.selectedDate != null
+
     ZenIATheme {
         Scaffold(
             containerColor = Color.White,
+            topBar = {
+                AnimatedVisibility(
+                    visible = isEntryView,
+                    enter = fadeIn() + slideInVertically(),
+                    exit = fadeOut() + slideOutVertically()
+                ) {
+                    if (uiState.selectedDate != null) {
+                        MiniCalendarTopBar(
+                            selectedDate = uiState.selectedDate,
+                            onBackClick = onBackToCalendar,
+                            onDateClick = onDateSelected
+                        )
+                    }
+                }
+            }
         ) { innerPadding ->
             Box(modifier = Modifier.fillMaxSize()) {
-                Column {
-                    AnimatedVisibility(
-                        visible = isEntryView,
-                        enter = fadeIn() + slideInVertically(),
-                        exit = fadeOut() + slideOutVertically()
-                    ) {
-                        if (uiState.selectedDate != null) {
-                            MiniCalendarTopBar(
-                                selectedDate = uiState.selectedDate,
-                                onBackClick = onBackToCalendar,
+                AnimatedContent(
+                    targetState = uiState.selectedDate,
+                    transitionSpec = {
+                        if (targetState != null) {
+                            slideInHorizontally { width -> width } + fadeIn() togetherWith
+                                    slideOutHorizontally { width -> -width } + fadeOut()
+                        } else {
+                            slideInHorizontally { width -> -width } + fadeIn() togetherWith
+                                    slideOutHorizontally { width -> width } + fadeOut()
+                        }
+                    },
+                    label = "DiarioTransition",
+                    modifier = Modifier.padding(top = if (isEntryView) innerPadding.calculateTopPadding() else 0.dp)
+                ) { date ->
+                    if (date != null) {
+                        DiaryEntryContent(date = date)
+                    } else {
+                        Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
+                            CalendarListView(
+                                uiState = uiState,
                                 onDateClick = onDateSelected
                             )
-                        }
-                    }
-
-                    Box(modifier = Modifier.weight(1f)) {
-                        AnimatedContent(
-                            targetState = uiState.selectedDate,
-                            transitionSpec = {
-                                if (targetState != null) {
-                                    slideInHorizontally { width -> width } + fadeIn() togetherWith
-                                            slideOutHorizontally { width -> -width } + fadeOut()
-                                } else {
-                                    slideInHorizontally { width -> -width } + fadeIn() togetherWith
-                                            slideOutHorizontally { width -> width } + fadeOut()
-                                }
-                            },
-                            label = "DiarioTransition"
-                        ) { date ->
-                            if (date != null) {
-                                DiaryEntryContent(date = date)
-                            } else {
-                                Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
-                                    CalendarListView(
-                                        uiState = uiState,
-                                        onDateClick = onDateSelected
-                                    )
-                                }
-                            }
                         }
                     }
                 }
@@ -137,6 +139,17 @@ fun CalendarListView(uiState: DiarioUiState, onDateClick: (LocalDate) -> Unit) {
         }
     }
 
+    val dayHeaders = remember {
+        val days = listOf(
+            DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.TUESDAY,
+            DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY,
+            DayOfWeek.SATURDAY
+        )
+        days.map {
+            it.getDisplayName(TextStyle.NARROW, Locale.getDefault())
+        }
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier
@@ -145,7 +158,7 @@ fun CalendarListView(uiState: DiarioUiState, onDateClick: (LocalDate) -> Unit) {
                 .padding(vertical = 16.dp, horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            listOf("D", "L", "M", "M", "J", "V", "S").forEach { day ->
+            dayHeaders.forEach { day ->
                 Text(
                     text = day,
                     fontFamily = Nunito,
@@ -175,9 +188,14 @@ fun MonthSection(
     onDateClick: (LocalDate) -> Unit
 ) {
     Column {
+        val monthTitle = remember(monthState.yearMonth) {
+            val month = monthState.yearMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+            val year = monthState.yearMonth.year
+            month.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } + " " + year
+        }
+
         Text(
-            text = monthState.yearMonth.month.getDisplayName(TextStyle.FULL, Locale("es", "ES"))
-                .replaceFirstChar { it.uppercase() } + " " + monthState.yearMonth.year,
+            text = monthTitle,
             fontFamily = Nunito,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
@@ -206,8 +224,9 @@ fun MonthSection(
 
 @Composable
 fun DiaryEntryContent(date: LocalDate) {
-    val dateFormatter = DateTimeFormatter.ofPattern("d 'de' MMMM, yyyy", Locale("es", "ES"))
-    val formattedDate = date.format(dateFormatter)
+    val formattedDate = remember(date) {
+        date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(Locale.getDefault()))
+    }
 
     Column(
         modifier = Modifier
@@ -230,12 +249,21 @@ fun DiaryEntryContent(date: LocalDate) {
                 .background(Color(0xFFF5F5F5), RoundedCornerShape(16.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "Aún no has escrito nada hoy.\n¡Toca para empezar!",
-                textAlign = TextAlign.Center,
-                fontFamily = Nunito,
-                color = Color.Gray
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = stringResource(R.string.diary_empty_title),
+                    textAlign = TextAlign.Center,
+                    fontFamily = Nunito,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = stringResource(R.string.diary_empty_subtitle),
+                    textAlign = TextAlign.Center,
+                    fontFamily = Nunito,
+                    color = Color.Gray
+                )
+            }
         }
     }
 }
@@ -313,7 +341,6 @@ fun DayCell(
                     )
                 }
             }
-
 
             Box(
                 modifier = Modifier
