@@ -7,7 +7,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.zenia.app.viewmodel.AppViewModelProvider
 
 @Composable
-fun ZeniaBotRoute() {
+fun ZeniaBotRoute(
+    onNavigateBack: () -> Unit
+) {
     val viewModel: ZeniaChatViewModel = viewModel(factory = AppViewModelProvider.Factory)
     val uiState by viewModel.uiState.collectAsState()
     val isTyping by viewModel.isTyping.collectAsState()
@@ -16,6 +18,7 @@ fun ZeniaBotRoute() {
         uiState = uiState,
         isTyping = isTyping,
         onSendMessage = { viewModel.enviarMensaje(it) },
-        onClearChat = { viewModel.eliminarHistorial() }
+        onClearChat = { viewModel.eliminarHistorial() },
+        onNavigateBack = onNavigateBack
     )
 }

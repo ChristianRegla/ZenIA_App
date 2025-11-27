@@ -7,18 +7,33 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaBottomBar
+import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.navigation.BottomNavItem
 import com.zenia.app.ui.screens.diary.DiarioRoute
 import com.zenia.app.ui.screens.diary.DiarioScreen
@@ -26,9 +41,11 @@ import com.zenia.app.ui.screens.home.HomeRoute
 import com.zenia.app.ui.screens.recursos.RecursosRoute
 import com.zenia.app.ui.screens.relax.RelajacionScreen
 import com.zenia.app.ui.screens.zenia.ZeniaBotRoute
+import com.zenia.app.ui.theme.Nunito
 import com.zenia.app.ui.theme.ZenIATheme
 import java.time.LocalDate
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     onSignOut: () -> Unit,
@@ -46,25 +63,19 @@ fun MainScreen(
     ZenIATheme {
         Scaffold(
             bottomBar = {
-                ZeniaBottomBar(navController = bottomNavController)
-            }
+                if (!isChatScreen) {
+                    ZeniaBottomBar(navController = bottomNavController)
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ) { innerPadding ->
-            val density = LocalDensity.current
-            val bottomBarHeight = innerPadding.calculateBottomPadding()
-            val imeHeight = WindowInsets.ime.getBottom(density)
-
-            val imeHeightDp = with(density) { imeHeight.toDp() }
-
-            val bottomPadding = if (isChatScreen) {
-                max(0.dp, bottomBarHeight - imeHeightDp)
-            } else {
-                bottomBarHeight
-            }
-
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = bottomPadding)
+                    .padding(
+                        bottom = innerPadding.calculateBottomPadding(),
+                        top = 0.dp
+                    )
             ) {
                 NavHost(
                     navController = bottomNavController,
@@ -89,7 +100,9 @@ fun MainScreen(
                     }
 
                     composable(BottomNavItem.Zenia.route) {
-                        ZeniaBotRoute()
+                        ZeniaBotRoute(
+                            onNavigateBack = { bottomNavController.popBackStack() }
+                        )
                     }
 
                     composable(BottomNavItem.Diario.route) {

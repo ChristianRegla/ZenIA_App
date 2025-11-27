@@ -44,7 +44,7 @@ fun LockScreen(
     ZenIATheme {
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
+            color = MaterialTheme.colorScheme.surfaceVariant
         ) {
             Column(
                 modifier = Modifier
@@ -59,7 +59,7 @@ fun LockScreen(
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.weight(1f) // Ocupa todo el espacio central disponible
+                    modifier = Modifier.weight(1f)
                 ) {
                     Box(
                         modifier = Modifier

@@ -4,12 +4,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -142,4 +148,58 @@ fun MiniCalendarTopBar(
             }
         }
     }
+}
+
+@Composable
+fun YearPickerDialog(
+    currentYear: Int,
+    onYearSelected: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Seleccionar Año",
+                fontFamily = Nunito,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp)
+            ) {
+                LazyColumn(
+                    state = rememberLazyListState(
+                        initialFirstVisibleItemIndex = (currentYear - 2020).coerceAtLeast(0)
+                    ),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Rango de años (ej: 2020 a 2030)
+                    items((2020..2030).toList()) { year ->
+                        TextButton(
+                            onClick = { onYearSelected(year) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = year.toString(),
+                                fontSize = 18.sp,
+                                fontFamily = Nunito,
+                                fontWeight = if (year == currentYear) FontWeight.Bold else FontWeight.Normal,
+                                color = if (year == currentYear) MaterialTheme.colorScheme.primary else Color.Gray
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
 }

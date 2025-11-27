@@ -54,8 +54,8 @@ fun ZeniaBottomBar(navController: NavController) {
         items.forEach { item ->
             val isSelected = currentRoute == item.route
 
-            val iconColor = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f)
-            val textColor = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f)
+            val iconColor = if (isSelected) Color.White else Color.White.copy(alpha = 0.3f)
+            val textColor = if (isSelected) Color.White else Color.White.copy(alpha = 0.3f)
 
             Box(
                 modifier = Modifier

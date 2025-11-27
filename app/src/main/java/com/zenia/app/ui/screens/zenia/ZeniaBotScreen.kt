@@ -26,10 +26,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -61,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import com.zenia.app.R
 import com.zenia.app.model.MensajeChatbot
 import com.zenia.app.ui.theme.ZenIATheme
+import com.zenia.app.ui.theme.ZeniaTeal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +71,8 @@ fun ZeniaBotScreen(
     uiState: ChatUiState,
     isTyping: Boolean,
     onSendMessage: (String) -> Unit,
-    onClearChat: () -> Unit
+    onClearChat: () -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     var textState by rememberSaveable { mutableStateOf("") }
     val listState = rememberLazyListState()
@@ -77,16 +81,20 @@ fun ZeniaBotScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(R.string.nav_bot),
+                        color = Color.White
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(
-                            imageVector = Icons.Default.SmartToy,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.nav_back_desc),
+                            tint = Color.White
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.nav_bot))
                     }
                 },
                 actions = {
@@ -94,12 +102,12 @@ fun ZeniaBotScreen(
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Borrar chat",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = Color.White
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    containerColor = ZeniaTeal,
                 )
             )
         }
@@ -107,6 +115,7 @@ fun ZeniaBotScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(paddingValues)
                 .imePadding(),
         ) {
@@ -331,7 +340,8 @@ fun ZeniaBotPreview_Light() {
             uiState = ChatUiState.Success(mensajesPrueba),
             isTyping = false,
             onSendMessage = {},
-            onClearChat = {}
+            onClearChat = {},
+            onNavigateBack = {}
         )
     }
 }
@@ -344,27 +354,8 @@ fun ZeniaBotPreview_Dark() {
             uiState = ChatUiState.Success(mensajesPrueba),
             isTyping = false,
             onSendMessage = {},
-            onClearChat = {}
-        )
-    }
-}
-
-/**
- * SIMULACIÓN DE TECLADO ABIERTO
- * Usamos 'heightDp = 300' para simular que el teclado está ocupando
- * la mitad inferior de la pantalla.
- * Esto verifica que el 'imePadding' y el 'weight(1f)' funcionen:
- * la barra de texto debe seguir visible abajo y la lista debe tener scroll.
- */
-@Preview(name = "Simulación Teclado Abierto", showBackground = true, heightDp = 300)
-@Composable
-fun ZeniaBotPreview_KeyboardOpen() {
-    ZenIATheme {
-        ZeniaBotScreen(
-            uiState = ChatUiState.Success(mensajesPrueba + mensajesPrueba),
-            isTyping = false,
-            onSendMessage = {},
-            onClearChat = {}
+            onClearChat = {},
+            onNavigateBack = {}
         )
     }
 }

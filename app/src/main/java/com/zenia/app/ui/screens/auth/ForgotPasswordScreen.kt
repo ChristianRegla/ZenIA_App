@@ -92,6 +92,7 @@ fun ForgotPasswordScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(paddingValues)
                 .padding(horizontal = 24.dp)
         ) {

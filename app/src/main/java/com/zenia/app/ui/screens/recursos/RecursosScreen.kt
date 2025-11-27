@@ -1,5 +1,6 @@
 package com.zenia.app.ui.screens.resources
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,13 +36,13 @@ fun RecursosScreen(
 ) {
     Scaffold(
         topBar = {
-            // Usa el string resource que definimos antes
             TopAppBar(title = { Text(stringResource(R.string.nav_resources)) })
         }
     ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(padding)
         ) {
             when (uiState) {

@@ -12,6 +12,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -39,16 +41,20 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -86,7 +92,7 @@ fun DiarioScreen(
 
     ZenIATheme {
         Scaffold(
-            containerColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
             topBar = {
                 AnimatedVisibility(
                     visible = isEntryView,
@@ -103,18 +109,18 @@ fun DiarioScreen(
                 }
             }
         ) { innerPadding ->
-            Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+            Box(modifier = Modifier
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .padding(innerPadding)
+                .fillMaxSize()) {
 
-                // Animación entre vista de Lista y Entrada Diaria
                 AnimatedContent(
                     targetState = uiState.selectedDate,
                     label = "DiarioTransition"
                 ) { date ->
                     if (date != null) {
-                        // Vista de detalle (DiaryEntryScreen o similar)
                         DiaryEntryContent(date = date)
                     } else {
-                        // Vista de Calendario Principal
                         CalendarViewWithControls(
                             uiState = uiState,
                             onDateClick = onDateSelected,
@@ -140,6 +146,8 @@ fun CalendarViewWithControls(
     val listState = rememberLazyListState()
     val todayYear = remember { LocalDate.now().year }
 
+    var showYearDialog by remember { mutableStateOf(false) }
+
     LaunchedEffect(uiState.scrollTargetIndex) {
         uiState.scrollTargetIndex?.let { index ->
             listState.scrollToItem(index)
@@ -159,12 +167,50 @@ fun CalendarViewWithControls(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    if (showYearDialog) {
+        YearPickerDialog(
+            currentYear = uiState.selectedYear,
+            onYearSelected = { newYear ->
+                val diff = newYear - uiState.selectedYear
+                if (diff != 0) onYearChange(diff)
+                showYearDialog = false
+            },
+            onDismiss = { showYearDialog = false }
+        )
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures { change, dragAmount ->
+                    val threshold = 50f
+                }
+            }
+            .pointerInput(Unit) {
+                var totalDrag = 0f
+                detectHorizontalDragGestures(
+                    onDragEnd = {
+                        if (totalDrag > 100) {
+                            onYearChange(-1)
+                        } else if (totalDrag < -100) {
+                            onYearChange(1)
+                        }
+                        totalDrag = 0f
+                    },
+                    onHorizontalDrag = { change, dragAmount ->
+                        change.consume()
+                        totalDrag += dragAmount
+                    }
+                )
+            }
+    ) {
         Column {
             YearSelectorHeader(
                 year = uiState.selectedYear,
                 onPrev = { onYearChange(-1) },
-                onNext = { onYearChange(1) }
+                onNext = { onYearChange(1) },
+                onYearClick = { showYearDialog = true }
             )
 
             DaysOfWeekHeader()
@@ -213,7 +259,7 @@ fun DaysOfWeekHeader() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(vertical = 8.dp, horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -234,7 +280,8 @@ fun DaysOfWeekHeader() {
 fun YearSelectorHeader(
     year: Int,
     onPrev: () -> Unit,
-    onNext: () -> Unit
+    onNext: () -> Unit,
+    onYearClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -247,12 +294,34 @@ fun YearSelectorHeader(
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Año anterior")
         }
 
-        Text(
-            text = year.toString(),
-            fontSize = 24.sp,
-            fontFamily = Nunito,
-            fontWeight = FontWeight.Bold
-        )
+        Surface(
+            onClick = onYearClick,
+            shape = RoundedCornerShape(12.dp),
+
+            modifier = Modifier.clip(RoundedCornerShape(12.dp))
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(horizontal = 12.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    text = year.toString(),
+                    fontSize = 22.sp,
+                    fontFamily = Nunito,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            }
+        }
 
         IconButton(onClick = onNext) {
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Año siguiente")
@@ -266,10 +335,8 @@ fun MonthSection(
     onDateClick: (LocalDate) -> Unit
 ) {
     Column {
-        // CORRECCIÓN PROBLEMA 2: Líneas arriba y abajo del título
         MonthHeader(monthState = monthState)
 
-        // Grid Manual usando Column + Row para mejor rendimiento
         val weeks = monthState.days.chunked(7)
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -282,7 +349,12 @@ fun MonthSection(
                 ) {
                     val days = if (weekDays.size < 7) {
                         weekDays + List(7 - weekDays.size) {
-                            CalendarDayState(LocalDate.MIN, false, false, false, StreakShape.None)
+                            CalendarDayState(LocalDate.MIN,
+                                isCurrentMonth = false,
+                                isFuture = false,
+                                hasEntry = false,
+                                streakShape = StreakShape.None
+                            )
                         }
                     } else {
                         weekDays
@@ -313,7 +385,7 @@ fun MonthHeader(monthState: MonthState) {
 
     Column(modifier = Modifier.fillMaxWidth()) {
         HorizontalDivider(
-            color = Color.LightGray.copy(alpha = 0.5f),
+            color = MaterialTheme.colorScheme.onSurface,
             thickness = 1.dp
         )
 
@@ -322,12 +394,14 @@ fun MonthHeader(monthState: MonthState) {
             fontFamily = Nunito,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
             modifier = Modifier
                 .padding(vertical = 12.dp)
                 .padding(start = 16.dp)
+                .fillMaxWidth()
         )
         HorizontalDivider(
-            color = Color.LightGray.copy(alpha = 0.5f),
+            color = MaterialTheme.colorScheme.onSurface,
             thickness = 1.dp
         )
     }
