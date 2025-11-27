@@ -200,6 +200,7 @@ fun YearPickerDialog(
             TextButton(onClick = onDismiss) {
                 Text("Cancelar")
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.surfaceVariant
     )
 }

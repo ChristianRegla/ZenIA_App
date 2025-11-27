@@ -235,7 +235,8 @@ fun ZeniaBotScreen(
                 TextButton(onClick = { showDeleteDialog = false }) {
                     Text("Cancelar")
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
         )
     }
 }
