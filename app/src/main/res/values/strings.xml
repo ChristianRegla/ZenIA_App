@@ -127,4 +127,21 @@
     <string name="account_biometrics_weak_label">Permitir reconocimiento facial 2D</string>
     <string name="account_biometrics_weak_warning">Nota: El reconocimiento facial estándar es menos seguro que la huella digital.</string>
 
+    <string name="help_center_title">¿Cómo podemos ayudarte?</string>
+    <string name="help_center_desc">Si tienes algún problema técnico, dudas sobre la suscripción o sugerencias para mejorar ZenIA, estamos aquí para escucharte.</string>
+    <string name="help_center_btn_contact">Contactar Soporte</string>
+    <string name="help_email_subject">Soporte ZenIA - Ayuda</string>
+
+    <string name="donations_title">Apoya a ZenIA</string>
+    <string name="donations_desc">ZenIA es un proyecto independiente creado con amor para ayudarte a mejorar tu bienestar. Si la app te ha sido útil, considera hacer una donación para ayudarnos a seguir creciendo.</string>
+    <string name="donations_btn_action">Hacer una Donación</string>
+    <string name="donations_footer">¡Gracias por tu generosidad! ❤️</string>
+
+    <string name="privacy_screen_title">Legal y Privacidad</string>
+    <string name="privacy_screen_desc">Conoce más sobre ZenIA, cómo protegemos tus datos y las reglas de uso de nuestra plataforma.</string>
+
+    <string name="privacy_link_about">Acerca de ZenIA</string>
+    <string name="privacy_link_terms">Términos y Condiciones</string>
+    <string name="privacy_link_policy">Política de Privacidad</string>
+
 </resources>

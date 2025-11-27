@@ -131,4 +131,21 @@
     <string name="account_biometrics_weak_label">Allow standard face unlock</string>
     <string name="account_biometrics_weak_warning">Note: Standard face unlock is less secure than fingerprint.</string>
 
+    <string name="help_center_title">How can we help you?</string>
+    <string name="help_center_desc">If you have any technical issues, subscription questions, or suggestions to improve ZenIA, we are here to listen.</string>
+    <string name="help_center_btn_contact">Contact Support</string>
+    <string name="help_email_subject">ZenIA Support - Help</string>
+
+    <string name="donations_title">Support ZenIA</string>
+    <string name="donations_desc">ZenIA is an independent project created with love to help you improve your well-being. If the app has been useful to you, please consider making a donation to help us keep growing.</string>
+    <string name="donations_btn_action">Make a Donation</string>
+    <string name="donations_footer">Thank you for your generosity! ❤️</string>
+
+    <string name="privacy_screen_title">Legal and Privacy</string>
+    <string name="privacy_screen_desc">Learn more about ZenIA, how we protect your data, and the terms of use of our platform.</string>
+
+    <string name="privacy_link_about">About ZenIA</string>
+    <string name="privacy_link_terms">Terms and Conditions</string>
+    <string name="privacy_link_policy">Privacy Policy</string>
+
 </resources>
