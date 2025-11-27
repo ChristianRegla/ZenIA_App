@@ -58,11 +58,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.zenia.app.R
 import com.zenia.app.model.MensajeChatbot
+import com.zenia.app.ui.theme.Nunito
 import com.zenia.app.ui.theme.ZenIATheme
+import com.zenia.app.ui.theme.ZeniaIceBlue
 import com.zenia.app.ui.theme.ZeniaTeal
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -255,19 +260,18 @@ fun ChatBubble(mensaje: MensajeChatbot) {
                 bottomEnd = if (isUser) 2.dp else 16.dp
             ),
             color = if (isUser)
-                MaterialTheme.colorScheme.primary
+                MaterialTheme.colorScheme.secondary
             else
-                MaterialTheme.colorScheme.secondaryContainer,
-            modifier = Modifier.widthIn(max = bubbleMaxWidth) // Responsive
+                ZeniaIceBlue,
+            modifier = Modifier.widthIn(max = bubbleMaxWidth)
         ) {
             Text(
                 text = mensaje.texto,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                color = if (isUser)
-                    MaterialTheme.colorScheme.onPrimary
-                else
-                    MaterialTheme.colorScheme.onSecondaryContainer,
-                style = MaterialTheme.typography.bodyMedium
+                color = Color.Black,
+                fontFamily = Nunito,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold
             )
         }
     }
@@ -275,7 +279,6 @@ fun ChatBubble(mensaje: MensajeChatbot) {
 
 @Composable
 fun TypingBubble() {
-    // Reutilizamos el estilo de la burbuja de la IA (gris)
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.CenterStart
@@ -288,13 +291,11 @@ fun TypingBubble() {
             color = MaterialTheme.colorScheme.secondaryContainer,
             modifier = Modifier.padding(vertical = 4.dp)
         ) {
-            // Contenedor de los puntos
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // 3 Puntos saltarines
                 TypingDot(delayMillis = 0)
                 TypingDot(delayMillis = 150)
                 TypingDot(delayMillis = 300)
