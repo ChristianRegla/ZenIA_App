@@ -107,7 +107,7 @@ fun LockScreen(
                         shape = MaterialTheme.shapes.medium
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Lock,
+                            painter = painterResource(R.drawable.ic_lock),
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         )
