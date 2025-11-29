@@ -39,7 +39,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.zenia.app.ui.theme.Nunito
+import com.zenia.app.ui.theme.RobotoFlex
 import java.time.LocalDate
 
 /**
@@ -162,7 +162,7 @@ fun YearPickerDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Seleccionar Año", fontFamily = Nunito, fontWeight = FontWeight.Bold) },
+        title = { Text("Seleccionar Año", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold) },
         text = {
             Box(modifier = Modifier.fillMaxWidth().height(300.dp)) {
                 LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -171,7 +171,7 @@ fun YearPickerDialog(
                             Text(
                                 text = year.toString(),
                                 fontSize = 18.sp,
-                                fontFamily = Nunito,
+                                fontFamily = RobotoFlex,
                                 fontWeight = if (year == currentYear) FontWeight.Bold else FontWeight.Normal,
                                 color = if (year == currentYear) MaterialTheme.colorScheme.primary else Color.Gray
                             )

@@ -35,7 +35,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.zenia.app.ui.theme.Nunito
 import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZeniaExercise
 import com.zenia.app.ui.theme.ZeniaFeelings
@@ -70,7 +69,7 @@ fun DaysOfWeekHeader() {
         days.forEach { day ->
             Text(
                 text = day,
-                fontFamily = Nunito,
+                fontFamily = RobotoFlex,
                 fontWeight = FontWeight.Bold,
                 color = Color.Gray,
                 modifier = Modifier.weight(1f),
@@ -115,7 +114,7 @@ fun YearSelectorHeader(
                 Text(
                     text = year.toString(),
                     fontSize = 22.sp,
-                    fontFamily = Nunito,
+                    fontFamily = RobotoFlex,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -198,7 +197,7 @@ fun MonthHeader(monthState: MonthState) {
 
         Text(
             text = monthTitle,
-            fontFamily = Nunito,
+            fontFamily = RobotoFlex,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,

@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
-import com.zenia.app.ui.theme.Nunito
+import com.zenia.app.ui.theme.RobotoFlex
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -90,7 +90,7 @@ fun DiaryEntryContent(date: LocalDate) {
         item {
             Text(
                 text = formattedDate,
-                fontFamily = Nunito,
+                fontFamily = RobotoFlex,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -130,7 +130,7 @@ fun DiaryEntryContent(date: LocalDate) {
                             if (isSelected) selectedActivities.remove(activity)
                             else selectedActivities.add(activity)
                         },
-                        label = { Text(activity, fontFamily = Nunito) },
+                        label = { Text(activity, fontFamily = RobotoFlex) },
                         leadingIcon = if (isSelected) {
                             { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp)) }
                         } else null,
@@ -176,7 +176,7 @@ fun DiaryEntryContent(date: LocalDate) {
                 modifier = Modifier.fillMaxWidth().height(50.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Guardar Entrada", fontFamily = Nunito, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Guardar Entrada", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
         }
     }
@@ -188,7 +188,7 @@ fun DiaryEntryContent(date: LocalDate) {
 fun SectionTitle(text: String) {
     Text(
         text = text,
-        fontFamily = Nunito,
+        fontFamily = RobotoFlex,
         fontWeight = FontWeight.Bold,
         fontSize = 18.sp,
         color = MaterialTheme.colorScheme.onSurface,
@@ -230,7 +230,7 @@ fun FeelingItem(
         Text(
             text = label,
             fontSize = 11.sp,
-            fontFamily = Nunito,
+            fontFamily = RobotoFlex,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
             color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray
         )
