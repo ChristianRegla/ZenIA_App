@@ -46,7 +46,13 @@ fun AppNavigation() {
 
     val isLoggedIn by authViewModel.isUserLoggedIn.collectAsState()
 
-    val isBiometricEnabled by settingsViewModel.isBiometricEnabled.collectAsState()
+    val isBiometricEnabledState by settingsViewModel.isBiometricEnabled.collectAsState()
+
+    if (isBiometricEnabledState == null) {
+        return // O un Box(Modifier.fillMaxSize()) { CircularProgressIndicator() }
+    }
+
+    val isBiometricEnabled = isBiometricEnabledState!!
 
     /**
      * Lógica clave para determinar la pantalla de inicio de la app (startDestination).

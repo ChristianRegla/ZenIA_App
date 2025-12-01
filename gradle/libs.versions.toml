@@ -37,6 +37,8 @@ constraintlayoutCompose = "1.0.1"
 material = "1.13.0"
 foundationLayout = "1.9.5"
 
+splashScreen = "1.0.1"
+
 
 [libraries]
 # --- AndroidX Core & Testing ---
@@ -89,6 +91,8 @@ androidx-constraintlayout-compose = { group = "androidx.constraintlayout", name 
 
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
+
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashScreen" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

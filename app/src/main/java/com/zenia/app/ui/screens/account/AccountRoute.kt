@@ -98,7 +98,7 @@ fun AccountRoute(
         uiState = uiState,
         userEmail = userEmail,
         isVerified = isVerified,
-        isBiometricEnabled = isBiometricEnabled,
+        isBiometricEnabled = isBiometricEnabled ?: false,
         allowWeakBiometrics = allowWeakBiometrics,
         canUseStrongBiometrics = canUseStrong,
         canUseWeakBiometrics = canUseWeak,
@@ -127,7 +127,6 @@ fun AccountRoute(
         onDismissDeleteDialog = { showDeleteDialog = false }
     )
 
-    // --- 4. Llama al Composable "Tonto" ---
     AccountScreen(
         state = screenState,
         actions = screenActions
