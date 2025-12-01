@@ -95,7 +95,6 @@ fun CalendarViewWithControls(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            // Detector de gestos horizontales para cambiar de año
             .pointerInput(Unit) {
                 var totalDrag = 0f
                 detectHorizontalDragGestures(
@@ -112,14 +111,6 @@ fun CalendarViewWithControls(
             }
     ) {
         Column {
-            YearSelectorHeader(
-                year = uiState.selectedYear,
-                onPrev = { onYearChange(-1) },
-                onNext = { onYearChange(1) },
-                onYearClick = { showYearDialog = true }
-            )
-
-            DaysOfWeekHeader()
 
             LazyColumn(
                 state = listState,

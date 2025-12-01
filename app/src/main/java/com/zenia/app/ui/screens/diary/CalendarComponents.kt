@@ -46,6 +46,32 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 /**
+ * NUEVO: TopBar unificada para la vista de Calendario.
+ * Agrupa el selector de año y los días de la semana con el mismo fondo.
+ */
+@Composable
+fun CalendarTopBar(
+    selectedYear: Int,
+    onYearClick: () -> Unit,
+    onPrevYear: () -> Unit,
+    onNextYear: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        YearSelectorHeader(
+            year = selectedYear,
+            onPrev = onPrevYear,
+            onNext = onNextYear,
+            onYearClick = onYearClick
+        )
+        DaysOfWeekHeader()
+    }
+}
+
+/**
  * Cabecera fija que muestra los días de la semana (D, L, M...).
  */
 @Composable
