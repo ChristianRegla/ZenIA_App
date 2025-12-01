@@ -28,8 +28,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
- * [1] WRAPPER PARA NAVEGACIÓN (Corrige el error en AppNavigation)
- * Esta función crea una pantalla independiente con su propia TopBar.
+ * [1] Esta función crea una pantalla independiente con su propia TopBar.
  * Se usa cuando navegas directamente a una fecha desde Home o Notificaciones.
  */
 @Composable
@@ -39,10 +38,7 @@ fun DiaryEntryScreen(
 ) {
     Scaffold(
         topBar = {
-            ZeniaTopBar(
-                title = "Entrada del Diario",
-                onNavigateBack = onNavigateBack
-            )
+            ZeniaTopBar(title = "Entrada del Diario", onNavigateBack = onNavigateBack)
         },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { innerPadding ->
@@ -59,7 +55,11 @@ fun DiaryEntryScreen(
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun DiaryEntryContent(date: LocalDate) {
-    var selectedFeelingIndex by rememberSaveable { mutableStateOf<Int?>(null) }
+    var feelingIdx by rememberSaveable { mutableStateOf<Int?>(null) }
+    var sleepIdx by rememberSaveable { mutableStateOf<Int?>(null) }
+    var mindIdx by rememberSaveable { mutableStateOf<Int?>(null) }
+    var exerciseIdx by rememberSaveable { mutableStateOf<Int?>(null) }
+
     var noteText by rememberSaveable { mutableStateOf("") }
     val selectedActivities = remember { mutableStateListOf<String>() }
 
@@ -68,6 +68,27 @@ fun DiaryEntryContent(date: LocalDate) {
         FeelingData(1, R.drawable.ic_sol_feli, "Feliz"),
         FeelingData(2, R.drawable.ic_nube_tite, "Desanimado"),
         FeelingData(3, R.drawable.ic_sol_feli, "Alegre"),
+    )
+
+    val dreamQuality = listOf(
+        FeelingData(0, R.drawable.ic_nube_feli, "Descansado"),
+        FeelingData(1, R.drawable.ic_sol_feli, "Lleno de energía"),
+        FeelingData(2, R.drawable.ic_nube_tite, "Cansado"),
+        FeelingData(3, R.drawable.ic_sol_feli, "Muy bien"),
+    )
+
+    val mind = listOf(
+        FeelingData(0, R.drawable.ic_nube_feli, "Tranquilidad"),
+        FeelingData(1, R.drawable.ic_sol_feli, "Claridad"),
+        FeelingData(2, R.drawable.ic_nube_tite, "Sin motivación"),
+        FeelingData(3, R.drawable.ic_sol_feli, "Claridad"),
+    )
+
+    val exercise = listOf(
+        FeelingData(0, R.drawable.ic_nube_feli, "Caminata"),
+        FeelingData(1, R.drawable.ic_sol_feli, "Intenso"),
+        FeelingData(2, R.drawable.ic_nube_tite, "Nada"),
+        FeelingData(3, R.drawable.ic_sol_feli, "Ligero"),
     )
 
     val activities = listOf(
@@ -98,22 +119,10 @@ fun DiaryEntryContent(date: LocalDate) {
             )
         }
 
-        item {
-            SectionTitle("¿Cómo te sientes hoy?")
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                feelings.forEach { feeling ->
-                    FeelingItem(
-                        iconRes = feeling.iconRes,
-                        label = feeling.label,
-                        isSelected = selectedFeelingIndex == feeling.id,
-                        onClick = { selectedFeelingIndex = feeling.id }
-                    )
-                }
-            }
-        }
+        item { SelectionSection("¿Cómo te sientes?", feelings, feelingIdx) { feelingIdx = it } }
+        item { SelectionSection("Calidad de sueño", dreamQuality, sleepIdx) { sleepIdx = it } }
+        item { SelectionSection("Mente", mind, mindIdx) { mindIdx = it } }
+        item { SelectionSection("Ejercicio", exercise, exerciseIdx) { exerciseIdx = it } }
 
         item {
             SectionTitle("¿Qué has hecho?")
@@ -169,7 +178,9 @@ fun DiaryEntryContent(date: LocalDate) {
         }
 
         item {
-            val hasContent = selectedFeelingIndex != null || noteText.isNotEmpty()
+            val hasContent = feelingIdx != null || sleepIdx != null ||
+                    mindIdx != null || exerciseIdx != null ||
+                    noteText.isNotEmpty()
             Button(
                 onClick = { /* TODO: Guardar en BD */ },
                 enabled = hasContent,
@@ -178,6 +189,29 @@ fun DiaryEntryContent(date: LocalDate) {
             ) {
                 Text("Guardar Entrada", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
+        }
+    }
+}
+
+@Composable
+fun SelectionSection(
+    title: String,
+    items: List<FeelingData>,
+    selectedIndex: Int?,
+    onSelect: (Int) -> Unit
+) {
+    SectionTitle(title)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        items.forEach { item ->
+            FeelingItem(
+                iconRes = item.iconRes,
+                label = item.label,
+                isSelected = selectedIndex == item.id,
+                onClick = { onSelect(item.id) }
+            )
         }
     }
 }
