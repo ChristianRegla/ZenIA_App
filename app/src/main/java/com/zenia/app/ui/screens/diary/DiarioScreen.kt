@@ -1,43 +1,35 @@
 package com.zenia.app.ui.screens.diary
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Today
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.zenia.app.ui.theme.ZenIATheme
 import java.time.LocalDate
+import java.time.YearMonth
 
-/**
- * Pantalla principal del módulo de Diario.
- * Actúa como un orquestador que gestiona la navegación interna entre la vista de Calendario
- * y la vista de Detalle de Entrada (DiaryEntryContent).
- *
- * @param uiState El estado actual de la UI (año seleccionado, mes, datos).
- * @param onDateSelected Callback cuando el usuario toca un día.
- * @param onBackToCalendar Callback para regresar del detalle al calendario.
- * @param onYearChange Callback para cambiar el año visualizado.
- * @param onJumpToToday Callback para scrollear rápidamente al día de hoy.
- * @param onScrollConsumed Callback para notificar que el scroll automático se ha realizado.
- */
 @Composable
 fun DiarioScreen(
     uiState: DiarioUiState,
@@ -52,7 +44,6 @@ fun DiarioScreen(
     }
 
     val isEntryView = uiState.selectedDate != null
-
     var showYearDialog by remember { mutableStateOf(false) }
 
     ZenIATheme {
@@ -98,26 +89,21 @@ fun DiarioScreen(
                     label = "DiarioTransition",
                     transitionSpec = {
                         if (targetState != null) {
-                            (fadeIn(animationSpec = tween(300)) +
-                                    scaleIn(initialScale = 0.92f, animationSpec = tween(300)))
-                                .togetherWith(fadeOut(animationSpec = tween(300)))
+                            (fadeIn(tween(300)) + scaleIn(initialScale = 0.92f, animationSpec = tween(300)))
+                                .togetherWith(fadeOut(tween(300)))
                         } else {
-                            (fadeIn(animationSpec = tween(300)) +
-                                    scaleIn(initialScale = 1.05f, animationSpec = tween(300)))
-                                .togetherWith(
-                                    fadeOut(animationSpec = tween(300)) +
-                                            scaleOut(targetScale = 0.92f, animationSpec = tween(300))
-                                )
+                            (fadeIn(tween(300)) + scaleIn(initialScale = 1.05f, animationSpec = tween(300)))
+                                .togetherWith(fadeOut(tween(300)) + scaleOut(targetScale = 0.92f, animationSpec = tween(300)))
                         }
                     }
                 ) { date ->
                     if (date != null) {
                         DiaryEntryContent(date = date)
                     } else {
-                        CalendarViewWithControls(
+                        CalendarPagerView(
                             uiState = uiState,
                             onDateClick = onDateSelected,
-                            onYearChange = onYearChange,
+                            onYearPageChanged = { diff -> onYearChange(diff) },
                             onJumpToToday = onJumpToToday,
                             onScrollConsumed = onScrollConsumed
                         )
@@ -136,6 +122,135 @@ fun DiarioScreen(
                 },
                 onDismiss = { showYearDialog = false }
             )
+        }
+    }
+}
+
+/**
+ * Vista de calendario basada en Pager.
+ * Permite deslizar entre años de forma fluida viendo el contenido del siguiente año.
+ */
+@Composable
+fun CalendarPagerView(
+    uiState: DiarioUiState,
+    onDateClick: (LocalDate) -> Unit,
+    onYearPageChanged: (Int) -> Unit,
+    onJumpToToday: () -> Unit,
+    onScrollConsumed: () -> Unit
+) {
+    val startPage = Int.MAX_VALUE / 2
+    val baseYear = remember { LocalDate.now().year }
+
+    val initialPage = startPage + (uiState.selectedYear - baseYear)
+    val pagerState = rememberPagerState(initialPage = initialPage) { Int.MAX_VALUE }
+
+    LaunchedEffect(uiState.selectedYear) {
+        val targetPage = startPage + (uiState.selectedYear - baseYear)
+        if (pagerState.currentPage != targetPage) {
+            pagerState.animateScrollToPage(targetPage)
+        }
+    }
+
+    LaunchedEffect(pagerState.currentPage) {
+        val currentYearInPager = baseYear + (pagerState.currentPage - startPage)
+        val diff = currentYearInPager - uiState.selectedYear
+        if (diff != 0) {
+            onYearPageChanged(diff)
+        }
+    }
+
+    val listState = rememberLazyListState()
+    LaunchedEffect(uiState.scrollTargetIndex) {
+        uiState.scrollTargetIndex?.let { index ->
+            listState.scrollToItem(index)
+            onScrollConsumed()
+        }
+    }
+
+    val showFab by remember {
+        derivedStateOf {
+            val isCurrentYear = uiState.selectedYear == LocalDate.now().year
+            val isCurrentMonthVisible = if (uiState.currentMonthIndex != null) {
+                listState.layoutInfo.visibleItemsInfo.any { it.index == uiState.currentMonthIndex }
+            } else { false }
+            !isCurrentYear || (isCurrentYear && !isCurrentMonthVisible)
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize(),
+            beyondViewportPageCount = 1
+        ) { page ->
+            val pageYear = baseYear + (page - startPage)
+
+            val monthsForPage = rememberMonthsForYear(pageYear, uiState.selectedYear, uiState.months)
+
+            LazyColumn(
+                state = if (pageYear == uiState.selectedYear) listState else rememberLazyListState(),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
+                itemsIndexed(monthsForPage) { _, monthState ->
+                    MonthSection(monthState = monthState, onDateClick = onDateClick)
+                }
+            }
+        }
+
+        AnimatedVisibility(
+            visible = showFab,
+            enter = scaleIn() + fadeIn(),
+            exit = scaleOut() + fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 24.dp)
+
+        ) {
+            ExtendedFloatingActionButton(
+                onClick = onJumpToToday,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White,
+                icon = { Icon(Icons.Default.Today, "Ir a hoy") },
+                text = { Text("Hoy") }
+            )
+        }
+    }
+}
+
+/**
+ * Función auxiliar inteligente:
+ * Si el año que pide el Pager es el año seleccionado en el ViewModel, usa los datos reales (con eventos).
+ * Si es otro año (el vecino que estamos espiando), genera una estructura vacía al vuelo para que se vea el calendario.
+ */
+@Composable
+fun rememberMonthsForYear(
+    year: Int,
+    selectedYear: Int,
+    loadedMonths: List<MonthState>
+): List<MonthState> {
+    return remember(year, selectedYear, loadedMonths) {
+        if (year == selectedYear && loadedMonths.isNotEmpty()) {
+            loadedMonths
+        } else {
+            val today = LocalDate.now()
+            (1..12).map { month ->
+                val yearMonth = YearMonth.of(year, month)
+                val firstDayOfMonth = yearMonth.atDay(1)
+                val lastDayOfMonth = yearMonth.atEndOfMonth()
+                val firstDayOfWeekVal = firstDayOfMonth.dayOfWeek.value
+                val emptyDaysCount = if (firstDayOfWeekVal == 7) 0 else firstDayOfWeekVal
+
+                val days = mutableListOf<CalendarDayState>()
+                repeat(emptyDaysCount) {
+                    days.add(CalendarDayState(LocalDate.MIN, false, false, false, StreakShape.None))
+                }
+                for (day in 1..lastDayOfMonth.dayOfMonth) {
+                    val date = yearMonth.atDay(day)
+                    days.add(CalendarDayState(date, true, date.isAfter(today), false, StreakShape.None))
+                }
+                MonthState(yearMonth, days)
+            }
         }
     }
 }
