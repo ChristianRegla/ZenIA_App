@@ -22,8 +22,6 @@
     <string name="noAccount">Don\'t have an account?</string>
 
     <!-- Pantalla: Bloqueo (LockScreen) -->
-    <string name="lock_title">Unlock ZenIA</string>
-    <string name="lock_subtitle">Confirm your identity to continue</string>
     <string name="lock_waiting">Waiting for authentication…</string>
     <string name="lock_auth_failed">Could not verify identity.</string>
 
@@ -103,5 +101,51 @@
     <string name="forgot_password_button_timer">Resend in %1$ds</string>
     <string name="forgot_password_spam_warning">Important: If you cannot find the email in your inbox, please check your Spam or Junk folder.</string>
     <string name="nav_back_desc">Back</string>
+
+    <string name="settings_title">Menu</string>
+    <string name="settings_profile_picture_desc">Profile picture</string>
+    <string name="settings_btn_premium">Go Premium</string>
+    <string name="settings_item_help_center">Help Center</string>
+    <string name="settings_item_donations">Donations</string>
+    <string name="settings_item_privacy">Privacy Policy</string>
+    <string name="settings_item_logout">Log Out</string>
+
+    <string name="settings_placeholder_name">Slappy</string>
+    <string name="settings_placeholder_email">slappy@vallarta.com</string>
+
+    <string name="diary_today">Today</string>
+    <string name="diary_empty_title">You haven\'t written anything yet today.</string>
+    <string name="diary_empty_subtitle">Tap to start!</string>
+
+    <string name="lock_content_description_fingerprint">Fingerprint</string>
+    <string name="lock_title">ZenIA Protected</string>
+    <string name="lock_subtitle">Your journal and conversations are safe.\nUnlock to continue.</string>
+    <string name="lock_btn_unlock">Unlock</string>
+    <string name="lock_footer_trouble">Not you or can\'t unlock?</string>
+    <string name="lock_btn_sign_out">Log Out</string>
+
+    <string name="biometric_title">Unlock ZenIA</string>
+    <string name="biometric_subtitle">Use your fingerprint or device pattern</string>
+    <string name="biometric_error_prefix">Error: %1$s</string>
+
+    <string name="account_biometrics_weak_label">Allow standard face unlock</string>
+    <string name="account_biometrics_weak_warning">Note: Standard face unlock is less secure than fingerprint.</string>
+
+    <string name="help_center_title">How can we help you?</string>
+    <string name="help_center_desc">If you have any technical issues, subscription questions, or suggestions to improve ZenIA, we are here to listen.</string>
+    <string name="help_center_btn_contact">Contact Support</string>
+    <string name="help_email_subject">ZenIA Support - Help</string>
+
+    <string name="donations_title">Support ZenIA</string>
+    <string name="donations_desc">ZenIA is an independent project created with love to help you improve your well-being. If the app has been useful to you, please consider making a donation to help us keep growing.</string>
+    <string name="donations_btn_action">Make a Donation</string>
+    <string name="donations_footer">Thank you for your generosity! ❤️</string>
+
+    <string name="privacy_screen_title">Legal and Privacy</string>
+    <string name="privacy_screen_desc">Learn more about ZenIA, how we protect your data, and the terms of use of our platform.</string>
+
+    <string name="privacy_link_about">About ZenIA</string>
+    <string name="privacy_link_terms">Terms and Conditions</string>
+    <string name="privacy_link_policy">Privacy Policy</string>
 
 </resources>

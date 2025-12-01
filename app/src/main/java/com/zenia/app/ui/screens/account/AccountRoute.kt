@@ -1,6 +1,9 @@
 package com.zenia.app.ui.screens.account
 
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -14,7 +17,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.os.LocaleListCompat
 import com.zenia.app.R
-import com.zenia.app.ui.screens.lock.canAuthenticate
 import com.zenia.app.ui.screens.auth.AuthUiState
 import com.zenia.app.ui.screens.auth.AuthViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
@@ -38,11 +40,20 @@ fun AccountRoute(
     val userEmail = authViewModel.userEmail
     val isVerified = authViewModel.isUserVerified
     val isBiometricEnabled by settingsViewModel.isBiometricEnabled.collectAsState()
+    val allowWeakBiometrics by settingsViewModel.allowWeakBiometrics.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
 
-    val canUseBiometrics = remember { canAuthenticate(context) }
+    val biometricManager = remember { BiometricManager.from(context) }
+
+    val canUseStrong = remember {
+        biometricManager.canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
+    }
+
+    val canUseWeak = remember {
+        biometricManager.canAuthenticate(BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS
+    }
     val currentLanguage = (AppCompatDelegate.getApplicationLocales()[0] ?: Locale.getDefault()).language
 
     // --- 2. Efectos Secundarios (Snackbars y Navegación) ---
@@ -86,8 +97,10 @@ fun AccountRoute(
         uiState = uiState,
         userEmail = userEmail,
         isVerified = isVerified,
-        canUseBiometrics = canUseBiometrics,
-        isBiometricEnabled = isBiometricEnabled,
+        isBiometricEnabled = isBiometricEnabled ?: false,
+        allowWeakBiometrics = allowWeakBiometrics,
+        canUseStrongBiometrics = canUseStrong,
+        canUseWeakBiometrics = canUseWeak,
         currentLanguage = currentLanguage,
         showDeleteDialog = showDeleteDialog,
         snackbarHostState = snackbarHostState
@@ -95,9 +108,8 @@ fun AccountRoute(
 
     val screenActions = AccountScreenActions(
         onNavigateBack = onNavigateBack,
-        onBiometricToggle = { isEnabled ->
-            settingsViewModel.setBiometricEnabled(isEnabled)
-        },
+        onBiometricToggle = { settingsViewModel.setBiometricEnabled(it) },
+        onWeakBiometricToggle = { settingsViewModel.setWeakBiometricsEnabled(it) },
         onLanguageChange = { langTag ->
             val appLocale = LocaleListCompat.forLanguageTags(langTag)
             AppCompatDelegate.setApplicationLocales(appLocale)
@@ -114,7 +126,6 @@ fun AccountRoute(
         onDismissDeleteDialog = { showDeleteDialog = false }
     )
 
-    // --- 4. Llama al Composable "Tonto" ---
     AccountScreen(
         state = screenState,
         actions = screenActions

@@ -8,12 +8,12 @@ googleFirebaseCrashlytics = "3.0.6"
 coreKtx = "1.17.0"
 appcompat = "1.7.1"
 junit = "4.13.2"
-androidxJunit = "1.3.0"  # Renombrado de 'junitVersion'
+androidxJunit = "1.3.0"
 espressoCore = "3.7.0"
 
 # --- AndroidX Jetpack ---
 activityCompose = "1.11.0"
-lifecycle = "2.9.4"  # Renombrado de 'lifecycleRuntimeKtx' (usado por runtime y viewmodel)
+lifecycle = "2.9.4"
 navigationCompose = "2.9.5"
 credentials = "1.5.0"
 credentialsPlayServicesAuth = "1.5.0"
@@ -25,7 +25,7 @@ androidxDatastore = "1.1.7"
 composeBom = "2024.09.00"
 
 # --- Firebase ---
-firebaseBom = "33.1.1" # ¡NUEVO! Bill of Materials
+firebaseBom = "33.1.1"
 
 # --- Google ---
 googleid = "1.1.1"
@@ -36,6 +36,8 @@ constraintlayoutCompose = "1.0.1"
 
 material = "1.13.0"
 foundationLayout = "1.9.5"
+
+splashScreen = "1.0.1"
 
 
 [libraries]
@@ -69,11 +71,8 @@ androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-te
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 
 # --- Firebase ---
-# (¡NUEVO!) Importa el Bill of Materials
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
-# (¡NUEVO!) KTX para auth (sin versión, la gestiona la BOM)
 firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx" }
-# (Versión eliminada, la gestiona la BOM)
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-functions = { group = "com.google.firebase", name = "firebase-functions" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
@@ -89,6 +88,8 @@ androidx-constraintlayout-compose = { group = "androidx.constraintlayout", name 
 
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
+
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashScreen" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

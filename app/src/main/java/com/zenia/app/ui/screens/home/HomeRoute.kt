@@ -25,6 +25,8 @@ import androidx.core.net.toUri
 fun HomeRoute(
     onNavigateToAccount: () -> Unit,
     onNavigateToPremium: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNotificationClick: () -> Unit,
     onSignOut: () -> Unit
 ) {
     // 1. Obtiene el ViewModel
@@ -93,6 +95,8 @@ fun HomeRoute(
                     "https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata".toUri())
                 context.startActivity(webIntent)
             }
-        }
+        },
+        onSettingsClick = onNavigateToSettings,
+        onNotificationClick = onNotificationClick
     )
 }

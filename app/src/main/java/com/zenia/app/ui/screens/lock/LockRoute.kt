@@ -1,16 +1,22 @@
 package com.zenia.app.ui.screens.lock
 
+import android.widget.Toast
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
+import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.zenia.app.R
+import com.zenia.app.viewmodel.AppViewModelProvider
+import com.zenia.app.viewmodel.SettingsViewModel
 
 /**
  * Composable "inteligente" (Smart Composable) para la ruta de bloqueo.
@@ -24,70 +30,53 @@ fun LockRoute(
 ) {
     // --- 1. Estado y Handlers ---
     val context = LocalContext.current
-    val activity = (context as? FragmentActivity)
+    val activity = context as? FragmentActivity
 
-    // El estado de error se guarda para sobrevivir a cambios de configuración
-    var authError by rememberSaveable { mutableStateOf<String?>(null) }
-    val authErrorPrefix = stringResource(R.string.auth_error_prefix)
+    val settingsViewModel: SettingsViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    val allowWeak by settingsViewModel.allowWeakBiometrics.collectAsState()
 
-    // Carga los strings para el prompt biométrico
-    val title = stringResource(R.string.lock_title)
-    val subtitle = stringResource(R.string.lock_subtitle)
-    val cancelText = stringResource(R.string.cancel)
+    val launchBiometric = remember(allowWeak) {
+        {
+            if (activity != null) {
+                val executor = ContextCompat.getMainExecutor(context)
+                val biometricPrompt = BiometricPrompt(activity, executor,
+                    object : BiometricPrompt.AuthenticationCallback() {
+                        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                            super.onAuthenticationSucceeded(result)
+                            onUnlockSuccess()
+                        }
 
-    // --- 2. Lógica del Biométrico ---
-    // Este LaunchedEffect se dispara una vez (o si la actividad cambia)
-    LaunchedEffect(activity) {
-        if (activity != null) {
-            // Llama a la función helper (que ahora es interna)
-            showBiometricPrompt(
-                activity = activity,
-                title = title,
-                subtitle = subtitle,
-                cancelText = cancelText,
-                onSuccess = onUnlockSuccess, // Pasa la acción de éxito
-                onError = { errorCode, errString ->
-                    // Si el usuario cancela, no hacemos nada (se queda en la pantalla)
-                    // Si hay un error real, lo mostramos
-                    if (errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
-                        errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
-                        authError = authErrorPrefix + errString
-                    }
+                        override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                            super.onAuthenticationError(errorCode, errString)
+                            if (errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
+                                errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
+                                Toast.makeText(context, context.getString(R.string.biometric_error_prefix, errString), Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    })
+
+                val authenticators = if (allowWeak) {
+                    BIOMETRIC_STRONG or BIOMETRIC_WEAK or DEVICE_CREDENTIAL
+                } else {
+                    BIOMETRIC_STRONG or DEVICE_CREDENTIAL
                 }
-            )
+
+                val promptInfoBuilder = BiometricPrompt.PromptInfo.Builder()
+                    .setTitle(context.getString(R.string.biometric_title))
+                    .setSubtitle(context.getString(R.string.biometric_subtitle))
+                    .setAllowedAuthenticators(authenticators)
+
+                biometricPrompt.authenticate(promptInfoBuilder.build())
+            }
         }
     }
 
-    // --- 3. Definición de Estado y Acciones ---
-    val screenState = LockScreenState(
-        authError = authError
-    )
-    val screenActions = LockScreenActions(
-        onSignOut = onSignOut, // Pasa la acción de cerrar sesión
-        onRetryAuth = {
-            // Acción para reintentar la autenticación
-            if (activity != null) {
-                authError = null // Limpia el error para mostrar el spinner
-                showBiometricPrompt(
-                    activity = activity,
-                    title = title,
-                    subtitle = subtitle,
-                    cancelText = cancelText,
-                    onSuccess = onUnlockSuccess,
-                    onError = { errorCode, errString ->
-                        if (errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
-                            errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
-                            authError = authErrorPrefix + errString
-                        }
-                    }
-                )
-            }
-        }
-    )
+    LaunchedEffect(Unit) {
+        launchBiometric()
+    }
 
-    // --- 4. Llama al Composable "Tonto" ---
     LockScreen(
-        state = screenState,
-        actions = screenActions
+        onUnlockClick = launchBiometric,
+        onSignOut = onSignOut
     )
 }

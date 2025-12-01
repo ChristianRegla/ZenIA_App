@@ -1,6 +1,6 @@
 package com.zenia.app.ui.screens.home
 
-import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,8 +13,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -23,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.health.connect.client.HealthConnectClient
 import com.zenia.app.R
+import com.zenia.app.ui.components.HomeTopBar
 import com.zenia.app.ui.theme.ZenIATheme
 
 /**
@@ -48,12 +47,22 @@ fun HomeScreen(
     onConnectSmartwatch: () -> Unit,
     onNavigateToPremium: () -> Unit,
     onNavigateToManualPermission: () -> Unit,
-    onInstallHealthConnect: () -> Unit
+    onInstallHealthConnect: () -> Unit,
+    onSettingsClick: () -> Unit,
+    onNotificationClick: () -> Unit
 ) {
-    Scaffold { paddingValues ->
+    Scaffold(
+        topBar = {
+            HomeTopBar(
+                onSettingsClick = onSettingsClick,
+                onNotificationClick = onNotificationClick
+            )
+        }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(paddingValues)
                 .padding(24.dp),
             verticalArrangement = Arrangement.Center,
@@ -147,7 +156,9 @@ fun HomeScreenPreview_FreeUser() {
             onConnectSmartwatch = { },
             onNavigateToPremium = { },
             onNavigateToManualPermission = { },
-            onInstallHealthConnect = { }
+            onInstallHealthConnect = { },
+            onSettingsClick = { },
+            onNotificationClick = { }
         )
     }
 }
@@ -169,7 +180,9 @@ fun HomeScreenPreview_Premium_NeedsPermission() {
             onConnectSmartwatch = { },
             onNavigateToPremium = { },
             onNavigateToManualPermission = { },
-            onInstallHealthConnect = { }
+            onInstallHealthConnect = { },
+            onSettingsClick = { },
+            onNotificationClick = { }
         )
     }
 }
@@ -191,7 +204,9 @@ fun HomeScreenPreview_Premium_Connected() {
             onConnectSmartwatch = { },
             onNavigateToPremium = { },
             onNavigateToManualPermission = { },
-            onInstallHealthConnect = { }
+            onInstallHealthConnect = { },
+            onSettingsClick = { },
+            onNotificationClick = { }
         )
     }
 }

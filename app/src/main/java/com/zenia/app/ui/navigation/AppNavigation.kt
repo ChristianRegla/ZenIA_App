@@ -6,9 +6,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.zenia.app.ui.screens.MainScreen
 import com.zenia.app.ui.screens.account.AccountRoute
 import com.zenia.app.ui.screens.auth.AuthRoute
@@ -17,7 +19,16 @@ import com.zenia.app.ui.screens.lock.LockRoute
 import com.zenia.app.viewmodel.AppViewModelProvider
 import com.zenia.app.ui.screens.auth.AuthViewModel
 import com.zenia.app.ui.screens.auth.ForgotPasswordScreen
+import com.zenia.app.ui.screens.diary.DiarioRoute
+import com.zenia.app.ui.screens.diary.DiaryEntryScreen
+import com.zenia.app.ui.screens.notifications.NotificationsRoute
+import com.zenia.app.ui.screens.premium.PremiumRoute
+import com.zenia.app.ui.screens.settings.DonationsRoute
+import com.zenia.app.ui.screens.settings.HelpCenterRoute
+import com.zenia.app.ui.screens.settings.PrivacyRoute
+import com.zenia.app.ui.screens.settings.SettingsRoute
 import com.zenia.app.viewmodel.SettingsViewModel
+import java.time.LocalDate
 
 /**
  * Composable principal que gestiona la navegación de toda la aplicación.
@@ -35,7 +46,13 @@ fun AppNavigation() {
 
     val isLoggedIn by authViewModel.isUserLoggedIn.collectAsState()
 
-    val isBiometricEnabled by settingsViewModel.isBiometricEnabled.collectAsState()
+    val isBiometricEnabledState by settingsViewModel.isBiometricEnabled.collectAsState()
+
+    if (isBiometricEnabledState == null) {
+        return // O un Box(Modifier.fillMaxSize()) { CircularProgressIndicator() }
+    }
+
+    val isBiometricEnabled = isBiometricEnabledState!!
 
     /**
      * Lógica clave para determinar la pantalla de inicio de la app (startDestination).
@@ -90,7 +107,91 @@ fun AppNavigation() {
                 },
                 onNavigateToAccount = {
                     navController.navigate(Destinations.ACCOUNT_ROUTE)
+                },
+                onNavigateToSettings = {
+                    navController.navigate(Destinations.SETTINGS_ROUTE)
+                },
+                onNotificationClick = {
+                    navController.navigate(Destinations.NOTIFICATIONS_ROUTE)
+                },
+                onNavigateToDiaryEntry = { date ->
+                    navController.navigate(Destinations.createDiaryEntryRoute(date))
                 }
+            )
+        }
+
+        composable(Destinations.DIARY_ROUTE) {
+            DiarioRoute()
+        }
+
+        composable(
+            route = Destinations.DIARY_ENTRY_ROUTE,
+            arguments = listOf(navArgument("date") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val dateString = backStackEntry.arguments?.getString("date")
+            val date = LocalDate.parse(dateString)
+
+            DiaryEntryScreen(
+                date = date,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Destinations.NOTIFICATIONS_ROUTE) {
+            NotificationsRoute(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Destinations.SETTINGS_ROUTE) {
+            SettingsRoute(
+                settingsViewModel = settingsViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToProfile = {
+                    navController.navigate(Destinations.ACCOUNT_ROUTE)
+                },
+                onNavigateToPremium = {
+                    navController.navigate(Destinations.PREMIUM_ROUTE)
+                },
+                onNavigateToHelp = {
+                    navController.navigate(Destinations.HELP_CENTER_ROUTE)
+                },
+                onNavigateToDonations = {
+                    navController.navigate(Destinations.DONATIONS_ROUTE)
+                },
+                onNavigateToPrivacy = {
+                    navController.navigate(Destinations.PRIVACY_POLICY_ROUTE)
+                },
+                onSignOut = {
+                    authViewModel.signOut()
+                    navController.navigate(Destinations.AUTH_ROUTE) {
+                        popUpTo(Destinations.HOME_ROUTE) { inclusive = true }
+                    }
+                },
+            )
+        }
+
+        composable(Destinations.PREMIUM_ROUTE) {
+            PremiumRoute(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Destinations.HELP_CENTER_ROUTE) {
+            HelpCenterRoute(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Destinations.DONATIONS_ROUTE) {
+            DonationsRoute(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Destinations.PRIVACY_POLICY_ROUTE) {
+            PrivacyRoute(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

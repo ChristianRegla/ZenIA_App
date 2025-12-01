@@ -1,5 +1,6 @@
 package com.zenia.app.ui.screens.relax
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -23,6 +24,7 @@ fun RelajacionScreen() {
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(paddingValues),
             contentAlignment = Alignment.Center
         ) {

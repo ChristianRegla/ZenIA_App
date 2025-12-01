@@ -9,7 +9,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(private val userPreferencesRepository: UserPreferencesRepository) : ViewModel() {
-    val isBiometricEnabled: StateFlow<Boolean> = userPreferencesRepository.isBiometricEnabled
+    val isBiometricEnabled: StateFlow<Boolean?> = userPreferencesRepository.isBiometricEnabled
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
+
+    val allowWeakBiometrics: StateFlow<Boolean> = userPreferencesRepository.allowWeakBiometrics
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -19,6 +26,12 @@ class SettingsViewModel(private val userPreferencesRepository: UserPreferencesRe
     fun setBiometricEnabled(isEnabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setBiometricEnabled(isEnabled)
+        }
+    }
+
+    fun setWeakBiometricsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.saveAllowWeakBiometrics(enabled)
         }
     }
 }

@@ -275,7 +275,14 @@ class AuthViewModel(
         viewModelScope.launch {
             try {
                 val user = auth.currentUser
+                val userId = user?.uid
+
+                if (userId != null) {
+                    repositorio.deleteUserData(userId)
+                }
+
                 user?.delete()?.await()
+
                 _uiState.value = AuthUiState.AccountDeleted
             } catch (e: Exception) {
                 _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))

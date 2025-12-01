@@ -20,8 +20,6 @@
     <string name="accountAlready">¿Ya tienes cuenta?</string>
     <string name="noAccount">¿No tienes una cuenta?</string>
 
-    <string name="lock_title">Desbloquear ZenIA</string>
-    <string name="lock_subtitle">Confirma tu identidad para continuar</string>
     <string name="lock_waiting">Esperando autenticación…</string>
     <string name="lock_auth_failed">No se pudo verificar la identidad.</string>
 
@@ -99,5 +97,51 @@
     <string name="forgot_password_button_timer">Reenviar en %1$ds</string>
     <string name="forgot_password_spam_warning">Importante: Si no encuentras el correo en tu bandeja de entrada, por favor revisa tu carpeta de Spam o Correo no deseado.</string>
     <string name="nav_back_desc">Atrás</string>
+
+    <string name="settings_title">Menú</string>
+    <string name="settings_profile_picture_desc">Foto de perfil</string>
+    <string name="settings_btn_premium">Conviértete en premium</string>
+    <string name="settings_item_help_center">Centro de ayuda</string>
+    <string name="settings_item_donations">Donaciones</string>
+    <string name="settings_item_privacy">Políticas de privacidad</string>
+    <string name="settings_item_logout">Cerrar sesión</string>
+
+    <string name="settings_placeholder_name">Slappy</string>
+    <string name="settings_placeholder_email">slappy@vallarta.com</string>
+
+    <string name="diary_today">Hoy</string>
+    <string name="diary_empty_title">Aún no has escrito nada hoy.</string>
+    <string name="diary_empty_subtitle">¡Toca para empezar!</string>
+
+    <string name="lock_content_description_fingerprint">Huella Digital</string>
+    <string name="lock_title">ZenIA Protegida</string>
+    <string name="lock_subtitle">Tu diario y tus conversaciones están seguros.\nDesbloquea para continuar.</string>
+    <string name="lock_btn_unlock">Desbloquear</string>
+    <string name="lock_footer_trouble">¿No eres tú o no puedes desbloquear?</string>
+    <string name="lock_btn_sign_out">Cerrar Sesión</string>
+
+    <string name="biometric_title">Desbloquear ZenIA</string>
+    <string name="biometric_subtitle">Usa tu huella o el patrón del dispositivo</string>
+    <string name="biometric_error_prefix">Error: %1$s</string>
+
+    <string name="account_biometrics_weak_label">Permitir reconocimiento facial 2D</string>
+    <string name="account_biometrics_weak_warning">Nota: El reconocimiento facial estándar es menos seguro que la huella digital.</string>
+
+    <string name="help_center_title">¿Cómo podemos ayudarte?</string>
+    <string name="help_center_desc">Si tienes algún problema técnico, dudas sobre la suscripción o sugerencias para mejorar ZenIA, estamos aquí para escucharte.</string>
+    <string name="help_center_btn_contact">Contactar Soporte</string>
+    <string name="help_email_subject">Soporte ZenIA - Ayuda</string>
+
+    <string name="donations_title">Apoya a ZenIA</string>
+    <string name="donations_desc">ZenIA es un proyecto independiente creado con amor para ayudarte a mejorar tu bienestar. Si la app te ha sido útil, considera hacer una donación para ayudarnos a seguir creciendo.</string>
+    <string name="donations_btn_action">Hacer una Donación</string>
+    <string name="donations_footer">¡Gracias por tu generosidad! ❤️</string>
+
+    <string name="privacy_screen_title">Legal y Privacidad</string>
+    <string name="privacy_screen_desc">Conoce más sobre ZenIA, cómo protegemos tus datos y las reglas de uso de nuestra plataforma.</string>
+
+    <string name="privacy_link_about">Acerca de ZenIA</string>
+    <string name="privacy_link_terms">Términos y Condiciones</string>
+    <string name="privacy_link_policy">Política de Privacidad</string>
 
 </resources>
