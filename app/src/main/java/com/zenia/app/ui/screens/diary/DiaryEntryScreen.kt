@@ -22,7 +22,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZeniaSlateGrey
@@ -343,12 +342,12 @@ fun FeelingItem(
         Box(
             modifier = Modifier
                 .size(52.dp)
-                .clip(CircleShape)
-                .background(if (isSelected) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent)
+                .clip(RoundedCornerShape(12.dp))
+                .background(if (isSelected) color else MaterialTheme.colorScheme.surfaceVariant)
                 .border(
-                    width = if (isSelected) 2.dp else 0.dp,
-                    color = if (isSelected) color else Color.Transparent,
-                    shape = CircleShape
+                    width = 3.dp,
+                    color = color,
+                    shape = RoundedCornerShape(12.dp)
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -356,7 +355,7 @@ fun FeelingItem(
                 painter = painterResource(id = iconRes),
                 contentDescription = label,
                 modifier = Modifier.size(28.dp),
-                tint = if (isSelected) color else Color.Gray
+                tint = if (isSelected) Color.White else color
             )
         }
         Spacer(modifier = Modifier.height(4.dp))

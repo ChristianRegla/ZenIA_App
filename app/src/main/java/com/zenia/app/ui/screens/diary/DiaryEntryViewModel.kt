@@ -135,6 +135,7 @@ class DiaryEntryViewModel(
             } catch (e: Exception) {
                 _existingEntry.value = null
                 _uiState.value = DiaryEntryUiState.Idle
+                e.printStackTrace()
             }
         }
     }
@@ -147,6 +148,7 @@ class DiaryEntryViewModel(
                 _uiState.value = DiaryEntryUiState.Deleted
             } catch (e: Exception) {
                 _uiState.value = DiaryEntryUiState.Error("Error al eliminar")
+                e.printStackTrace()
             }
         }
     }

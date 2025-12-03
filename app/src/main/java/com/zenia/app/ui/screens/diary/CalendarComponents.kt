@@ -44,6 +44,7 @@ import com.zenia.app.ui.theme.ZeniaMind
 import com.zenia.app.ui.theme.ZeniaStreak
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -241,6 +242,95 @@ fun MonthHeader(monthState: MonthState) {
     }
 }
 
+@Composable
+fun MiniCalendarTopBar(
+    selectedDate: LocalDate,
+    onBackClick: () -> Unit,
+    onDateClick: (LocalDate) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(bottom = 12.dp)
+    ) {
+        // Título del Mes (Reutilizando estilo de calendario)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = "Volver",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                modifier = Modifier.clip(RoundedCornerShape(12.dp))
+            ) {
+                val title = remember(selectedDate) {
+                    val fmt = DateTimeFormatter.ofPattern("MMMM yyyy", Locale("es", "ES"))
+                    selectedDate.format(fmt).replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+                }
+
+                Text(
+                    text = title,
+                    fontSize = 18.sp,
+                    fontFamily = RobotoFlex,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(48.dp))
+        }
+
+        // Tira de Días usando DayCell
+        val weekDays = remember(selectedDate) {
+            val currentDayOfWeek = selectedDate.dayOfWeek.value
+            val startOfWeek = selectedDate.minusDays((currentDayOfWeek - 1).toLong())
+            (0..6).map { startOfWeek.plusDays(it.toLong()) }
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            weekDays.forEach { day ->
+                // Creamos un estado "dummy" para que DayCell funcione.
+                // En esta vista no tenemos la info de los vecinos (si tienen dots o no),
+                // así que ponemos hasEntry=false para que se vean limpios.
+                val dayState = CalendarDayState(
+                    date = day,
+                    isCurrentMonth = true, // Irrelevante aquí visualmente
+                    isFuture = day.isAfter(LocalDate.now()),
+                    hasEntry = false, // Podrías conectar esto si tuvieras los datos
+                    streakShape = StreakShape.None
+                )
+
+                // Usamos Box weight para distribuir el espacio igual que en el calendario
+                Box(modifier = Modifier.weight(1f)) {
+                    // LLAMAMOS AL MISMO COMPONENTE VISUAL
+                    DayCell(
+                        dayState = dayState,
+                        isSelected = day == selectedDate, // [NUEVO] Le decimos que este día es el seleccionado
+                        onClick = onDateClick
+                    )
+                }
+            }
+        }
+    }
+}
+
 /**
  * Celda individual que representa un día en el calendario.
  * Maneja el estado visual de selección, rachas (streaks) y si tiene entrada o no.
@@ -248,6 +338,7 @@ fun MonthHeader(monthState: MonthState) {
 @Composable
 fun DayCell(
     dayState: CalendarDayState,
+    isSelected: Boolean = false,
     onClick: (LocalDate) -> Unit
 ) {
     val backgroundShape = when (dayState.streakShape) {
@@ -265,10 +356,19 @@ fun DayCell(
         else -> 4.dp to 4.dp
     }
 
-    val backgroundColor = if (dayState.hasEntry) ZeniaStreak else MaterialTheme.colorScheme.primaryContainer
-    val contentColor = if (dayState.isFuture) Color.LightGray else Color.Black
+    val backgroundColor = when {
+        isSelected -> MaterialTheme.colorScheme.primary
+        dayState.hasEntry -> ZeniaStreak
+        else -> MaterialTheme.colorScheme.primaryContainer
+    }
 
-    val borderModifier = if (!dayState.hasEntry && !dayState.isFuture) {
+    val contentColor = when {
+        isSelected -> MaterialTheme.colorScheme.onPrimary
+        dayState.isFuture -> Color.LightGray
+        else -> Color.Black
+    }
+
+    val borderModifier = if (!dayState.hasEntry && !isSelected && !dayState.isFuture) {
         Modifier.border(1.dp, Color.LightGray, RoundedCornerShape(5.dp))
     } else {
         Modifier
@@ -310,6 +410,22 @@ fun DayCell(
                     .align(Alignment.BottomCenter)
                     .padding(start = paddingStart, end = paddingEnd, bottom = 4.dp)
                     .clip(backgroundShape)
+                    .background(backgroundColor)
+            )
+        }
+
+        if (dayState.hasEntry || isSelected) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(28.dp)
+                    .align(Alignment.BottomCenter)
+                    .padding(
+                        start = if (isSelected) 0.dp else paddingStart,
+                        end = if (isSelected) 0.dp else paddingEnd,
+                        bottom = 4.dp
+                    )
+                    .clip(if (isSelected) RoundedCornerShape(5.dp) else backgroundShape)
                     .background(backgroundColor)
             )
         }

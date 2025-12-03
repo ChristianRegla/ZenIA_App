@@ -60,11 +60,13 @@ fun DiarioScreen(
                 ) { isEntry ->
                     if (isEntry) {
                         if (uiState.selectedDate != null) {
-                            MiniCalendarTopBar(
-                                selectedDate = uiState.selectedDate,
-                                onBackClick = onBackToCalendar,
-                                onDateClick = onDateSelected
-                            )
+                            Box(modifier = Modifier.statusBarsPadding()) {
+                                MiniCalendarTopBar(
+                                    selectedDate = uiState.selectedDate,
+                                    onBackClick = onBackToCalendar,
+                                    onDateClick = onDateSelected
+                                )
+                            }
                         }
                     } else {
                         Box(modifier = Modifier.statusBarsPadding()) {
