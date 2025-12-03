@@ -1,10 +1,15 @@
 package com.zenia.app.ui.screens.diary
 
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.R
 import com.zenia.app.data.ZeniaRepository
 import com.zenia.app.model.DiarioEntrada
+import com.zenia.app.ui.theme.ZeniaDream
+import com.zenia.app.ui.theme.ZeniaExercise
+import com.zenia.app.ui.theme.ZeniaFeelings
+import com.zenia.app.ui.theme.ZeniaMind
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -18,7 +23,7 @@ sealed interface DiaryEntryUiState {
     data class Error(val msg: String) : DiaryEntryUiState
 }
 
-data class FeelingData(val id: Int, val iconRes: Int, val label: String)
+data class FeelingData(val id: Int, val iconRes: Int, val label: String, val color: Color)
 
 class DiaryEntryViewModel(
     private val repository: ZeniaRepository
@@ -30,31 +35,31 @@ class DiaryEntryViewModel(
     val existingEntry = _existingEntry.asStateFlow()
 
     val feelings = listOf(
-        FeelingData(0, R.drawable.ic_nube_feli, "Bien"),
-        FeelingData(1, R.drawable.ic_sol_feli, "Feliz"),
-        FeelingData(2, R.drawable.ic_nube_tite, "Desanimado"),
-        FeelingData(3, R.drawable.ic_sol_feli, "Alegre")
+        FeelingData(0, R.drawable.ic_nube_feli, "Bien", color = ZeniaFeelings),
+        FeelingData(1, R.drawable.ic_sol_feli, "Feliz", color = ZeniaFeelings),
+        FeelingData(2, R.drawable.ic_nube_tite, "Desanimado", color = ZeniaFeelings),
+        FeelingData(3, R.drawable.ic_sol_feli, "Alegre", color = ZeniaFeelings)
     )
 
     val dreamQuality = listOf(
-        FeelingData(0, R.drawable.ic_nube_feli, "Descansado"),
-        FeelingData(1, R.drawable.ic_sol_feli, "Energético"),
-        FeelingData(2, R.drawable.ic_nube_tite, "Cansado"),
-        FeelingData(3, R.drawable.ic_sol_feli, "Muy bien")
+        FeelingData(0, R.drawable.ic_nube_feli, "Descansado", color = ZeniaDream),
+        FeelingData(1, R.drawable.ic_sol_feli, "Energético", color = ZeniaDream),
+        FeelingData(2, R.drawable.ic_nube_tite, "Cansado", color = ZeniaDream),
+        FeelingData(3, R.drawable.ic_sol_feli, "Muy bien", color = ZeniaDream)
     )
 
     val mind = listOf(
-        FeelingData(0, R.drawable.ic_nube_feli, "Tranquilidad"),
-        FeelingData(1, R.drawable.ic_sol_feli, "Claridad"),
-        FeelingData(2, R.drawable.ic_nube_tite, "Sin motivación"),
-        FeelingData(3, R.drawable.ic_sol_feli, "Estresado")
+        FeelingData(0, R.drawable.ic_nube_feli, "Tranquilidad", color = ZeniaMind),
+        FeelingData(1, R.drawable.ic_sol_feli, "Claridad", color = ZeniaMind),
+        FeelingData(2, R.drawable.ic_nube_tite, "Sin motivación", color = ZeniaMind),
+        FeelingData(3, R.drawable.ic_sol_feli, "Estresado", color = ZeniaMind)
     )
 
     val exercise = listOf(
-        FeelingData(0, R.drawable.ic_nube_feli, "Caminata"),
-        FeelingData(1, R.drawable.ic_sol_feli, "Intenso"),
-        FeelingData(2, R.drawable.ic_nube_tite, "Nada"),
-        FeelingData(3, R.drawable.ic_sol_feli, "Ligero")
+        FeelingData(0, R.drawable.ic_nube_feli, "Caminata", color = ZeniaExercise),
+        FeelingData(1, R.drawable.ic_sol_feli, "Intenso", color = ZeniaExercise),
+        FeelingData(2, R.drawable.ic_nube_tite, "Nada", color = ZeniaExercise),
+        FeelingData(3, R.drawable.ic_sol_feli, "Ligero", color = ZeniaExercise)
     )
 
     val activitiesList = listOf(

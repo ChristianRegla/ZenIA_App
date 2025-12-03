@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.RobotoFlex
+import com.zenia.app.ui.theme.ZeniaSlateGrey
 import com.zenia.app.viewmodel.AppViewModelProvider
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -306,6 +307,7 @@ fun SelectionSection(
                 iconRes = item.iconRes,
                 label = item.label,
                 isSelected = selectedIndex == item.id,
+                color = item.color,
                 onClick = { onSelect(item.id) }
             )
         }
@@ -331,6 +333,7 @@ fun FeelingItem(
     iconRes: Int,
     label: String,
     isSelected: Boolean,
+    color: Color,
     onClick: () -> Unit
 ) {
     Column(
@@ -341,10 +344,10 @@ fun FeelingItem(
             modifier = Modifier
                 .size(52.dp)
                 .clip(CircleShape)
-                .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
+                .background(if (isSelected) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent)
                 .border(
                     width = if (isSelected) 2.dp else 0.dp,
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                    color = if (isSelected) color else Color.Transparent,
                     shape = CircleShape
                 ),
             contentAlignment = Alignment.Center
@@ -353,7 +356,7 @@ fun FeelingItem(
                 painter = painterResource(id = iconRes),
                 contentDescription = label,
                 modifier = Modifier.size(28.dp),
-                tint = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray
+                tint = if (isSelected) color else Color.Gray
             )
         }
         Spacer(modifier = Modifier.height(4.dp))
@@ -362,7 +365,7 @@ fun FeelingItem(
             fontSize = 11.sp,
             fontFamily = RobotoFlex,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray
+            color = ZeniaSlateGrey
         )
     }
 }
