@@ -98,7 +98,10 @@ fun DiarioScreen(
                     }
                 ) { date ->
                     if (date != null) {
-                        DiaryEntryContent(date = date)
+                        DiaryEntryContent(
+                            date = date,
+                            onSuccessCallback = onBackToCalendar
+                        )
                     } else {
                         CalendarPagerView(
                             uiState = uiState,
@@ -144,10 +147,20 @@ fun CalendarPagerView(
     val initialPage = startPage + (uiState.selectedYear - baseYear)
     val pagerState = rememberPagerState(initialPage = initialPage) { Int.MAX_VALUE }
 
+    val listState = rememberLazyListState()
+
     LaunchedEffect(uiState.selectedYear) {
+        val today = LocalDate.now()
+        val targetIndex = if (uiState.selectedYear == today.year) {
+            today.monthValue - 1
+        } else {
+            0
+        }
+        listState.scrollToItem(targetIndex)
+
         val targetPage = startPage + (uiState.selectedYear - baseYear)
         if (pagerState.currentPage != targetPage) {
-            pagerState.animateScrollToPage(targetPage)
+            pagerState.scrollToPage(targetPage)
         }
     }
 
@@ -159,10 +172,11 @@ fun CalendarPagerView(
         }
     }
 
-    val listState = rememberLazyListState()
     LaunchedEffect(uiState.scrollTargetIndex) {
         uiState.scrollTargetIndex?.let { index ->
-            listState.scrollToItem(index)
+            if (index >= 0) {
+                listState.animateScrollToItem(index)
+            }
             onScrollConsumed()
         }
     }
@@ -184,11 +198,24 @@ fun CalendarPagerView(
             beyondViewportPageCount = 1
         ) { page ->
             val pageYear = baseYear + (page - startPage)
-
             val monthsForPage = rememberMonthsForYear(pageYear, uiState.selectedYear, uiState.months)
 
+            val initialIndex = remember(pageYear) {
+                if (pageYear == LocalDate.now().year) {
+                    LocalDate.now().monthValue - 1
+                } else {
+                    0
+                }
+            }
+
+            val pageListState = if (pageYear == uiState.selectedYear) {
+                listState
+            } else {
+                rememberLazyListState(initialFirstVisibleItemIndex = initialIndex)
+            }
+
             LazyColumn(
-                state = if (pageYear == uiState.selectedYear) listState else rememberLazyListState(),
+                state = pageListState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {

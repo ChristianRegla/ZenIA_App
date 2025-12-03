@@ -7,6 +7,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import com.zenia.app.model.ActividadComunidad
+import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.model.EjercicioGuiado
 import com.zenia.app.model.MensajeChatbot
 import com.zenia.app.model.Recurso
@@ -31,6 +32,14 @@ class ZeniaRepository {
      * Instancia privada de Firebase Authentication.
      */
     private val auth = Firebase.auth
+
+    /**
+     * Devuelve el ID del usuario actual si está logueado, o null si no.
+     * Útil para operaciones rápidas sin observar flujos.
+     */
+    fun getCurrentUserId(): String? {
+        return auth.currentUser?.uid
+    }
 
     /**
      * Verifica si existe un documento de usuario en Firestore al iniciar sesión o registrarse.
@@ -261,6 +270,77 @@ class ZeniaRepository {
 
         db.collection("usuarios").document(currentUserId)
             .collection("registrosBienestar").add(registro).await()
+    }
+
+    /**
+     * Guarda una nueva entrada del diario ([DiarioEntrada]) en Firestore.
+     */
+    suspend fun saveDiaryEntry(entry: DiarioEntrada) {
+        val currentUserId = auth.currentUser?.uid
+        if (currentUserId.isNullOrBlank()) {
+            throw IllegalStateException("Usuario no autenticado.")
+        }
+
+        db.collection("usuarios").document(currentUserId)
+            .collection("diario")
+            .document(entry.fecha) // <--- USAMOS LA FECHA COMO ID
+            .set(entry)            // <--- .set() crea o sobrescribe
+            .await()
+    }
+
+    suspend fun getDiaryEntryByDate(date: String): DiarioEntrada? {
+        val currentUserId = auth.currentUser?.uid ?: return null
+
+        val snapshot = db.collection("usuarios").document(currentUserId)
+            .collection("diario")
+            .document(date)
+            .get()
+            .await()
+
+        return if (snapshot.exists()) {
+            snapshot.toObject(DiarioEntrada::class.java)
+        } else {
+            null
+        }
+    }
+
+    suspend fun deleteDiaryEntry(date: String) {
+        val currentUserId = auth.currentUser?.uid ?: return
+
+        db.collection("usuarios").document(currentUserId)
+            .collection("diario")
+            .document(date)
+            .delete()
+            .await()
+    }
+
+    fun getDiaryEntriesStream(): Flow<List<DiarioEntrada>> = callbackFlow {
+        var firestoreListener: ListenerRegistration? = null
+
+        val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            val currentUserId = firebaseAuth.currentUser?.uid
+            firestoreListener?.remove()
+
+            if (currentUserId.isNullOrBlank()) {
+                trySend(emptyList())
+            } else {
+                firestoreListener = db.collection("usuarios").document(currentUserId)
+                    .collection("diario")
+                    .addSnapshotListener { snapshot, e ->
+                        if (e != null) {
+                            trySend(emptyList())
+                            return@addSnapshotListener
+                        }
+                        val entradas = snapshot?.toObjects(DiarioEntrada::class.java) ?: emptyList()
+                        trySend(entradas)
+                    }
+            }
+        }
+        auth.addAuthStateListener(authListener)
+        awaitClose {
+            auth.removeAuthStateListener(authListener)
+            firestoreListener?.remove()
+        }
     }
 
     /**

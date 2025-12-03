@@ -1,5 +1,6 @@
 package com.zenia.app.ui.screens.diary
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -23,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.RobotoFlex
+import com.zenia.app.viewmodel.AppViewModelProvider
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -43,7 +46,10 @@ fun DiaryEntryScreen(
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            DiaryEntryContent(date = date)
+            DiaryEntryContent(
+                date = date,
+                onSuccessCallback = onNavigateBack
+            )
         }
     }
 }
@@ -54,7 +60,11 @@ fun DiaryEntryScreen(
  */
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun DiaryEntryContent(date: LocalDate) {
+fun DiaryEntryContent(
+    date: LocalDate,
+    viewModel: DiaryEntryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = AppViewModelProvider.Factory),
+    onSuccessCallback: () -> Unit
+) {
     var feelingIdx by rememberSaveable { mutableStateOf<Int?>(null) }
     var sleepIdx by rememberSaveable { mutableStateOf<Int?>(null) }
     var mindIdx by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -63,48 +73,61 @@ fun DiaryEntryContent(date: LocalDate) {
     var noteText by rememberSaveable { mutableStateOf("") }
     val selectedActivities = remember { mutableStateListOf<String>() }
 
-    val feelings = listOf(
-        FeelingData(0, R.drawable.ic_nube_feli, "Bien"),
-        FeelingData(1, R.drawable.ic_sol_feli, "Feliz"),
-        FeelingData(2, R.drawable.ic_nube_tite, "Desanimado"),
-        FeelingData(3, R.drawable.ic_sol_feli, "Alegre"),
-    )
+    val uiState by viewModel.uiState.collectAsState()
+    val existingEntry by viewModel.existingEntry.collectAsState()
 
-    val dreamQuality = listOf(
-        FeelingData(0, R.drawable.ic_nube_feli, "Descansado"),
-        FeelingData(1, R.drawable.ic_sol_feli, "Lleno de energía"),
-        FeelingData(2, R.drawable.ic_nube_tite, "Cansado"),
-        FeelingData(3, R.drawable.ic_sol_feli, "Muy bien"),
-    )
-
-    val mind = listOf(
-        FeelingData(0, R.drawable.ic_nube_feli, "Tranquilidad"),
-        FeelingData(1, R.drawable.ic_sol_feli, "Claridad"),
-        FeelingData(2, R.drawable.ic_nube_tite, "Sin motivación"),
-        FeelingData(3, R.drawable.ic_sol_feli, "Claridad"),
-    )
-
-    val exercise = listOf(
-        FeelingData(0, R.drawable.ic_nube_feli, "Caminata"),
-        FeelingData(1, R.drawable.ic_sol_feli, "Intenso"),
-        FeelingData(2, R.drawable.ic_nube_tite, "Nada"),
-        FeelingData(3, R.drawable.ic_sol_feli, "Ligero"),
-    )
-
-    val activities = listOf(
-        "Trabajo", "Ejercicio", "Lectura", "Gaming",
-        "Familia", "Amigos", "Cita", "Viaje", "Descanso"
-    )
-
+    val context = LocalContext.current
     val formattedDate = remember(date) {
         val formatter = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", Locale("es", "ES"))
         date.format(formatter).replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
     }
 
+    LaunchedEffect(date) {
+        viewModel.cargarEntrada(date)
+    }
+
+    LaunchedEffect(existingEntry) {
+        if (existingEntry != null) {
+            val entry = existingEntry!!
+            feelingIdx = viewModel.findIndexByLabel(viewModel.feelings, entry.estadoAnimo)
+            sleepIdx = viewModel.findIndexByLabel(viewModel.dreamQuality, entry.calidadSueno)
+            mindIdx = viewModel.findIndexByLabel(viewModel.mind, entry.estadoMental)
+            exerciseIdx = viewModel.findIndexByLabel(viewModel.exercise, entry.ejercicio)
+            noteText = entry.notas
+
+            selectedActivities.clear()
+            selectedActivities.addAll(entry.actividades)
+        } else {
+            feelingIdx = null
+            sleepIdx = null
+            mindIdx = null
+            exerciseIdx = null
+            noteText = ""
+            selectedActivities.clear()
+        }
+    }
+
+    LaunchedEffect(uiState) {
+        when (uiState) {
+            is DiaryEntryUiState.Success -> {
+                Toast.makeText(context, "Registro guardado", Toast.LENGTH_SHORT).show()
+                viewModel.resetState()
+                onSuccessCallback()
+            }
+            is DiaryEntryUiState.Deleted -> {
+                Toast.makeText(context, "Registro eliminado", Toast.LENGTH_SHORT).show()
+                viewModel.resetState()
+                onSuccessCallback()
+            }
+            else -> {}
+        }
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = 24.dp)
+            .imePadding(),
         contentPadding = PaddingValues(top = 16.dp, bottom = 80.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
@@ -119,10 +142,29 @@ fun DiaryEntryContent(date: LocalDate) {
             )
         }
 
-        item { SelectionSection("¿Cómo te sientes?", feelings, feelingIdx) { feelingIdx = it } }
-        item { SelectionSection("Calidad de sueño", dreamQuality, sleepIdx) { sleepIdx = it } }
-        item { SelectionSection("Mente", mind, mindIdx) { mindIdx = it } }
-        item { SelectionSection("Ejercicio", exercise, exerciseIdx) { exerciseIdx = it } }
+        item {
+            SelectionSection("¿Cómo te sientes?", viewModel.feelings, feelingIdx) { id ->
+                feelingIdx = if (feelingIdx == id) null else id
+            }
+        }
+
+        item {
+            SelectionSection("Calidad de sueño", viewModel.dreamQuality, sleepIdx) { id ->
+                sleepIdx = if (sleepIdx == id) null else id
+            }
+        }
+
+        item {
+            SelectionSection("Mente", viewModel.mind, mindIdx) { id ->
+                mindIdx = if (mindIdx == id) null else id
+            }
+        }
+
+        item {
+            SelectionSection("Ejercicio", viewModel.exercise, exerciseIdx) { id ->
+                exerciseIdx = if (exerciseIdx == id) null else id
+            }
+        }
 
         item {
             SectionTitle("¿Qué has hecho?")
@@ -131,7 +173,7 @@ fun DiaryEntryContent(date: LocalDate) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                activities.forEach { activity ->
+                viewModel.activitiesList.forEach { activity ->
                     val isSelected = selectedActivities.contains(activity)
                     FilterChip(
                         selected = isSelected,
@@ -148,7 +190,6 @@ fun DiaryEntryContent(date: LocalDate) {
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
                             selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
                         ),
-                        // FIX: Border manual
                         border = FilterChipDefaults.filterChipBorder(
                             enabled = true,
                             selected = isSelected,
@@ -181,13 +222,68 @@ fun DiaryEntryContent(date: LocalDate) {
             val hasContent = feelingIdx != null || sleepIdx != null ||
                     mindIdx != null || exerciseIdx != null ||
                     noteText.isNotEmpty()
-            Button(
-                onClick = { /* TODO: Guardar en BD */ },
-                enabled = hasContent,
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("Guardar Entrada", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+
+            val isLoading = uiState is DiaryEntryUiState.Loading
+
+            val buttonText = if (existingEntry != null) "Editar Registro" else "Guardar Entrada"
+
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Button(
+                    onClick = {
+                        val moodText = feelingIdx?.let { viewModel.feelings.getOrNull(it)?.label }
+                        val sleepText = sleepIdx?.let { viewModel.dreamQuality.getOrNull(it)?.label }
+                        val mindText = mindIdx?.let { viewModel.mind.getOrNull(it)?.label }
+                        val exerciseText = exerciseIdx?.let { viewModel.exercise.getOrNull(it)?.label }
+
+                        viewModel.guardarEntrada(
+                            date = date,
+                            estadoAnimo = moodText,
+                            calidadSueno = sleepText,
+                            estadoMental = mindText,
+                            ejercicio = exerciseText,
+                            actividades = selectedActivities.toList(),
+                            notas = noteText,
+                            onSuccess = {}
+                        )
+                    },
+                    enabled = hasContent && !isLoading,
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    } else {
+                        Text(buttonText, fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
+                }
+
+                if (existingEntry != null) {
+                    OutlinedButton(
+                        onClick = { viewModel.eliminarEntrada(date) },
+                        enabled = !isLoading,
+                        modifier = Modifier.fillMaxWidth().height(50.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Eliminar Entrada", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
+                }
+            }
+
+
+            if (uiState is DiaryEntryUiState.Error) {
+                Text(
+                    text = (uiState as DiaryEntryUiState.Error).msg,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
             }
         }
     }
@@ -270,5 +366,3 @@ fun FeelingItem(
         )
     }
 }
-
-data class FeelingData(val id: Int, val iconRes: Int, val label: String)

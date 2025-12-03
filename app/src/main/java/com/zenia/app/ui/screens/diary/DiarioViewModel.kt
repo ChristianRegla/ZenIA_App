@@ -2,6 +2,7 @@ package com.zenia.app.ui.screens.diary
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.zenia.app.data.ZeniaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,22 +11,24 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 
-class DiarioViewModel : ViewModel() {
+class DiarioViewModel(
+    private val repository: ZeniaRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(DiarioUiState())
     val uiState: StateFlow<DiarioUiState> = _uiState.asStateFlow()
 
-    private val entries = setOf(
-        LocalDate.now().withDayOfMonth(19),
-        LocalDate.now().withDayOfMonth(20),
-        LocalDate.now().withDayOfMonth(21),
-        LocalDate.now().withDayOfMonth(22),
-        LocalDate.now().withDayOfMonth(23),
-        LocalDate.now().withDayOfMonth(24),
-        LocalDate.now().withDayOfMonth(5)
-    )
+    private var entryDates: Set<LocalDate> = emptySet()
 
     init {
-        loadYearData(LocalDate.now().year)
+        viewModelScope.launch {
+            repository.getDiaryEntriesStream().collect { entries ->
+                entryDates = entries.mapNotNull {
+                    try { LocalDate.parse(it.fecha) } catch (e: Exception) { null }
+                }.toSet()
+
+                loadYearData(_uiState.value.selectedYear)
+            }
+        }
     }
 
     fun loadYearData(year: Int) {
@@ -38,7 +41,7 @@ class DiarioViewModel : ViewModel() {
 
             for (month in 1..12) {
                 val yearMonth = YearMonth.of(year, month)
-                val days = generateDaysForMonth(yearMonth, today)
+                val days = generateDaysForMonth(yearMonth, today, entryDates)
                 monthsList.add(MonthState(yearMonth, days))
 
                 if (year == today.year && month == today.monthValue) {
@@ -52,7 +55,7 @@ class DiarioViewModel : ViewModel() {
                     months = monthsList,
                     currentMonthIndex = monthIndexMatchesToday,
                     isLoading = false,
-                    scrollTargetIndex = monthIndexMatchesToday ?: 0
+                    scrollTargetIndex = it.scrollTargetIndex ?: (monthIndexMatchesToday ?: 0)
                 )
             }
         }
@@ -94,7 +97,11 @@ class DiarioViewModel : ViewModel() {
         _uiState.update { it.copy(scrollTargetIndex = null) }
     }
 
-    private fun generateDaysForMonth(yearMonth: YearMonth, today: LocalDate): List<CalendarDayState> {
+    private fun generateDaysForMonth(
+        yearMonth: YearMonth,
+        today: LocalDate,
+        entries: Set<LocalDate>
+    ): List<CalendarDayState> {
         val firstDayOfMonth = yearMonth.atDay(1)
         val lastDayOfMonth = yearMonth.atEndOfMonth()
 
@@ -110,7 +117,14 @@ class DiarioViewModel : ViewModel() {
         for (day in 1..lastDayOfMonth.dayOfMonth) {
             val date = yearMonth.atDay(day)
             val isFuture = date.isAfter(today)
-            val hasEntry = false // TODO: Conectar con datos reales
+            val hasEntry = entries.contains(date)
+
+            val streakShape = if (hasEntry) {
+                calculateStreakShape(date, entries)
+            } else {
+                StreakShape.None
+            }
+
 
             days.add(
                 CalendarDayState(
@@ -118,10 +132,25 @@ class DiarioViewModel : ViewModel() {
                     isCurrentMonth = true,
                     isFuture = isFuture,
                     hasEntry = hasEntry,
-                    streakShape = StreakShape.None // TODO: Calcular rachas
+                    streakShape = streakShape
                 )
             )
         }
         return days
+    }
+
+    private fun calculateStreakShape(date: LocalDate, entries: Set<LocalDate>): StreakShape {
+        val yesterday = date.minusDays(1)
+        val tomorrow = date.plusDays(1)
+
+        val hasYesterday = entries.contains(yesterday)
+        val hasTomorrow = entries.contains(tomorrow)
+
+        return when {
+            hasYesterday && hasTomorrow -> StreakShape.Middle
+            !hasYesterday && hasTomorrow -> StreakShape.Start
+            hasYesterday && !hasTomorrow -> StreakShape.End
+            else -> StreakShape.Single
+        }
     }
 }
