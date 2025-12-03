@@ -12,7 +12,11 @@ data class CalendarDayState(
     val isCurrentMonth: Boolean,
     val isFuture: Boolean,
     val hasEntry: Boolean,
-    val streakShape: StreakShape = StreakShape.None
+    val streakShape: StreakShape = StreakShape.None,
+    val hasFeelings: Boolean = false,
+    val hasSleep: Boolean = false,
+    val hasMind: Boolean = false,
+    val hasExercise: Boolean = false
 )
 
 data class MonthState(

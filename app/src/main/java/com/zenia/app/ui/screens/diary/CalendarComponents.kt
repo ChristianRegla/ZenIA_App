@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -36,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zenia.app.ui.theme.RobotoFlex
+import com.zenia.app.ui.theme.ZeniaDream
 import com.zenia.app.ui.theme.ZeniaExercise
 import com.zenia.app.ui.theme.ZeniaFeelings
 import com.zenia.app.ui.theme.ZeniaMind
@@ -289,14 +291,15 @@ fun DayCell(
                     .height(16.dp)
                     .wrapContentWidth()
                     .align(Alignment.TopStart)
+                    .padding(start = 4.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(start = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(3.dp)
                 ) {
-                    Box(modifier = Modifier.height(16.dp).width(4.dp).background(ZeniaFeelings))
-                    Box(modifier = Modifier.height(16.dp).width(4.dp).background(ZeniaMind))
-                    Box(modifier = Modifier.height(16.dp).width(4.dp).background(ZeniaExercise))
+                    if (dayState.hasFeelings) IndicatorBar(ZeniaFeelings)
+                    if (dayState.hasSleep) IndicatorBar(ZeniaDream)
+                    if (dayState.hasMind) IndicatorBar(ZeniaMind)
+                    if (dayState.hasExercise) IndicatorBar(ZeniaExercise)
                 }
             }
 
@@ -320,4 +323,15 @@ fun DayCell(
                 .padding(end = 8.dp, bottom = 4.dp)
         )
     }
+}
+
+@Composable
+fun IndicatorBar(color: Color) {
+    Box(
+        modifier = Modifier
+            .height(16.dp)
+            .width(4.dp)
+            .clip(RoundedCornerShape(bottomStart = 2.dp, bottomEnd = 2.dp)) // O RoundedCornerShape(2.dp)
+            .background(color)
+    )
 }
