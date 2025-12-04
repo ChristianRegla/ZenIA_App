@@ -149,7 +149,11 @@ fun DiaryEntryContent(
             )
         }
 
-        item { SelectionSection(stringResource(R.string.diary_section_feelings), viewModel.feelings, feelingIdx) { feelingIdx = if (feelingIdx == it) null else it } }
+        item {
+            SelectionSection(
+                stringResource(R.string.diary_section_feelings),
+                viewModel.feelings,
+                feelingIdx) { feelingIdx = if (feelingIdx == it) null else it } }
         item { SelectionSection(stringResource(R.string.diary_section_sleep), viewModel.dreamQuality, sleepIdx) { sleepIdx = if (sleepIdx == it) null else it } }
         item { SelectionSection(stringResource(R.string.diary_section_mind), viewModel.mind, mindIdx) { mindIdx = if (mindIdx == it) null else it } }
         item { SelectionSection(stringResource(R.string.diary_section_exercise), viewModel.exercise, exerciseIdx) { exerciseIdx = if (exerciseIdx == it) null else it } }

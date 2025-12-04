@@ -1,5 +1,6 @@
 package com.zenia.app.data
 
+import androidx.compose.runtime.snapshotFlow
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -13,9 +14,14 @@ import com.zenia.app.model.MensajeChatbot
 import com.zenia.app.model.Recurso
 import com.zenia.app.model.RegistroBienestar
 import com.zenia.app.model.Usuario
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -32,6 +38,44 @@ class ZeniaRepository {
      * Instancia privada de Firebase Authentication.
      */
     private val auth = Firebase.auth
+
+    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    val diaryEntries: Flow<List<DiarioEntrada>> = callbackFlow {
+        var firestoreListener: ListenerRegistration? = null
+
+        val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            val currentUserId = firebaseAuth.currentUser?.uid
+            firestoreListener?.remove()
+
+            if (currentUserId.isNullOrBlank()) {
+                trySend(emptyList())
+            } else {
+                firestoreListener = db.collection("usuarios").document(currentUserId)
+                    .collection("diario")
+                    .addSnapshotListener { snapshot, e ->
+                        if (e != null) {
+                            trySend(emptyList())
+                            return@addSnapshotListener
+                        }
+                        val entradas = snapshot?.toObjects(DiarioEntrada::class.java) ?: emptyList()
+                        trySend(entradas)
+                    }
+            }
+        }
+
+        auth.addAuthStateListener(authListener)
+        awaitClose {
+            auth.removeAuthStateListener(authListener)
+            firestoreListener?.remove()
+        }
+    }
+
+        .shareIn(
+            scope = repositoryScope,
+            started = SharingStarted.WhileSubscribed(),
+            replay = 1
+        )
 
     /**
      * Devuelve el ID del usuario actual si está logueado, o null si no.
@@ -314,34 +358,7 @@ class ZeniaRepository {
             .await()
     }
 
-    fun getDiaryEntriesStream(): Flow<List<DiarioEntrada>> = callbackFlow {
-        var firestoreListener: ListenerRegistration? = null
-
-        val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-            val currentUserId = firebaseAuth.currentUser?.uid
-            firestoreListener?.remove()
-
-            if (currentUserId.isNullOrBlank()) {
-                trySend(emptyList())
-            } else {
-                firestoreListener = db.collection("usuarios").document(currentUserId)
-                    .collection("diario")
-                    .addSnapshotListener { snapshot, e ->
-                        if (e != null) {
-                            trySend(emptyList())
-                            return@addSnapshotListener
-                        }
-                        val entradas = snapshot?.toObjects(DiarioEntrada::class.java) ?: emptyList()
-                        trySend(entradas)
-                    }
-            }
-        }
-        auth.addAuthStateListener(authListener)
-        awaitClose {
-            auth.removeAuthStateListener(authListener)
-            firestoreListener?.remove()
-        }
-    }
+    fun getDiaryEntriesStream(): Flow<List<DiarioEntrada>> = diaryEntries
 
     /**
      * Añade un nuevo [MensajeChatbot] a la subcolección del usuario actual.
