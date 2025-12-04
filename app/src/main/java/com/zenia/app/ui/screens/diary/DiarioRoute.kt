@@ -4,16 +4,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
-import java.time.LocalDate
+import com.zenia.app.viewmodel.AppViewModelProvider
 
 @Composable
 fun DiarioRoute(
-    viewModel: DiarioViewModel = viewModel(),
+    viewModel: DiarioViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val entries by viewModel.allEntries.collectAsState()
 
     DiarioScreen(
         uiState = uiState,
+        entries = entries,
         onDateSelected = { date -> viewModel.selectDate(date) },
         onBackToCalendar = { viewModel.clearSelection() },
         onYearChange = { increment -> viewModel.changeYear(increment) },

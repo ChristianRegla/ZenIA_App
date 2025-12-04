@@ -25,14 +25,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.zenia.app.R
+import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.theme.ZenIATheme
+import com.zenia.app.ui.theme.ZeniaTeal
 import java.time.LocalDate
 import java.time.YearMonth
 
 @Composable
 fun DiarioScreen(
     uiState: DiarioUiState,
+    entries: List<DiarioEntrada>,
     onDateSelected: (LocalDate) -> Unit,
     onBackToCalendar: () -> Unit,
     onYearChange: (Int) -> Unit,
@@ -60,11 +65,15 @@ fun DiarioScreen(
                 ) { isEntry ->
                     if (isEntry) {
                         if (uiState.selectedDate != null) {
-                            MiniCalendarTopBar(
-                                selectedDate = uiState.selectedDate,
-                                onBackClick = onBackToCalendar,
-                                onDateClick = onDateSelected
-                            )
+                            Box(modifier = Modifier.background(ZeniaTeal)) {
+                                MiniCalendarTopBar(
+                                    selectedDate = uiState.selectedDate,
+                                    entries = entries,
+                                    onBackClick = onBackToCalendar,
+                                    onDateClick = onDateSelected
+                                )
+                            }
+
                         }
                     } else {
                         Box(modifier = Modifier.statusBarsPadding()) {
@@ -98,7 +107,10 @@ fun DiarioScreen(
                     }
                 ) { date ->
                     if (date != null) {
-                        DiaryEntryContent(date = date)
+                        DiaryEntryContent(
+                            date = date,
+                            onSuccessCallback = onBackToCalendar
+                        )
                     } else {
                         CalendarPagerView(
                             uiState = uiState,
@@ -144,10 +156,20 @@ fun CalendarPagerView(
     val initialPage = startPage + (uiState.selectedYear - baseYear)
     val pagerState = rememberPagerState(initialPage = initialPage) { Int.MAX_VALUE }
 
+    val listState = rememberLazyListState()
+
     LaunchedEffect(uiState.selectedYear) {
+        val today = LocalDate.now()
+        val targetIndex = if (uiState.selectedYear == today.year) {
+            today.monthValue - 1
+        } else {
+            0
+        }
+        listState.scrollToItem(targetIndex)
+
         val targetPage = startPage + (uiState.selectedYear - baseYear)
         if (pagerState.currentPage != targetPage) {
-            pagerState.animateScrollToPage(targetPage)
+            pagerState.scrollToPage(targetPage)
         }
     }
 
@@ -159,10 +181,11 @@ fun CalendarPagerView(
         }
     }
 
-    val listState = rememberLazyListState()
     LaunchedEffect(uiState.scrollTargetIndex) {
         uiState.scrollTargetIndex?.let { index ->
-            listState.scrollToItem(index)
+            if (index >= 0) {
+                listState.animateScrollToItem(index)
+            }
             onScrollConsumed()
         }
     }
@@ -184,11 +207,24 @@ fun CalendarPagerView(
             beyondViewportPageCount = 1
         ) { page ->
             val pageYear = baseYear + (page - startPage)
-
             val monthsForPage = rememberMonthsForYear(pageYear, uiState.selectedYear, uiState.months)
 
+            val initialIndex = remember(pageYear) {
+                if (pageYear == LocalDate.now().year) {
+                    LocalDate.now().monthValue - 1
+                } else {
+                    0
+                }
+            }
+
+            val pageListState = if (pageYear == uiState.selectedYear) {
+                listState
+            } else {
+                rememberLazyListState(initialFirstVisibleItemIndex = initialIndex)
+            }
+
             LazyColumn(
-                state = if (pageYear == uiState.selectedYear) listState else rememberLazyListState(),
+                state = pageListState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
@@ -211,8 +247,8 @@ fun CalendarPagerView(
                 onClick = onJumpToToday,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = Color.White,
-                icon = { Icon(Icons.Default.Today, "Ir a hoy") },
-                text = { Text("Hoy") }
+                icon = { Icon(Icons.Default.Today, stringResource(R.string.diary_cd_go_today)) },
+                text = { Text(stringResource(R.string.diary_fab_today)) }
             )
         }
     }

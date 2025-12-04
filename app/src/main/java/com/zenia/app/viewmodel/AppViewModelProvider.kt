@@ -6,6 +6,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.zenia.app.ZeniaApplication
 import com.zenia.app.ui.screens.auth.AuthViewModel
+import com.zenia.app.ui.screens.diary.DiarioViewModel
+import com.zenia.app.ui.screens.diary.DiaryEntryViewModel
 import com.zenia.app.ui.screens.home.HomeViewModel
 import com.zenia.app.ui.screens.recursos.RecursosViewModel
 import com.zenia.app.ui.screens.zenia.ZeniaChatViewModel
@@ -42,6 +44,18 @@ object AppViewModelProvider {
 
         initializer {
             ZeniaChatViewModel(
+                zeniaApplication().container.zeniaRepository
+            )
+        }
+
+        initializer {
+            DiarioViewModel(
+                zeniaApplication().container.zeniaRepository
+            )
+        }
+
+        initializer {
+            DiaryEntryViewModel(
                 zeniaApplication().container.zeniaRepository
             )
         }

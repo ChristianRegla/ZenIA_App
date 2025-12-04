@@ -12,7 +12,11 @@ data class CalendarDayState(
     val isCurrentMonth: Boolean,
     val isFuture: Boolean,
     val hasEntry: Boolean,
-    val streakShape: StreakShape = StreakShape.None
+    val streakShape: StreakShape = StreakShape.None,
+    val hasFeelings: Boolean = false,
+    val hasSleep: Boolean = false,
+    val hasMind: Boolean = false,
+    val hasExercise: Boolean = false
 )
 
 data class MonthState(
@@ -28,3 +32,17 @@ data class DiarioUiState(
     val isLoading: Boolean = false,
     val scrollTargetIndex: Int? = null
 )
+
+fun calculateStreakShape(date: LocalDate, entryDates: Set<LocalDate>): StreakShape {
+    val yesterday = date.minusDays(1)
+    val tomorrow = date.plusDays(1)
+    val hasYesterday = entryDates.contains(yesterday)
+    val hasTomorrow = entryDates.contains(tomorrow)
+
+    return when {
+        hasYesterday && hasTomorrow -> StreakShape.Middle
+        !hasYesterday && hasTomorrow -> StreakShape.Start
+        hasYesterday && !hasTomorrow -> StreakShape.End
+        else -> StreakShape.Single
+    }
+}

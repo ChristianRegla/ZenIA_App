@@ -148,4 +148,67 @@
     <string name="privacy_link_terms">Terms and Conditions</string>
     <string name="privacy_link_policy">Privacy Policy</string>
 
+    <string name="diary_title_entry">Diary Entry</string>
+    <string name="diary_section_feelings">How are you feeling?</string>
+    <string name="diary_section_sleep">Sleep quality</string>
+    <string name="diary_section_mind">Mind</string>
+    <string name="diary_section_exercise">Exercise</string>
+    <string name="diary_section_activities">What have you done?</string>
+    <string name="diary_section_notes">Tell me more...</string>
+    <string name="diary_placeholder_notes">Write your thoughts here...</string>
+    <string name="diary_btn_save">Save Entry</string>
+    <string name="diary_btn_edit">Edit Record</string>
+    <string name="diary_btn_delete">Delete Entry</string>
+
+    <string name="diary_toast_saved">Record saved</string>
+    <string name="diary_toast_deleted">Record deleted</string>
+    <string name="diary_error_user_id">User not identified</string>
+    <string name="diary_error_save">Error saving</string>
+    <string name="diary_error_delete">Error deleting</string>
+
+    <string name="diary_fab_today">Today</string>
+    <string name="diary_cd_go_today">Go to today</string>
+    <string name="diary_cd_prev_year">Previous year</string>
+    <string name="diary_cd_next_year">Next year</string>
+    <string name="diary_cd_back">Back</string>
+    <string name="diary_date_format_full">EEEE, MMMM d</string>
+    <string name="diary_date_format_month_year">MMMM yyyy</string>
+    <string name="diary_day_monday_short">M</string>
+    <string name="diary_day_tuesday_short">T</string>
+    <string name="diary_day_wednesday_short">W</string>
+    <string name="diary_day_thursday_short">T</string>
+    <string name="diary_day_friday_short">F</string>
+    <string name="diary_day_saturday_short">S</string>
+    <string name="diary_day_sunday_short">S</string>
+
+    <string name="mood_good">Good</string>
+    <string name="mood_happy">Happy</string>
+    <string name="mood_discouraged">Discouraged</string>
+    <string name="mood_joyful">Joyful</string>
+
+    <string name="sleep_rested">Rested</string>
+    <string name="sleep_energetic">Energetic</string>
+    <string name="sleep_tired">Tired</string>
+    <string name="sleep_very_good">Very good</string>
+
+    <string name="mind_calm">Calmness</string>
+    <string name="mind_clarity">Clarity</string>
+    <string name="mind_unmotivated">Unmotivated</string>
+    <string name="mind_stressed">Stressed</string>
+
+    <string name="exercise_walk">Walk</string>
+    <string name="exercise_intense">Intense</string>
+    <string name="exercise_none">None</string>
+    <string name="exercise_light">Light</string>
+
+    <string name="activity_work">Work</string>
+    <string name="activity_exercise">Exercise</string>
+    <string name="activity_reading">Reading</string>
+    <string name="activity_gaming">Gaming</string>
+    <string name="activity_family">Family</string>
+    <string name="activity_friends">Friends</string>
+    <string name="activity_date">Date</string>
+    <string name="activity_trip">Trip</string>
+    <string name="activity_rest">Rest</string>
+
 </resources>

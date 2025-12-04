@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,13 +36,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.theme.RobotoFlex
+import com.zenia.app.ui.theme.ZeniaDream
 import com.zenia.app.ui.theme.ZeniaExercise
 import com.zenia.app.ui.theme.ZeniaFeelings
 import com.zenia.app.ui.theme.ZeniaMind
 import com.zenia.app.ui.theme.ZeniaStreak
+import com.zenia.app.ui.theme.ZeniaTeal
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -239,6 +244,123 @@ fun MonthHeader(monthState: MonthState) {
     }
 }
 
+@Composable
+fun MiniCalendarTopBar(
+    selectedDate: LocalDate,
+    entries: List<DiarioEntrada>,
+    onBackClick: () -> Unit,
+    onDateClick: (LocalDate) -> Unit
+) {
+    val entryDates = remember(entries) {
+        entries.mapNotNull {
+            try {
+                LocalDate.parse(it.fecha)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }.toSet()
+    }
+    val entriesMap = remember(entries) {
+        entries.associateBy {
+            try {
+                LocalDate.parse(it.fecha)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                LocalDate.MIN
+            }
+        }
+    }
+    Column(
+        modifier = Modifier
+            .statusBarsPadding()
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(bottom = 12.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(ZeniaTeal)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = "Volver",
+                    tint = MaterialTheme.colorScheme.surfaceVariant
+                )
+            }
+
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = Color.Transparent,
+                modifier = Modifier.clip(RoundedCornerShape(12.dp))
+            ) {
+                val title = remember(selectedDate) {
+                    val fmt = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
+
+                    selectedDate.format(fmt).replaceFirstChar {
+                        if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+                    }
+                }
+
+                Text(
+                    text = title,
+                    fontSize = 18.sp,
+                    fontFamily = RobotoFlex,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(48.dp))
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        val weekDays = remember(selectedDate) {
+            val currentDayOfWeek = selectedDate.dayOfWeek.value
+            val startOfWeek = selectedDate.minusDays((currentDayOfWeek - 1).toLong())
+            (0..6).map { startOfWeek.plusDays(it.toLong()) }
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            weekDays.forEach { day ->
+                val entry = entriesMap[day]
+                val hasEntry = entry != null
+
+                val dayState = CalendarDayState(
+                    date = day,
+                    isCurrentMonth = true,
+                    isFuture = day.isAfter(LocalDate.now()),
+                    hasEntry = hasEntry,
+                    streakShape = if (hasEntry) calculateStreakShape(day, entryDates) else StreakShape.None,
+                    hasFeelings = entry?.estadoAnimo != null,
+                    hasSleep = entry?.calidadSueno != null,
+                    hasMind = entry?.estadoMental != null,
+                    hasExercise = entry?.ejercicio != null
+                )
+
+                Box(modifier = Modifier.weight(1f)) {
+                    DayCell(
+                        dayState = dayState,
+                        isSelected = day == selectedDate,
+                        onClick = onDateClick
+                    )
+                }
+            }
+        }
+    }
+}
+
 /**
  * Celda individual que representa un día en el calendario.
  * Maneja el estado visual de selección, rachas (streaks) y si tiene entrada o no.
@@ -246,6 +368,7 @@ fun MonthHeader(monthState: MonthState) {
 @Composable
 fun DayCell(
     dayState: CalendarDayState,
+    isSelected: Boolean = false,
     onClick: (LocalDate) -> Unit
 ) {
     val backgroundShape = when (dayState.streakShape) {
@@ -264,12 +387,16 @@ fun DayCell(
     }
 
     val backgroundColor = if (dayState.hasEntry) ZeniaStreak else MaterialTheme.colorScheme.primaryContainer
-    val contentColor = if (dayState.isFuture) Color.LightGray else Color.Black
 
-    val borderModifier = if (!dayState.hasEntry && !dayState.isFuture) {
-        Modifier.border(1.dp, Color.LightGray, RoundedCornerShape(5.dp))
-    } else {
-        Modifier
+    val contentColor = when {
+        dayState.isFuture -> Color.LightGray
+        else -> Color.Black
+    }
+
+    val borderModifier = when {
+        isSelected -> Modifier.border(2.dp, Color.Black, RoundedCornerShape(5.dp)) // Borde Negro al seleccionar
+        !dayState.hasEntry && !dayState.isFuture -> Modifier.border(1.dp, Color.LightGray, RoundedCornerShape(5.dp)) // Borde gris si vacío
+        else -> Modifier // Sin borde si tiene racha (la racha llena el espacio) y no está seleccionado
     }
 
     Box(
@@ -278,10 +405,8 @@ fun DayCell(
             .padding(horizontal = 2.dp)
             .clip(shape = RoundedCornerShape(5.dp))
             .background(MaterialTheme.colorScheme.primaryContainer)
-            .then(if (!dayState.hasEntry) borderModifier else Modifier)
-            .clickable(enabled = !dayState.isFuture) {
-                onClick(dayState.date)
-            },
+            .then(borderModifier)
+            .clickable(enabled = !dayState.isFuture) { onClick(dayState.date) },
     ) {
         if (dayState.hasEntry) {
             Box(
@@ -289,17 +414,30 @@ fun DayCell(
                     .height(16.dp)
                     .wrapContentWidth()
                     .align(Alignment.TopStart)
+                    .padding(start = 4.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(start = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(3.dp)
                 ) {
-                    Box(modifier = Modifier.height(16.dp).width(4.dp).background(ZeniaFeelings))
-                    Box(modifier = Modifier.height(16.dp).width(4.dp).background(ZeniaMind))
-                    Box(modifier = Modifier.height(16.dp).width(4.dp).background(ZeniaExercise))
+                    if (dayState.hasFeelings) IndicatorBar(ZeniaFeelings)
+                    if (dayState.hasSleep) IndicatorBar(ZeniaDream)
+                    if (dayState.hasMind) IndicatorBar(ZeniaMind)
+                    if (dayState.hasExercise) IndicatorBar(ZeniaExercise)
                 }
             }
 
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(28.dp)
+                    .align(Alignment.BottomCenter)
+                    .padding(start = paddingStart, end = paddingEnd, bottom = 4.dp)
+                    .clip(backgroundShape)
+                    .background(backgroundColor)
+            )
+        }
+
+        if (dayState.hasEntry) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -320,4 +458,15 @@ fun DayCell(
                 .padding(end = 8.dp, bottom = 4.dp)
         )
     }
+}
+
+@Composable
+fun IndicatorBar(color: Color) {
+    Box(
+        modifier = Modifier
+            .height(16.dp)
+            .width(4.dp)
+            .clip(RoundedCornerShape(bottomStart = 2.dp, bottomEnd = 2.dp))
+            .background(color)
+    )
 }
