@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -253,10 +252,24 @@ fun MiniCalendarTopBar(
     onDateClick: (LocalDate) -> Unit
 ) {
     val entryDates = remember(entries) {
-        entries.mapNotNull { try { LocalDate.parse(it.fecha) } catch (e: Exception) { null } }.toSet()
+        entries.mapNotNull {
+            try {
+                LocalDate.parse(it.fecha)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }.toSet()
     }
     val entriesMap = remember(entries) {
-        entries.associateBy { try { LocalDate.parse(it.fecha) } catch (e: Exception) { LocalDate.MIN } }
+        entries.associateBy {
+            try {
+                LocalDate.parse(it.fecha)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                LocalDate.MIN
+            }
+        }
     }
     Column(
         modifier = Modifier
@@ -287,8 +300,11 @@ fun MiniCalendarTopBar(
                 modifier = Modifier.clip(RoundedCornerShape(12.dp))
             ) {
                 val title = remember(selectedDate) {
-                    val fmt = DateTimeFormatter.ofPattern("MMMM yyyy", Locale("es", "ES"))
-                    selectedDate.format(fmt).replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+                    val fmt = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
+
+                    selectedDate.format(fmt).replaceFirstChar {
+                        if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+                    }
                 }
 
                 Text(
@@ -450,7 +466,7 @@ fun IndicatorBar(color: Color) {
         modifier = Modifier
             .height(16.dp)
             .width(4.dp)
-            .clip(RoundedCornerShape(bottomStart = 2.dp, bottomEnd = 2.dp)) // O RoundedCornerShape(2.dp)
+            .clip(RoundedCornerShape(bottomStart = 2.dp, bottomEnd = 2.dp))
             .background(color)
     )
 }

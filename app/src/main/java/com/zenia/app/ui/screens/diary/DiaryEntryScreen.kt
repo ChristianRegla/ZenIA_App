@@ -6,7 +6,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -19,10 +18,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.zenia.app.ui.components.ZeniaTopBar
+import com.zenia.app.R
 import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZeniaSlateGrey
 import com.zenia.app.viewmodel.AppViewModelProvider
@@ -79,32 +79,29 @@ fun DiaryEntryContent(
     var sleepIdx by rememberSaveable { mutableStateOf<Int?>(null) }
     var mindIdx by rememberSaveable { mutableStateOf<Int?>(null) }
     var exerciseIdx by rememberSaveable { mutableStateOf<Int?>(null) }
-
     var noteText by rememberSaveable { mutableStateOf("") }
     val selectedActivities = remember { mutableStateListOf<String>() }
 
     val uiState by viewModel.uiState.collectAsState()
     val existingEntry by viewModel.existingEntry.collectAsState()
-
     val context = LocalContext.current
-    val formattedDate = remember(date) {
-        val formatter = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", Locale("es", "ES"))
+
+    val datePattern = stringResource(R.string.diary_date_format_full)
+    val formattedDate = remember(date, datePattern) {
+        val formatter = DateTimeFormatter.ofPattern(datePattern, Locale.getDefault()) // Usamos Locale por defecto
         date.format(formatter).replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
     }
 
-    LaunchedEffect(date) {
-        viewModel.cargarEntrada(date)
-    }
+    LaunchedEffect(date) { viewModel.cargarEntrada(date) }
 
     LaunchedEffect(existingEntry) {
         if (existingEntry != null) {
             val entry = existingEntry!!
-            feelingIdx = viewModel.findIndexByLabel(viewModel.feelings, entry.estadoAnimo)
-            sleepIdx = viewModel.findIndexByLabel(viewModel.dreamQuality, entry.calidadSueno)
-            mindIdx = viewModel.findIndexByLabel(viewModel.mind, entry.estadoMental)
-            exerciseIdx = viewModel.findIndexByLabel(viewModel.exercise, entry.ejercicio)
+            feelingIdx = viewModel.findIndexByDbValue(viewModel.feelings, entry.estadoAnimo)
+            sleepIdx = viewModel.findIndexByDbValue(viewModel.dreamQuality, entry.calidadSueno)
+            mindIdx = viewModel.findIndexByDbValue(viewModel.mind, entry.estadoMental)
+            exerciseIdx = viewModel.findIndexByDbValue(viewModel.exercise, entry.ejercicio)
             noteText = entry.notas
-
             selectedActivities.clear()
             selectedActivities.addAll(entry.actividades)
         } else {
@@ -120,12 +117,12 @@ fun DiaryEntryContent(
     LaunchedEffect(uiState) {
         when (uiState) {
             is DiaryEntryUiState.Success -> {
-                Toast.makeText(context, "Registro guardado", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.diary_toast_saved), Toast.LENGTH_SHORT).show()
                 viewModel.resetState()
                 onSuccessCallback()
             }
             is DiaryEntryUiState.Deleted -> {
-                Toast.makeText(context, "Registro eliminado", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.diary_toast_deleted), Toast.LENGTH_SHORT).show()
                 viewModel.resetState()
                 onSuccessCallback()
             }
@@ -152,29 +149,10 @@ fun DiaryEntryContent(
             )
         }
 
-        item {
-            SelectionSection("¿Cómo te sientes?", viewModel.feelings, feelingIdx) { id ->
-                feelingIdx = if (feelingIdx == id) null else id
-            }
-        }
-
-        item {
-            SelectionSection("Calidad de sueño", viewModel.dreamQuality, sleepIdx) { id ->
-                sleepIdx = if (sleepIdx == id) null else id
-            }
-        }
-
-        item {
-            SelectionSection("Mente", viewModel.mind, mindIdx) { id ->
-                mindIdx = if (mindIdx == id) null else id
-            }
-        }
-
-        item {
-            SelectionSection("Ejercicio", viewModel.exercise, exerciseIdx) { id ->
-                exerciseIdx = if (exerciseIdx == id) null else id
-            }
-        }
+        item { SelectionSection(stringResource(R.string.diary_section_feelings), viewModel.feelings, feelingIdx) { feelingIdx = if (feelingIdx == it) null else it } }
+        item { SelectionSection(stringResource(R.string.diary_section_sleep), viewModel.dreamQuality, sleepIdx) { sleepIdx = if (sleepIdx == it) null else it } }
+        item { SelectionSection(stringResource(R.string.diary_section_mind), viewModel.mind, mindIdx) { mindIdx = if (mindIdx == it) null else it } }
+        item { SelectionSection(stringResource(R.string.diary_section_exercise), viewModel.exercise, exerciseIdx) { exerciseIdx = if (exerciseIdx == it) null else it } }
 
         item {
             SectionTitle("¿Qué has hecho?")
@@ -183,15 +161,15 @@ fun DiaryEntryContent(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                viewModel.activitiesList.forEach { activity ->
-                    val isSelected = selectedActivities.contains(activity)
+                viewModel.activitiesList.forEach { activityItem ->
+                    val isSelected = selectedActivities.contains(activityItem.dbValue)
                     FilterChip(
                         selected = isSelected,
                         onClick = {
-                            if (isSelected) selectedActivities.remove(activity)
-                            else selectedActivities.add(activity)
+                            if (isSelected) selectedActivities.remove(activityItem.dbValue)
+                            else selectedActivities.add(activityItem.dbValue)
                         },
-                        label = { Text(activity, fontFamily = RobotoFlex) },
+                        label = { Text(stringResource(activityItem.labelRes), fontFamily = RobotoFlex) },
                         leadingIcon = if (isSelected) {
                             { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp)) }
                         } else null,
@@ -212,14 +190,14 @@ fun DiaryEntryContent(
         }
 
         item {
-            SectionTitle("Cuéntame más...")
+            SectionTitle(stringResource(R.string.diary_section_notes))
             OutlinedTextField(
                 value = noteText,
                 onValueChange = { noteText = it },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp),
-                placeholder = { Text("Escribe aquí tus pensamientos...") },
+                placeholder = { Text(stringResource(R.string.diary_placeholder_notes)) },
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -235,22 +213,22 @@ fun DiaryEntryContent(
 
             val isLoading = uiState is DiaryEntryUiState.Loading
 
-            val buttonText = if (existingEntry != null) "Editar Registro" else "Guardar Entrada"
+            val buttonText = if (existingEntry != null) stringResource(R.string.diary_btn_edit) else stringResource(R.string.diary_btn_save)
 
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Button(
                     onClick = {
-                        val moodText = feelingIdx?.let { viewModel.feelings.getOrNull(it)?.label }
-                        val sleepText = sleepIdx?.let { viewModel.dreamQuality.getOrNull(it)?.label }
-                        val mindText = mindIdx?.let { viewModel.mind.getOrNull(it)?.label }
-                        val exerciseText = exerciseIdx?.let { viewModel.exercise.getOrNull(it)?.label }
+                        val mood = feelingIdx?.let { viewModel.feelings.find { f -> f.id == it }?.dbValue }
+                        val sleep = sleepIdx?.let { viewModel.dreamQuality.find { f -> f.id == it }?.dbValue }
+                        val mind = mindIdx?.let { viewModel.mind.find { f -> f.id == it }?.dbValue }
+                        val exercise = exerciseIdx?.let { viewModel.exercise.find { f -> f.id == it }?.dbValue }
 
                         viewModel.guardarEntrada(
                             date = date,
-                            estadoAnimo = moodText,
-                            calidadSueno = sleepText,
-                            estadoMental = mindText,
-                            ejercicio = exerciseText,
+                            estadoAnimo = mood,
+                            calidadSueno = sleep,
+                            estadoMental = mind,
+                            ejercicio = exercise,
                             actividades = selectedActivities.toList(),
                             notas = noteText,
                             onSuccess = {}
@@ -281,15 +259,16 @@ fun DiaryEntryContent(
                         ),
                         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error)
                     ) {
-                        Text("Eliminar Entrada", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(stringResource(R.string.diary_btn_delete), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
                 }
             }
 
 
             if (uiState is DiaryEntryUiState.Error) {
+                val errorMsg = stringResource((uiState as DiaryEntryUiState.Error).msgRes)
                 Text(
-                    text = (uiState as DiaryEntryUiState.Error).msg,
+                    text = errorMsg,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(top = 8.dp)
@@ -314,7 +293,7 @@ fun SelectionSection(
         items.forEach { item ->
             FeelingItem(
                 iconRes = item.iconRes,
-                label = item.label,
+                label = stringResource(item.labelRes),
                 isSelected = selectedIndex == item.id,
                 color = item.color,
                 onClick = { onSelect(item.id) }

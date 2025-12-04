@@ -5,7 +5,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.zenia.app.viewmodel.AppViewModelProvider
-import java.time.LocalDate
 
 @Composable
 fun DiarioRoute(

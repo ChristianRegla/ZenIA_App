@@ -25,7 +25,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.zenia.app.R
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaTeal
@@ -245,8 +247,8 @@ fun CalendarPagerView(
                 onClick = onJumpToToday,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = Color.White,
-                icon = { Icon(Icons.Default.Today, "Ir a hoy") },
-                text = { Text("Hoy") }
+                icon = { Icon(Icons.Default.Today, stringResource(R.string.diary_cd_go_today)) },
+                text = { Text(stringResource(R.string.diary_fab_today)) }
             )
         }
     }

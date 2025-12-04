@@ -33,7 +33,12 @@ class DiarioViewModel(
         viewModelScope.launch {
             allEntries.collect { entries ->
                 entriesMap = entries.associateBy {
-                    try { LocalDate.parse(it.fecha) } catch (e: Exception) { LocalDate.MIN }
+                    try {
+                        LocalDate.parse(it.fecha)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        LocalDate.MIN
+                    }
                 }
                 loadYearData(_uiState.value.selectedYear)
             }
@@ -119,7 +124,7 @@ class DiarioViewModel(
         val days = mutableListOf<CalendarDayState>()
 
         repeat(emptyDaysCount) {
-            days.add(CalendarDayState(LocalDate.MIN, false, false, false, StreakShape.None))
+            days.add(CalendarDayState(LocalDate.MIN, isCurrentMonth = false, isFuture = false, hasEntry = false, StreakShape.None))
         }
 
         for (day in 1..lastDayOfMonth.dayOfMonth) {
