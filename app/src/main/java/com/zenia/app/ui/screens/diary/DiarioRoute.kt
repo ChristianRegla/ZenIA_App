@@ -12,9 +12,11 @@ fun DiarioRoute(
     viewModel: DiarioViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val entries by viewModel.allEntries.collectAsState()
 
     DiarioScreen(
         uiState = uiState,
+        entries = entries,
         onDateSelected = { date -> viewModel.selectDate(date) },
         onBackToCalendar = { viewModel.clearSelection() },
         onYearChange = { increment -> viewModel.changeYear(increment) },

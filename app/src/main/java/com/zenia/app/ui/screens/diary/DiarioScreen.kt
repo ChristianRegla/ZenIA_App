@@ -26,13 +26,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.theme.ZenIATheme
+import com.zenia.app.ui.theme.ZeniaTeal
 import java.time.LocalDate
 import java.time.YearMonth
 
 @Composable
 fun DiarioScreen(
     uiState: DiarioUiState,
+    entries: List<DiarioEntrada>,
     onDateSelected: (LocalDate) -> Unit,
     onBackToCalendar: () -> Unit,
     onYearChange: (Int) -> Unit,
@@ -60,13 +63,15 @@ fun DiarioScreen(
                 ) { isEntry ->
                     if (isEntry) {
                         if (uiState.selectedDate != null) {
-                            Box(modifier = Modifier.statusBarsPadding()) {
+                            Box(modifier = Modifier.background(ZeniaTeal)) {
                                 MiniCalendarTopBar(
                                     selectedDate = uiState.selectedDate,
+                                    entries = entries,
                                     onBackClick = onBackToCalendar,
                                     onDateClick = onDateSelected
                                 )
                             }
+
                         }
                     } else {
                         Box(modifier = Modifier.statusBarsPadding()) {

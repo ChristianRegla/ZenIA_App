@@ -39,15 +39,25 @@ fun DiaryEntryScreen(
     date: LocalDate,
     onNavigateBack: () -> Unit
 ) {
+    val viewModel: DiaryEntryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = AppViewModelProvider.Factory)
+    val allEntries by viewModel.allEntries.collectAsState()
     Scaffold(
         topBar = {
-            ZeniaTopBar(title = "Entrada del Diario", onNavigateBack = onNavigateBack)
+            MiniCalendarTopBar(
+                selectedDate = date,
+                entries = allEntries,
+                onBackClick = onNavigateBack,
+                onDateClick = { newDate ->
+                    viewModel.cargarEntrada(newDate)
+                }
+            )
         },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             DiaryEntryContent(
                 date = date,
+                viewModel = viewModel,
                 onSuccessCallback = onNavigateBack
             )
         }

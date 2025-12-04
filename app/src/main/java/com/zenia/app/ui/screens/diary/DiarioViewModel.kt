@@ -5,8 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.ZeniaRepository
 import com.zenia.app.model.DiarioEntrada
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -18,15 +20,21 @@ class DiarioViewModel(
     private val _uiState = MutableStateFlow(DiarioUiState())
     val uiState: StateFlow<DiarioUiState> = _uiState.asStateFlow()
 
+    val allEntries = repository.getDiaryEntriesStream()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     private var entriesMap: Map<LocalDate, DiarioEntrada> = emptyMap()
 
     init {
         viewModelScope.launch {
-            repository.getDiaryEntriesStream().collect { entries ->
+            allEntries.collect { entries ->
                 entriesMap = entries.associateBy {
                     try { LocalDate.parse(it.fecha) } catch (e: Exception) { LocalDate.MIN }
                 }
-
                 loadYearData(_uiState.value.selectedYear)
             }
         }

@@ -11,7 +11,9 @@ import com.zenia.app.ui.theme.ZeniaExercise
 import com.zenia.app.ui.theme.ZeniaFeelings
 import com.zenia.app.ui.theme.ZeniaMind
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -66,6 +68,13 @@ class DiaryEntryViewModel(
         "Trabajo", "Ejercicio", "Lectura", "Gaming",
         "Familia", "Amigos", "Cita", "Viaje", "Descanso"
     )
+
+    val allEntries = repository.getDiaryEntriesStream()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     fun resetState() {
         _uiState.value = DiaryEntryUiState.Idle

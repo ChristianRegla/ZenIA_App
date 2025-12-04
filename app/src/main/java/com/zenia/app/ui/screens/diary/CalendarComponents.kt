@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
@@ -36,12 +37,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZeniaDream
 import com.zenia.app.ui.theme.ZeniaExercise
 import com.zenia.app.ui.theme.ZeniaFeelings
 import com.zenia.app.ui.theme.ZeniaMind
 import com.zenia.app.ui.theme.ZeniaStreak
+import com.zenia.app.ui.theme.ZeniaTeal
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -245,19 +248,27 @@ fun MonthHeader(monthState: MonthState) {
 @Composable
 fun MiniCalendarTopBar(
     selectedDate: LocalDate,
+    entries: List<DiarioEntrada>,
     onBackClick: () -> Unit,
     onDateClick: (LocalDate) -> Unit
 ) {
+    val entryDates = remember(entries) {
+        entries.mapNotNull { try { LocalDate.parse(it.fecha) } catch (e: Exception) { null } }.toSet()
+    }
+    val entriesMap = remember(entries) {
+        entries.associateBy { try { LocalDate.parse(it.fecha) } catch (e: Exception) { LocalDate.MIN } }
+    }
     Column(
         modifier = Modifier
+            .statusBarsPadding()
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(bottom = 12.dp)
     ) {
-        // Título del Mes (Reutilizando estilo de calendario)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(ZeniaTeal)
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -266,13 +277,13 @@ fun MiniCalendarTopBar(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                     contentDescription = "Volver",
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = MaterialTheme.colorScheme.surfaceVariant
                 )
             }
 
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                color = Color.Transparent,
                 modifier = Modifier.clip(RoundedCornerShape(12.dp))
             ) {
                 val title = remember(selectedDate) {
@@ -285,14 +296,15 @@ fun MiniCalendarTopBar(
                     fontSize = 18.sp,
                     fontFamily = RobotoFlex,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
             Spacer(modifier = Modifier.width(48.dp))
         }
 
-        // Tira de Días usando DayCell
+        Spacer(modifier = Modifier.height(8.dp))
+
         val weekDays = remember(selectedDate) {
             val currentDayOfWeek = selectedDate.dayOfWeek.value
             val startOfWeek = selectedDate.minusDays((currentDayOfWeek - 1).toLong())
@@ -306,23 +318,25 @@ fun MiniCalendarTopBar(
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             weekDays.forEach { day ->
-                // Creamos un estado "dummy" para que DayCell funcione.
-                // En esta vista no tenemos la info de los vecinos (si tienen dots o no),
-                // así que ponemos hasEntry=false para que se vean limpios.
+                val entry = entriesMap[day]
+                val hasEntry = entry != null
+
                 val dayState = CalendarDayState(
                     date = day,
-                    isCurrentMonth = true, // Irrelevante aquí visualmente
+                    isCurrentMonth = true,
                     isFuture = day.isAfter(LocalDate.now()),
-                    hasEntry = false, // Podrías conectar esto si tuvieras los datos
-                    streakShape = StreakShape.None
+                    hasEntry = hasEntry,
+                    streakShape = if (hasEntry) calculateStreakShape(day, entryDates) else StreakShape.None,
+                    hasFeelings = entry?.estadoAnimo != null,
+                    hasSleep = entry?.calidadSueno != null,
+                    hasMind = entry?.estadoMental != null,
+                    hasExercise = entry?.ejercicio != null
                 )
 
-                // Usamos Box weight para distribuir el espacio igual que en el calendario
                 Box(modifier = Modifier.weight(1f)) {
-                    // LLAMAMOS AL MISMO COMPONENTE VISUAL
                     DayCell(
                         dayState = dayState,
-                        isSelected = day == selectedDate, // [NUEVO] Le decimos que este día es el seleccionado
+                        isSelected = day == selectedDate,
                         onClick = onDateClick
                     )
                 }
@@ -356,22 +370,17 @@ fun DayCell(
         else -> 4.dp to 4.dp
     }
 
-    val backgroundColor = when {
-        isSelected -> MaterialTheme.colorScheme.primary
-        dayState.hasEntry -> ZeniaStreak
-        else -> MaterialTheme.colorScheme.primaryContainer
-    }
+    val backgroundColor = if (dayState.hasEntry) ZeniaStreak else MaterialTheme.colorScheme.primaryContainer
 
     val contentColor = when {
-        isSelected -> MaterialTheme.colorScheme.onPrimary
         dayState.isFuture -> Color.LightGray
         else -> Color.Black
     }
 
-    val borderModifier = if (!dayState.hasEntry && !isSelected && !dayState.isFuture) {
-        Modifier.border(1.dp, Color.LightGray, RoundedCornerShape(5.dp))
-    } else {
-        Modifier
+    val borderModifier = when {
+        isSelected -> Modifier.border(2.dp, Color.Black, RoundedCornerShape(5.dp)) // Borde Negro al seleccionar
+        !dayState.hasEntry && !dayState.isFuture -> Modifier.border(1.dp, Color.LightGray, RoundedCornerShape(5.dp)) // Borde gris si vacío
+        else -> Modifier // Sin borde si tiene racha (la racha llena el espacio) y no está seleccionado
     }
 
     Box(
@@ -380,10 +389,8 @@ fun DayCell(
             .padding(horizontal = 2.dp)
             .clip(shape = RoundedCornerShape(5.dp))
             .background(MaterialTheme.colorScheme.primaryContainer)
-            .then(if (!dayState.hasEntry) borderModifier else Modifier)
-            .clickable(enabled = !dayState.isFuture) {
-                onClick(dayState.date)
-            },
+            .then(borderModifier)
+            .clickable(enabled = !dayState.isFuture) { onClick(dayState.date) },
     ) {
         if (dayState.hasEntry) {
             Box(
@@ -414,18 +421,14 @@ fun DayCell(
             )
         }
 
-        if (dayState.hasEntry || isSelected) {
+        if (dayState.hasEntry) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(28.dp)
                     .align(Alignment.BottomCenter)
-                    .padding(
-                        start = if (isSelected) 0.dp else paddingStart,
-                        end = if (isSelected) 0.dp else paddingEnd,
-                        bottom = 4.dp
-                    )
-                    .clip(if (isSelected) RoundedCornerShape(5.dp) else backgroundShape)
+                    .padding(start = paddingStart, end = paddingEnd, bottom = 4.dp)
+                    .clip(backgroundShape)
                     .background(backgroundColor)
             )
         }
