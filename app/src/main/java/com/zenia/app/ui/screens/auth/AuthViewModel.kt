@@ -8,7 +8,7 @@ import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.zenia.app.R
-import com.zenia.app.data.ZeniaRepository
+import com.zenia.app.data.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -20,12 +20,12 @@ import kotlinx.coroutines.tasks.await
  * (verificación, reseteo de contraseña, eliminación).
  *
  * @param auth La instancia de FirebaseAuth.
- * @param repositorio El repositorio para interactuar con Firestore (ej. crear documentos de usuario).
+ * @param authRepository El repositorio para interactuar con Firestore (ej. crear documentos de usuario).
  * @param application La instancia de la Aplicación para acceder a recursos (como strings).
  */
 class AuthViewModel(
     private val auth: FirebaseAuth,
-    private val repositorio: ZeniaRepository,
+    private val authRepository: AuthRepository,
     private val application: Application
 ) : AndroidViewModel(application) {
     /**
@@ -128,7 +128,7 @@ class AuthViewModel(
                 val result = auth.signInWithEmailAndPassword(email, password).await()
                 val user = result.user
                 if (user != null && user.isEmailVerified) {
-                    repositorio.checkAndCreateUserDocument(user.uid, user.email)
+                    authRepository.checkAndCreateUserDocument(user.uid, user.email)
                     _uiState.value = AuthUiState.Idle
                 } else {
                     auth.signOut()
@@ -167,7 +167,7 @@ class AuthViewModel(
                 val result = auth.createUserWithEmailAndPassword(email, password).await()
                 val newUser = result.user
                 if (newUser != null) {
-                    repositorio.checkAndCreateUserDocument(newUser.uid, email)
+                    authRepository.checkAndCreateUserDocument(newUser.uid, email)
                     newUser.sendEmailVerification()
                 }
                 auth.signOut()
@@ -192,7 +192,7 @@ class AuthViewModel(
                 val user = result.user
 
                 if (user != null) {
-                    repositorio.checkAndCreateUserDocument(user.uid, user.email)
+                    authRepository.checkAndCreateUserDocument(user.uid, user.email)
                 }
                 _uiState.value = AuthUiState.Idle
             } catch (e: Exception) {
@@ -278,7 +278,7 @@ class AuthViewModel(
                 val userId = user?.uid
 
                 if (userId != null) {
-                    repositorio.deleteUserData(userId)
+                    authRepository.deleteUserData(userId)
                 }
 
                 user?.delete()?.await()

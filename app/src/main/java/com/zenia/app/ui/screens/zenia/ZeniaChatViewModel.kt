@@ -2,7 +2,7 @@ package com.zenia.app.ui.screens.zenia
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.zenia.app.data.ZeniaRepository
+import com.zenia.app.data.ChatRepository
 import com.zenia.app.model.MensajeChatbot
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,9 +21,9 @@ sealed interface ChatUiState {
 }
 
 class ZeniaChatViewModel(
-    private val repositorio: ZeniaRepository
+    private val chatRepository: ChatRepository
 ) : ViewModel() {
-    val uiState: StateFlow<ChatUiState> = repositorio.getHistorialChat()
+    val uiState: StateFlow<ChatUiState> = chatRepository.getHistorialChat()
         .map { ChatUiState.Success(it) as ChatUiState }
         .catch { emit(ChatUiState.Error(it.message ?: "Error desconocido")) }
         .stateIn(
@@ -44,7 +44,7 @@ class ZeniaChatViewModel(
                 texto = texto
             )
 
-            repositorio.addChatMessage(mensajeUsuario)
+            chatRepository.addChatMessage(mensajeUsuario)
             _isTyping.value = true
             simularRespuestaIA()
         }
@@ -53,7 +53,7 @@ class ZeniaChatViewModel(
     fun eliminarHistorial() {
         viewModelScope.launch {
             try{
-                repositorio.deleteChatHistory()
+                chatRepository.deleteChatHistory()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -73,6 +73,6 @@ class ZeniaChatViewModel(
             texto = respuestasRandom.random()
         )
         _isTyping.value = false
-        repositorio.addChatMessage(mensajeIA)
+        chatRepository.addChatMessage(mensajeIA)
     }
 }

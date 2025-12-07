@@ -17,14 +17,16 @@ object AppViewModelProvider {
         initializer {
             AuthViewModel(
                 zeniaApplication().container.firebaseAuth,
-                zeniaApplication().container.zeniaRepository,
+                zeniaApplication().container.authRepository, // Nuevo
                 zeniaApplication()
             )
         }
 
         initializer {
             HomeViewModel(
-                zeniaApplication().container.zeniaRepository,
+                zeniaApplication().container.authRepository,    // Nuevo
+                zeniaApplication().container.contentRepository, // Nuevo
+                zeniaApplication().container.diaryRepository,   // Nuevo
                 zeniaApplication().container.healthConnectRepository,
                 zeniaApplication()
             )
@@ -32,31 +34,32 @@ object AppViewModelProvider {
 
         initializer {
             SettingsViewModel(
-                zeniaApplication().container.userPreferencesRepository
+                zeniaApplication().container.userPreferencesRepository,
+                zeniaApplication().container.authRepository
             )
         }
 
         initializer {
             RecursosViewModel(
-                zeniaApplication().container.zeniaRepository
+                zeniaApplication().container.contentRepository // Nuevo
             )
         }
 
         initializer {
             ZeniaChatViewModel(
-                zeniaApplication().container.zeniaRepository
+                zeniaApplication().container.chatRepository // Nuevo
             )
         }
 
         initializer {
             DiarioViewModel(
-                zeniaApplication().container.zeniaRepository
+                zeniaApplication().container.diaryRepository // Nuevo
             )
         }
 
         initializer {
             DiaryEntryViewModel(
-                zeniaApplication().container.zeniaRepository
+                zeniaApplication().container.diaryRepository // Nuevo
             )
         }
     }

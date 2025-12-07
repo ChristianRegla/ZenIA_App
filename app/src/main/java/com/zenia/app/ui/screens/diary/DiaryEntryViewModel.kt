@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.R
-import com.zenia.app.data.ZeniaRepository
+import com.zenia.app.data.DiaryRepository
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.theme.ZeniaDream
 import com.zenia.app.ui.theme.ZeniaExercise
@@ -29,7 +29,7 @@ data class FeelingData(val id: Int, val iconRes: Int, val labelRes: Int, val dbV
 data class ActivityData(val labelRes: Int, val dbValue: String)
 
 class DiaryEntryViewModel(
-    private val repository: ZeniaRepository
+    private val diaryRepository: DiaryRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<DiaryEntryUiState>(DiaryEntryUiState.Idle)
@@ -38,7 +38,7 @@ class DiaryEntryViewModel(
     private val _existingEntry = MutableStateFlow<DiarioEntrada?>(null)
     val existingEntry = _existingEntry.asStateFlow()
 
-    val allEntries = repository.getDiaryEntriesStream()
+    val allEntries = diaryRepository.getDiaryEntriesStream()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -100,7 +100,7 @@ class DiaryEntryViewModel(
         viewModelScope.launch {
             _uiState.value = DiaryEntryUiState.Loading
 
-            val currentUserId = repository.getCurrentUserId() ?: ""
+            val currentUserId = diaryRepository.getCurrentUserId() ?: ""
 
             if (currentUserId.isBlank()) {
                 _uiState.value = DiaryEntryUiState.Error(R.string.diary_error_user_id)
@@ -130,7 +130,7 @@ class DiaryEntryViewModel(
             }
 
             try {
-                repository.saveDiaryEntry(nuevaEntrada)
+                diaryRepository.saveDiaryEntry(nuevaEntrada)
                 _uiState.value = DiaryEntryUiState.Success
                 onSuccess()
             } catch (e: Exception) {
@@ -145,7 +145,7 @@ class DiaryEntryViewModel(
         viewModelScope.launch {
             _uiState.value = DiaryEntryUiState.Loading
             try {
-                val entry = repository.getDiaryEntryByDate(date.toString())
+                val entry = diaryRepository.getDiaryEntryByDate(date.toString())
                 _existingEntry.value = entry
                 _uiState.value = DiaryEntryUiState.Idle
             } catch (e: Exception) {
@@ -160,7 +160,7 @@ class DiaryEntryViewModel(
         viewModelScope.launch {
             _uiState.value = DiaryEntryUiState.Loading
             try {
-                repository.deleteDiaryEntry(date.toString())
+                diaryRepository.deleteDiaryEntry(date.toString())
                 _uiState.value = DiaryEntryUiState.Deleted
             } catch (e: Exception) {
                 _uiState.value = DiaryEntryUiState.Error(R.string.diary_error_delete)

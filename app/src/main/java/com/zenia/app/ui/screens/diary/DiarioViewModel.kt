@@ -2,7 +2,7 @@ package com.zenia.app.ui.screens.diary
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.zenia.app.data.ZeniaRepository
+import com.zenia.app.data.DiaryRepository
 import com.zenia.app.model.DiarioEntrada
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,12 +15,12 @@ import java.time.LocalDate
 import java.time.YearMonth
 
 class DiarioViewModel(
-    private val repository: ZeniaRepository
+    private val diaryRepository: DiaryRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DiarioUiState())
     val uiState: StateFlow<DiarioUiState> = _uiState.asStateFlow()
 
-    val allEntries = repository.getDiaryEntriesStream()
+    val allEntries = diaryRepository.getDiaryEntriesStream()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

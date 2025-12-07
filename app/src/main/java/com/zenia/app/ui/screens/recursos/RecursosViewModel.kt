@@ -2,7 +2,7 @@ package com.zenia.app.ui.screens.recursos
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.zenia.app.data.ZeniaRepository
+import com.zenia.app.data.ContentRepository
 import com.zenia.app.model.Recurso
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +17,7 @@ sealed interface RecursosUiState {
 }
 
 class RecursosViewModel(
-    private val zeniaRepository: ZeniaRepository
+    private val contentRepository: ContentRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<RecursosUiState>(RecursosUiState.Loading)
@@ -31,7 +31,7 @@ class RecursosViewModel(
         viewModelScope.launch {
             _uiState.value = RecursosUiState.Loading
 
-            zeniaRepository.getRecursos()
+            contentRepository.getRecursos()
                 .catch { e ->
                     _uiState.value = RecursosUiState.Error(e.message ?: "Error desconocido")
                 }
