@@ -7,12 +7,17 @@ import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 import java.time.Instant
 import javax.inject.Inject
 
 class HealthConnectRepository @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    private val defaultDispatcher: CoroutineDispatcher
 ) {
     private lateinit var healthConnectClient: HealthConnectClient
 
@@ -49,48 +54,40 @@ class HealthConnectRepository @Inject constructor(
         return granted.containsAll(permissions)
     }
 
-    suspend fun readDailyHeartRate(): List<HeartRateRecord> {
+    private suspend fun getHeartRateRecordsForLastDay(): List<HeartRateRecord> {
         if (!isClientAvailable) return emptyList()
 
-        val endTime = Instant.now()
-        val startTime = endTime.minus(1, java.time.temporal.ChronoUnit.DAYS)
+        return try {
+            val endTime = Instant.now()
+            val startTime = endTime.minus(1, java.time.temporal.ChronoUnit.DAYS)
 
-        try {
             val request = ReadRecordsRequest(
                 recordType = HeartRateRecord::class,
                 timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
             )
             val response = healthConnectClient.readRecords(request)
-            return response.records
+            response.records
         } catch (e: Exception) {
-            e.printStackTrace()
-            return emptyList()
+            Firebase.crashlytics.recordException(e)
+            emptyList()
         }
     }
 
-    suspend fun readDailyHeartRateAverage(): Int? {
-        if (!isClientAvailable) return null
+    suspend fun readDailyHeartRate(): List<HeartRateRecord> {
+        return getHeartRateRecordsForLastDay()
+    }
 
-        val endTime = Instant.now()
-        val startTime = endTime.minus(1, java.time.temporal.ChronoUnit.DAYS)
+    suspend fun readDailyHeartRateAverage(): Int? = withContext(defaultDispatcher) {
+        val records = getHeartRateRecordsForLastDay()
 
-        try {
-            val request = ReadRecordsRequest(
-                recordType = HeartRateRecord::class,
-                timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
-            )
-            val response = healthConnectClient.readRecords(request)
+        if (records.isEmpty()) return@withContext null
 
-            val allSamplesBpm = response.records.flatMap { record ->
-                record.samples.map { sample -> sample.beatsPerMinute }
-            }
-
-            if (allSamplesBpm.isEmpty()) return null
-
-            return allSamplesBpm.average().toInt()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return null
+        val allSamplesBpm = records.flatMap { record ->
+            record.samples.map { sample -> sample.beatsPerMinute }
         }
+
+        if (allSamplesBpm.isEmpty()) return@withContext null
+
+        return@withContext allSamplesBpm.average().toInt()
     }
 }

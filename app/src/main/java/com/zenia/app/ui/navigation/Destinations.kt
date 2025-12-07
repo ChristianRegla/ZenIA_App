@@ -20,3 +20,7 @@ object Destinations {
 
     fun createDiaryEntryRoute(date: LocalDate) = "diary_entry/${date}"
 }
+
+object NavArgs {
+    const val DATE = "date"
+}

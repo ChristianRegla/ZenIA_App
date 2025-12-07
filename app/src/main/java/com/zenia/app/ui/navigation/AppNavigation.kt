@@ -2,9 +2,14 @@ package com.zenia.app.ui.navigation
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -26,6 +31,7 @@ import com.zenia.app.ui.screens.settings.DonationsRoute
 import com.zenia.app.ui.screens.settings.HelpCenterRoute
 import com.zenia.app.ui.screens.settings.PrivacyRoute
 import com.zenia.app.ui.screens.settings.SettingsRoute
+import com.zenia.app.viewmodel.MainViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
 import java.time.LocalDate
 
@@ -41,39 +47,28 @@ import java.time.LocalDate
 fun AppNavigation() {
     val navController = rememberNavController()
 
+    val mainViewModel: MainViewModel = hiltViewModel()
+
     val authViewModel: AuthViewModel = hiltViewModel()
     val settingsViewModel: SettingsViewModel = hiltViewModel()
-
-    val isLoggedIn by authViewModel.isUserLoggedIn.collectAsState()
-
-    val isBiometricEnabledState by settingsViewModel.isBiometricEnabled.collectAsState()
-
-    if (isBiometricEnabledState == null) {
-        return // O un Box(Modifier.fillMaxSize()) { CircularProgressIndicator() }
-    }
-
-    val isBiometricEnabled = isBiometricEnabledState!!
-
     /**
      * Lógica clave para determinar la pantalla de inicio de la app (startDestination).
      * 1. Si el usuario está logueado Y tiene biometría activada -> Va a [Destinations.LOCK_ROUTE].
      * 2. Si está logueado pero SIN biometría -> Va directo a [Destinations.HOME_ROUTE].
      * 3. Si no está logueado (en cualquier otro caso) -> Va a [Destinations.AUTH_ROUTE].
      */
-    val startDestination = when {
-        isLoggedIn && isBiometricEnabled -> Destinations.LOCK_ROUTE
-        isLoggedIn && !isBiometricEnabled -> Destinations.HOME_ROUTE
-        else -> Destinations.AUTH_ROUTE
+    val startDestination by mainViewModel.startDestinationState.collectAsState()
+    if (startDestination == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
     }
 
     NavHost(
         navController = navController,
-        startDestination = startDestination
+        startDestination = startDestination!!
     ) {
-        /**
-         * Pantalla de Autenticación (Login / Registro).
-         * La lógica de esta pantalla está contenida en [AuthRoute].
-         */
         composable(Destinations.AUTH_ROUTE) {
             AuthRoute(
                 authViewModel = authViewModel,
@@ -93,10 +88,6 @@ fun AppNavigation() {
             )
         }
 
-        /**
-         * Pantalla Principal (Home).
-         * La lógica de esta pantalla está contenida en [HomeRoute].
-         */
         composable(Destinations.HOME_ROUTE) {
             MainScreen(
                 onSignOut = {
@@ -126,9 +117,9 @@ fun AppNavigation() {
 
         composable(
             route = Destinations.DIARY_ENTRY_ROUTE,
-            arguments = listOf(navArgument("date") { type = NavType.StringType })
+            arguments = listOf(navArgument(NavArgs.DATE) { type = NavType.StringType })
         ) { backStackEntry ->
-            val dateString = backStackEntry.arguments?.getString("date")
+            val dateString = backStackEntry.arguments?.getString(NavArgs.DATE)
             val date = LocalDate.parse(dateString)
 
             DiaryEntryScreen(
@@ -195,10 +186,6 @@ fun AppNavigation() {
             )
         }
 
-        /**
-         * Pantalla de Configuración de Cuenta.
-         * La lógica de esta pantalla está contenida en [AccountRoute].
-         */
         composable(Destinations.ACCOUNT_ROUTE) {
             AccountRoute(
                 authViewModel = authViewModel,
@@ -212,10 +199,6 @@ fun AppNavigation() {
             )
         }
 
-        /**
-         * Pantalla de Bloqueo Biométrico.
-         * La lógica de esta pantalla está contenida en [LockRoute].
-         */
         composable(Destinations.LOCK_ROUTE) {
             LockRoute(
                 onUnlockSuccess = {
