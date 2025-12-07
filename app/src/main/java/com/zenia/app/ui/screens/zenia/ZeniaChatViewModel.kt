@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.ChatRepository
 import com.zenia.app.model.MensajeChatbot
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 sealed interface ChatUiState {
     data object Loading : ChatUiState
@@ -20,7 +22,8 @@ sealed interface ChatUiState {
     data class Error(val mensaje: String) : ChatUiState
 }
 
-class ZeniaChatViewModel(
+@HiltViewModel
+class ZeniaChatViewModel @Inject constructor(
     private val chatRepository: ChatRepository
 ) : ViewModel() {
     val uiState: StateFlow<ChatUiState> = chatRepository.getHistorialChat()

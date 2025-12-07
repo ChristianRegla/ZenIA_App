@@ -15,8 +15,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
-class DiaryRepository(
+class DiaryRepository @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore
 ) {

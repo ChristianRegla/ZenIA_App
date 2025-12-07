@@ -9,10 +9,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.zenia.app.R
 import com.zenia.app.data.AuthRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
 /**
  * ViewModel encargado de gestionar toda la lógica de autenticación de usuarios.
@@ -23,7 +25,8 @@ import kotlinx.coroutines.tasks.await
  * @param authRepository El repositorio para interactuar con Firestore (ej. crear documentos de usuario).
  * @param application La instancia de la Aplicación para acceder a recursos (como strings).
  */
-class AuthViewModel(
+@HiltViewModel
+class AuthViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val authRepository: AuthRepository,
     private val application: Application

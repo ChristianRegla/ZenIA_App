@@ -11,9 +11,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.health.connect.client.HealthConnectClient
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.zenia.app.viewmodel.AppViewModelProvider
 import androidx.core.net.toUri
+import androidx.hilt.navigation.compose.hiltViewModel
 
 /**
  * Composable "inteligente" (Smart Composable) para la ruta principal (Home).
@@ -30,7 +29,7 @@ fun HomeRoute(
     onSignOut: () -> Unit
 ) {
     // 1. Obtiene el ViewModel
-    val homeViewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    val homeViewModel: HomeViewModel = hiltViewModel()
     val context = LocalContext.current
 
     // 2. Define el Launcher de Permisos

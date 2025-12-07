@@ -22,10 +22,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.zenia.app.R
 import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZeniaSlateGrey
-import com.zenia.app.viewmodel.AppViewModelProvider
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -39,7 +39,7 @@ fun DiaryEntryScreen(
     date: LocalDate,
     onNavigateBack: () -> Unit
 ) {
-    val viewModel: DiaryEntryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = AppViewModelProvider.Factory)
+    val viewModel: DiaryEntryViewModel = hiltViewModel()
     val allEntries by viewModel.allEntries.collectAsState()
     Scaffold(
         topBar = {
@@ -72,7 +72,7 @@ fun DiaryEntryScreen(
 @Composable
 fun DiaryEntryContent(
     date: LocalDate,
-    viewModel: DiaryEntryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = AppViewModelProvider.Factory),
+    viewModel: DiaryEntryViewModel = hiltViewModel(),
     onSuccessCallback: () -> Unit
 ) {
     var feelingIdx by rememberSaveable { mutableStateOf<Int?>(null) }

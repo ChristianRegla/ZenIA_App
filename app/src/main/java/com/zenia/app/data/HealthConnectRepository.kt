@@ -1,18 +1,19 @@
 package com.zenia.app.data
 
 import android.content.Context
-import android.os.Build
 import androidx.activity.result.contract.ActivityResultContract
-import androidx.annotation.RequiresApi
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.Instant
-import java.time.ZonedDateTime
+import javax.inject.Inject
 
-class HealthConnectRepository(private val context: Context) {
+class HealthConnectRepository @Inject constructor(
+    @param:ApplicationContext private val context: Context
+) {
     private lateinit var healthConnectClient: HealthConnectClient
 
     var isClientAvailable: Boolean = false
@@ -62,6 +63,7 @@ class HealthConnectRepository(private val context: Context) {
             val response = healthConnectClient.readRecords(request)
             return response.records
         } catch (e: Exception) {
+            e.printStackTrace()
             return emptyList()
         }
     }
@@ -87,6 +89,7 @@ class HealthConnectRepository(private val context: Context) {
 
             return allSamplesBpm.average().toInt()
         } catch (e: Exception) {
+            e.printStackTrace()
             return null
         }
     }

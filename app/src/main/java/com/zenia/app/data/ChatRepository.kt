@@ -8,8 +8,9 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
-class ChatRepository(
+class ChatRepository @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore
 ) {

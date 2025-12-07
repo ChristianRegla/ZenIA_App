@@ -5,7 +5,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,7 +16,6 @@ import com.zenia.app.ui.screens.account.AccountRoute
 import com.zenia.app.ui.screens.auth.AuthRoute
 import com.zenia.app.ui.screens.home.HomeRoute
 import com.zenia.app.ui.screens.lock.LockRoute
-import com.zenia.app.viewmodel.AppViewModelProvider
 import com.zenia.app.ui.screens.auth.AuthViewModel
 import com.zenia.app.ui.screens.auth.ForgotPasswordScreen
 import com.zenia.app.ui.screens.diary.DiarioRoute
@@ -41,8 +40,9 @@ import java.time.LocalDate
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    val authViewModel: AuthViewModel = viewModel(factory = AppViewModelProvider.Factory)
-    val settingsViewModel: SettingsViewModel = viewModel(factory = AppViewModelProvider.Factory)
+
+    val authViewModel: AuthViewModel = hiltViewModel()
+    val settingsViewModel: SettingsViewModel = hiltViewModel()
 
     val isLoggedIn by authViewModel.isUserLoggedIn.collectAsState()
 
@@ -87,7 +87,7 @@ fun AppNavigation() {
             ForgotPasswordScreen(
                 viewModel = authViewModel,
                 onNavigateBack = {
-                    authViewModel.resetForgotPasswordState() // Limpiamos al salir
+                    authViewModel.resetForgotPasswordState()
                     navController.popBackStack()
                 }
             )

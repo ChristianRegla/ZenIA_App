@@ -10,12 +10,14 @@ import com.zenia.app.ui.theme.ZeniaDream
 import com.zenia.app.ui.theme.ZeniaExercise
 import com.zenia.app.ui.theme.ZeniaFeelings
 import com.zenia.app.ui.theme.ZeniaMind
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import javax.inject.Inject
 
 sealed interface DiaryEntryUiState {
     object Idle : DiaryEntryUiState
@@ -28,7 +30,8 @@ sealed interface DiaryEntryUiState {
 data class FeelingData(val id: Int, val iconRes: Int, val labelRes: Int, val dbValue: String, val color: Color)
 data class ActivityData(val labelRes: Int, val dbValue: String)
 
-class DiaryEntryViewModel(
+@HiltViewModel
+class DiaryEntryViewModel @Inject constructor(
     private val diaryRepository: DiaryRepository
 ) : ViewModel() {
 

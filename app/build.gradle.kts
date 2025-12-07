@@ -7,6 +7,9 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
     alias(libs.plugins.google.firebase.crashlytics)
+
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt.android)
 }
 
 val localProperties = Properties()
@@ -118,4 +121,8 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
 
     implementation(libs.androidx.core.splashscreen)
+
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
 }

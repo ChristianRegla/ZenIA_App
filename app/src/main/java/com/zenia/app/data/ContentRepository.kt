@@ -8,8 +8,9 @@ import com.zenia.app.model.Recurso
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import javax.inject.Inject
 
-class ContentRepository(
+class ContentRepository @Inject constructor(
     private val db: FirebaseFirestore
 ) {
     fun getRecursos(): Flow<List<Recurso>> = callbackFlow {

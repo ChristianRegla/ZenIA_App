@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.model.DiarioEntrada
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,8 +14,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
+import javax.inject.Inject
 
-class DiarioViewModel(
+@HiltViewModel
+class DiarioViewModel @Inject constructor(
     private val diaryRepository: DiaryRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DiarioUiState())

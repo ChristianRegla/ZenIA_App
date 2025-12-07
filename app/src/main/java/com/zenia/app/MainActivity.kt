@@ -10,17 +10,17 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.zenia.app.ui.navigation.AppNavigation
 import com.zenia.app.ui.theme.ZenIATheme
-import com.zenia.app.viewmodel.AppViewModelProvider
 import com.zenia.app.viewmodel.SettingsViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+    private val settingsViewModel: SettingsViewModel by viewModels()
     @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
 
         super.onCreate(savedInstanceState)
-
-        val settingsViewModel: SettingsViewModel by viewModels { AppViewModelProvider.Factory }
 
         splashScreen.setKeepOnScreenCondition {
             settingsViewModel.isBiometricEnabled.value == null

@@ -11,6 +11,7 @@ import com.zenia.app.data.ContentRepository
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.HealthConnectRepository
 import com.zenia.app.model.RegistroBienestar
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +20,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+
 /**
  * Define los posibles estados de la UI para la pantalla principal,
  * específicamente para operaciones asíncronas como guardar un registro.
@@ -38,7 +41,8 @@ sealed interface HomeUiState {
  * @param healthConnectRepository Repositorio para interactuar con la API de Health Connect. Es nulable si el SDK no está disponible.
  * @param application La instancia de la aplicación para acceder a recursos (strings).
  */
-class HomeViewModel(
+@HiltViewModel
+class HomeViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val contentRepository: ContentRepository,
     private val diaryRepository: DiaryRepository,
