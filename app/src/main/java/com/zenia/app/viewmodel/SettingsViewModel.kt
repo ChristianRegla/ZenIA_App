@@ -2,13 +2,17 @@ package com.zenia.app.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.UserPreferencesRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class SettingsViewModel(private val userPreferencesRepository: UserPreferencesRepository) : ViewModel() {
+class SettingsViewModel(
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val authRepository: AuthRepository
+) : ViewModel() {
     val isBiometricEnabled: StateFlow<Boolean?> = userPreferencesRepository.isBiometricEnabled
         .stateIn(
             scope = viewModelScope,
@@ -33,5 +37,9 @@ class SettingsViewModel(private val userPreferencesRepository: UserPreferencesRe
         viewModelScope.launch {
             userPreferencesRepository.saveAllowWeakBiometrics(enabled)
         }
+    }
+
+    fun signOut() {
+        authRepository.signOut()
     }
 }

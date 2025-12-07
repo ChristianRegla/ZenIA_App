@@ -3,10 +3,13 @@ package com.zenia.app.ui.screens.home
 import android.app.Application
 import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.R
+import com.zenia.app.data.AuthRepository
+import com.zenia.app.data.ContentRepository
+import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.HealthConnectRepository
-import com.zenia.app.data.ZeniaRepository
 import com.zenia.app.model.RegistroBienestar
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -36,9 +39,11 @@ sealed interface HomeUiState {
  * @param application La instancia de la aplicación para acceder a recursos (strings).
  */
 class HomeViewModel(
-    private val repositorio: ZeniaRepository,
+    private val authRepository: AuthRepository,
+    private val contentRepository: ContentRepository,
+    private val diaryRepository: DiaryRepository,
     private val healthConnectRepository: HealthConnectRepository?,
-    private val application: Application
+    application: Application
 ) : AndroidViewModel(application) {
     /**
      * StateFlow interno para el estado de la UI (Cargando, Éxito, Error) al guardar un registro.
@@ -49,14 +54,14 @@ class HomeViewModel(
      * Expone un boolean que indica si el usuario actual tiene una suscripción "premium".
      * Se actualiza en tiempo real observando el documento del usuario en Firestore.
      */
-    val esPremium: StateFlow<Boolean> = repositorio.getUsuarioFlow()
+    val esPremium: StateFlow<Boolean> = authRepository.getUsuarioFlow()
         .map { it?.suscripcion == "premium" }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     /**
      * Expone el flujo de registros de bienestar del usuario desde Firestore,
      * ordenados por fecha descendente. Maneja errores de carga.
      */
-    val registros = repositorio.getRegistrosBienestar()
+    val registros = diaryRepository.getRegistrosBienestar()
         .catch { _uiState.value = HomeUiState.Error(application.getString(R.string.error_loading_records)) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     /**
@@ -131,7 +136,7 @@ class HomeViewModel(
                     notas = notas,
                     frecuenciaCardiaca = avgHeartRate
                 )
-                repositorio.addRegistroBienestar(nuevoRegistro)
+                diaryRepository.addRegistroBienestar(nuevoRegistro)
                 _uiState.value = HomeUiState.Success
             } catch (e: Exception) {
                 _uiState.value = HomeUiState.Error(e.message ?: application.getString(R.string.error_saving_record))
