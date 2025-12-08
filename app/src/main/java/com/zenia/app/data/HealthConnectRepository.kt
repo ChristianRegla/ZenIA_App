@@ -9,6 +9,7 @@ import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
+import com.zenia.app.di.DefaultDispatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -17,7 +18,7 @@ import javax.inject.Inject
 
 class HealthConnectRepository @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val defaultDispatcher: CoroutineDispatcher
+    @param:DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) {
     private lateinit var healthConnectClient: HealthConnectClient
 
