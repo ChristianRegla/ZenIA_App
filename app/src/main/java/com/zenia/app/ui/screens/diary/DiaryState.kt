@@ -29,7 +29,7 @@ data class DiarioUiState(
     val currentMonthIndex: Int? = null,
     val months: List<MonthState> = emptyList(),
     val selectedDate: LocalDate? = null,
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,
     val scrollTargetIndex: Int? = null
 )
 

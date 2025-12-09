@@ -93,32 +93,42 @@ fun DiarioScreen(
                 .padding(innerPadding)
                 .fillMaxSize()) {
 
-                AnimatedContent(
-                    targetState = uiState.selectedDate,
-                    label = "DiarioTransition",
-                    transitionSpec = {
-                        if (targetState != null) {
-                            (fadeIn(tween(300)) + scaleIn(initialScale = 0.92f, animationSpec = tween(300)))
-                                .togetherWith(fadeOut(tween(300)))
-                        } else {
-                            (fadeIn(tween(300)) + scaleIn(initialScale = 1.05f, animationSpec = tween(300)))
-                                .togetherWith(fadeOut(tween(300)) + scaleOut(targetScale = 0.92f, animationSpec = tween(300)))
-                        }
-                    }
-                ) { date ->
-                    if (date != null) {
-                        DiaryEntryContent(
-                            date = date,
-                            onSuccessCallback = onBackToCalendar
-                        )
+                Crossfade(
+                    targetState = uiState.isLoading,
+                    animationSpec = tween(500),
+                    label = "LoadingTransition"
+                ) { isLoading ->
+                    if (isLoading) {
+                        CalendarSkeleton()
                     } else {
-                        CalendarPagerView(
-                            uiState = uiState,
-                            onDateClick = onDateSelected,
-                            onYearPageChanged = { diff -> onYearChange(diff) },
-                            onJumpToToday = onJumpToToday,
-                            onScrollConsumed = onScrollConsumed
-                        )
+                        AnimatedContent(
+                            targetState = uiState.selectedDate,
+                            label = "DiarioTransition",
+                            transitionSpec = {
+                                if (targetState != null) {
+                                    (fadeIn(tween(300)) + scaleIn(initialScale = 0.92f, animationSpec = tween(300)))
+                                        .togetherWith(fadeOut(tween(300)))
+                                } else {
+                                    (fadeIn(tween(300)) + scaleIn(initialScale = 1.05f, animationSpec = tween(300)))
+                                        .togetherWith(fadeOut(tween(300)) + scaleOut(targetScale = 0.92f, animationSpec = tween(300)))
+                                }
+                            }
+                        ) { date ->
+                            if (date != null) {
+                                DiaryEntryContent(
+                                    date = date,
+                                    onSuccessCallback = onBackToCalendar
+                                )
+                            } else {
+                                CalendarPagerView(
+                                    uiState = uiState,
+                                    onDateClick = onDateSelected,
+                                    onYearPageChanged = { diff -> onYearChange(diff) },
+                                    onJumpToToday = onJumpToToday,
+                                    onScrollConsumed = onScrollConsumed
+                                )
+                            }
+                        }
                     }
                 }
             }
