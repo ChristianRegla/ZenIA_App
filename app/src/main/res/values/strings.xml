@@ -150,8 +150,8 @@
     <string name="diary_section_mind">Mente</string>
     <string name="diary_section_exercise">Ejercicio</string>
     <string name="diary_section_activities">¿Qué has hecho?</string>
-    <string name="diary_section_notes">Cuéntame más...</string>
-    <string name="diary_placeholder_notes">Escribe aquí tus pensamientos...</string>
+    <string name="diary_section_notes">Cuéntame más…</string>
+    <string name="diary_placeholder_notes">Escribe aquí tus pensamientos…</string>
     <string name="diary_btn_save">Guardar Entrada</string>
     <string name="diary_btn_edit">Editar Registro</string>
     <string name="diary_btn_delete">Eliminar Entrada</string>
@@ -206,5 +206,10 @@
     <string name="activity_date">Cita</string>
     <string name="activity_trip">Viaje</string>
     <string name="activity_rest">Descanso</string>
+
+    <string name="health_connect_rationale_title">Acceso a Datos de Salud</string>
+    <string name="health_connect_rationale_message">ZenIA utiliza tus datos de ritmo cardíaco exclusivamente para recomendarte ejercicios de relajación personalizados y monitorear tu bienestar. Tus datos no se comparten con terceros.</string>
+    <string name="privacy_policy">Política de Privacidad</string>
+    <string name="settings_item_settings">Ajustes</string>
 
 </resources>

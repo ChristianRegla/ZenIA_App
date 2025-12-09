@@ -211,4 +211,9 @@
     <string name="activity_trip">Trip</string>
     <string name="activity_rest">Rest</string>
 
+    <string name="health_connect_rationale_title">Health Data Access</string>
+    <string name="health_connect_rationale_message">ZenIA uses your heart rate data exclusively to recommend personalized relaxation exercises and monitor your well-being. Your data is not shared with third parties.</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="settings_item_settings">Settings</string>
+
 </resources>

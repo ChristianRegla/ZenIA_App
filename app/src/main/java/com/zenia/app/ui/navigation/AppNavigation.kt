@@ -19,7 +19,6 @@ import androidx.navigation.navArgument
 import com.zenia.app.ui.screens.MainScreen
 import com.zenia.app.ui.screens.account.AccountRoute
 import com.zenia.app.ui.screens.auth.AuthRoute
-import com.zenia.app.ui.screens.home.HomeRoute
 import com.zenia.app.ui.screens.lock.LockRoute
 import com.zenia.app.ui.screens.auth.AuthViewModel
 import com.zenia.app.ui.screens.auth.ForgotPasswordScreen
@@ -29,6 +28,7 @@ import com.zenia.app.ui.screens.notifications.NotificationsRoute
 import com.zenia.app.ui.screens.premium.PremiumRoute
 import com.zenia.app.ui.screens.settings.DonationsRoute
 import com.zenia.app.ui.screens.settings.HelpCenterRoute
+import com.zenia.app.ui.screens.settings.MoreSettingsRoute
 import com.zenia.app.ui.screens.settings.PrivacyRoute
 import com.zenia.app.ui.screens.settings.SettingsRoute
 import com.zenia.app.viewmodel.MainViewModel
@@ -144,6 +144,9 @@ fun AppNavigation() {
                 onNavigateToPremium = {
                     navController.navigate(Destinations.PREMIUM_ROUTE)
                 },
+                onNavigateToMoreSettings = {
+                    navController.navigate(Destinations.MORE_SETTINGS_ROUTE)
+                },
                 onNavigateToHelp = {
                     navController.navigate(Destinations.HELP_CENTER_ROUTE)
                 },
@@ -159,6 +162,12 @@ fun AppNavigation() {
                         popUpTo(Destinations.HOME_ROUTE) { inclusive = true }
                     }
                 },
+            )
+        }
+
+        composable(Destinations.MORE_SETTINGS_ROUTE) {
+            MoreSettingsRoute(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
@@ -189,7 +198,6 @@ fun AppNavigation() {
         composable(Destinations.ACCOUNT_ROUTE) {
             AccountRoute(
                 authViewModel = authViewModel,
-                settingsViewModel = settingsViewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToAuth = {
                     navController.navigate(Destinations.AUTH_ROUTE) {

@@ -1,11 +1,9 @@
 package com.zenia.app.ui.screens.home
 
 import android.content.Intent
-import android.os.Build
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContract
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -19,7 +17,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
  * Obtiene el estado de [HomeViewModel], maneja la lógica de Health Connect
  * y pasa el estado y las acciones a [HomeScreen].
  */
-@RequiresApi(Build.VERSION_CODES.P)
 @Composable
 fun HomeRoute(
     onNavigateToAccount: () -> Unit,
@@ -48,12 +45,15 @@ fun HomeRoute(
     )
 
     // 3. Recolecta todos los estados necesarios
+    val uiState by homeViewModel.uiState.collectAsState()
+    val registros by homeViewModel.registros.collectAsState()
     val esPremium by homeViewModel.esPremium.collectAsState()
     val hasPermission by homeViewModel.hasHealthPermissions.collectAsState()
     val healthConnectStatus = homeViewModel.healthConnectStatus
 
     // 4. Pasa los estados y las lambdas a la HomeScreen "tonta"
     HomeScreen(
+        uiState = uiState,
         esPremium = esPremium,
         hasPermission = hasPermission,
         healthConnectStatus = healthConnectStatus,
@@ -96,6 +96,7 @@ fun HomeRoute(
             }
         },
         onSettingsClick = onNavigateToSettings,
-        onNotificationClick = onNotificationClick
+        onNotificationClick = onNotificationClick,
+        onResetState = { homeViewModel.resetState() }
     )
 }

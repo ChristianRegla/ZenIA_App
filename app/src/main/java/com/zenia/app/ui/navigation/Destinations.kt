@@ -8,6 +8,7 @@ object Destinations {
     const val ACCOUNT_ROUTE = "account"
     const val LOCK_ROUTE = "lock"
     const val SETTINGS_ROUTE = "settings"
+    const val MORE_SETTINGS_ROUTE = "more_settings"
     const val ABOUT_ROUTE = "about"
     const val FORGOT_PASSWORD_ROUTE = "forgot_password"
     const val HELP_CENTER_ROUTE = "help_center"

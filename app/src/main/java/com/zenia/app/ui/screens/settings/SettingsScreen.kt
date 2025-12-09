@@ -52,6 +52,7 @@ fun SettingsScreen(
     email: String,
     onNavigateToProfile: () -> Unit,
     onNavigateBack: () -> Unit,
+    onNavigateToMoreSettings: () -> Unit,
     onNavigateToPremium: () -> Unit,
     onNavigateToHelp: () -> Unit,
     onNavigateToDonations: () -> Unit,
@@ -147,6 +148,14 @@ fun SettingsScreen(
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
+
+                SettingsItem(
+                    iconRes = R.drawable.ic_settings,
+                    text = stringResource(R.string.settings_item_settings),
+                    onClick = onNavigateToMoreSettings
+                )
+
+                SettingsDivider()
 
                 SettingsItem(
                     iconRes = R.drawable.ic_help_center,

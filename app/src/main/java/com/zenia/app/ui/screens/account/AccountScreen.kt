@@ -1,16 +1,12 @@
 package com.zenia.app.ui.screens.account
 
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -21,52 +17,33 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.os.LocaleListCompat
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
-import com.zenia.app.ui.screens.auth.AuthUiState
 import com.zenia.app.ui.theme.ZenIATheme
-import java.util.Locale
 
-/**
- * Clase de datos que agrupa todo el estado necesario para la UI de AccountScreen.
- */
 data class AccountScreenState(
-    val uiState: AuthUiState,
-    val userEmail: String?,
+    val isLoading: Boolean,
+    val userEmail: String,
     val isVerified: Boolean,
-    val isBiometricEnabled: Boolean,
-    val allowWeakBiometrics: Boolean,
-    val canUseStrongBiometrics: Boolean,
-    val canUseWeakBiometrics: Boolean,
-    val currentLanguage: String,
     val showDeleteDialog: Boolean,
     val snackbarHostState: SnackbarHostState
 )
 
-/**
- * Clase de datos que agrupa todas las acciones (lambdas) que la UI puede disparar.
- */
 data class AccountScreenActions(
     val onNavigateBack: () -> Unit,
-    val onBiometricToggle: (Boolean) -> Unit,
-    val onWeakBiometricToggle: (Boolean) -> Unit,
-    val onLanguageChange: (String) -> Unit,
-    val onDeleteAccountClick: () -> Unit,
-    val onResendVerificationClick: () -> Unit,
-    val onChangePasswordClick: () -> Unit,
-    val onConfirmDelete: () -> Unit,
+    val onResendVerification: () -> Unit,
+    val onChangePassword: () -> Unit,
+    val onDeleteAccountRequest: () -> Unit,
+    val onConfirmDeleteAccount: () -> Unit,
     val onDismissDeleteDialog: () -> Unit
 )
 
@@ -75,13 +52,13 @@ data class AccountScreenActions(
 fun AccountScreen(
     state: AccountScreenState,
     actions: AccountScreenActions
-    ) {
+) {
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = state.snackbarHostState) },
         topBar = {
             ZeniaTopBar(
-                onNavigateBack = actions.onNavigateBack,
-                title = stringResource(R.string.account_title)
+                title = stringResource(R.string.account_title),
+                onNavigateBack = actions.onNavigateBack
             )
         }
     ) { paddingValues ->
@@ -90,154 +67,69 @@ fun AccountScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(paddingValues)
-                .padding(16.dp),
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = stringResource(R.string.account_info_title),
-                style = MaterialTheme.typography.headlineSmall
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
             )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Info del Usuario
+            InfoItem(
+                label = stringResource(R.string.account_email_label),
+                value = state.userEmail.ifEmpty { stringResource(R.string.common_not_available) }
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                stringResource(R.string.account_email_label) +
-                        (state.userEmail ?: stringResource(R.string.common_not_available))
+            InfoItem(
+                label = stringResource(R.string.account_verified_label),
+                value = stringResource(if (state.isVerified) R.string.common_yes else R.string.common_no),
+                isPositive = state.isVerified
             )
 
-            Text(
-                stringResource(R.string.account_verified_label) +
-                        stringResource(if (state.isVerified) R.string.common_yes else R.string.common_no)
-            )
+            Spacer(modifier = Modifier.weight(1f))
 
-            Spacer(modifier = Modifier.height(24.dp))
-            if (state.canUseStrongBiometrics || state.canUseWeakBiometrics) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.account_biometrics_label),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                    Switch(
-                        checked = state.isBiometricEnabled,
-                        onCheckedChange = actions.onBiometricToggle
-                    )
-                }
-            } else {
-                Text(
-                    text = stringResource(R.string.account_biometrics_not_available),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            if (state.isBiometricEnabled && state.canUseWeakBiometrics) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, bottom = 8.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.account_biometrics_weak_label),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Switch(
-                            checked = state.allowWeakBiometrics,
-                            onCheckedChange = actions.onWeakBiometricToggle,
-                            modifier = Modifier.scale(0.8f)
-                        )
-                    }
-
-                    if (state.allowWeakBiometrics) {
-                        Text(
-                            text = stringResource(R.string.account_biometrics_weak_warning),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = stringResource(R.string.account_language_label),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-
-                val currentLanguage = (AppCompatDelegate.getApplicationLocales()[0] ?: Locale.getDefault()).language
-                val isEsSelected = currentLanguage == "es"
-
-                Row {
-                    val esOnClick = {
-                        val appLocale = LocaleListCompat.forLanguageTags("es")
-                        AppCompatDelegate.setApplicationLocales(appLocale)
-                    }
-                    if (isEsSelected) {
-                        Button(onClick = esOnClick) { Text("ES") }
-                    } else {
-                        OutlinedButton(onClick = esOnClick) { Text("ES") }
-                    }
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    val enOnClick = {
-                        val appLocale = LocaleListCompat.forLanguageTags("en")
-                        AppCompatDelegate.setApplicationLocales(appLocale)
-                    }
-                    if (isEsSelected) {
-                        OutlinedButton(onClick = enOnClick) { Text("EN") }
-                    } else {
-                        Button(onClick = enOnClick) { Text("EN") }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            if (state.uiState == AuthUiState.Loading) {
+            if (state.isLoading) {
                 CircularProgressIndicator()
             } else {
                 Button(
-                    onClick = actions.onDeleteAccountClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    onClick = actions.onChangePassword,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(stringResource(R.string.account_delete_button))
+                    Text(stringResource(R.string.account_change_password_button))
                 }
 
                 if (!state.isVerified) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    TextButton(onClick = actions.onResendVerificationClick) {
+                    OutlinedButton(
+                        onClick = actions.onResendVerification,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Text(stringResource(R.string.account_resend_verification_button))
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
-                TextButton(onClick = actions.onChangePasswordClick) {
-                    Text(stringResource(R.string.account_change_password_button))
-                }
-            }
+                Spacer(modifier = Modifier.height(32.dp))
 
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = stringResource(R.string.account_delete_warning),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+                TextButton(
+                    onClick = actions.onDeleteAccountRequest,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text(stringResource(R.string.account_delete_button))
+                }
+
+                Text(
+                    text = stringResource(R.string.account_delete_warning),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
         }
     }
 
@@ -248,8 +140,8 @@ fun AccountScreen(
             text = { Text(stringResource(R.string.account_delete_dialog_text)) },
             confirmButton = {
                 Button(
-                    onClick = actions.onConfirmDelete,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    onClick = actions.onConfirmDeleteAccount,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
                     Text(stringResource(R.string.common_delete))
                 }
@@ -259,6 +151,46 @@ fun AccountScreen(
                     Text(stringResource(R.string.cancel))
                 }
             }
+        )
+    }
+}
+
+@Composable
+private fun InfoItem(
+    label: String,
+    value: String,
+    isPositive: Boolean = true
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.Start
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (isPositive) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AccountScreenPreview() {
+    ZenIATheme {
+        AccountScreen(
+            state = AccountScreenState(
+                isLoading = false,
+                userEmail = "usuario@zenia.com",
+                isVerified = false,
+                showDeleteDialog = false,
+                snackbarHostState = SnackbarHostState()
+            ),
+            actions = AccountScreenActions({}, {}, {}, {}, {}, {})
         )
     }
 }

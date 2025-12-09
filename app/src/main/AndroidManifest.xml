@@ -32,12 +32,9 @@
             </intent-filter>
 
             <intent-filter>
-                <action android:name="androidx.health.connect.client.ACTION_REQUEST_PERMISSIONS" />
+                <action android:name="androidx.health.connect.client.ACTION_SHOW_PERMISSIONS_RATIONALE" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <meta-data
-            android:name="androidx.health.connect.client.PERMISSIONS_REQUESTED"
-            android:resource="@array/health_connect_permissions" />
     </application>
 </manifest>
