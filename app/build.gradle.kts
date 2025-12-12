@@ -38,7 +38,7 @@ android {
     defaultConfig {
         applicationId = "com.zenia.app"
         minSdk = 28
-        targetSdk = 36
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 

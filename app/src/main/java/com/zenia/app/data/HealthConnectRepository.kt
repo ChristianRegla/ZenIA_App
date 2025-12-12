@@ -41,7 +41,8 @@ class HealthConnectRepository @Inject constructor(
     }
 
     val permissions: Set<String> = setOf(
-        HealthPermission.getReadPermission(HeartRateRecord::class)
+        HealthPermission.getReadPermission(HeartRateRecord::class),
+        HealthPermission.getWritePermission(HeartRateRecord::class)
     )
 
     fun getPermissionRequestContract(): ActivityResultContract<Set<String>, Set<String>> {
