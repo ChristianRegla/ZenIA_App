@@ -8,6 +8,8 @@ import com.zenia.app.model.Recurso
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class ContentRepository @Inject constructor(
@@ -24,14 +26,16 @@ class ContentRepository @Inject constructor(
         awaitClose { listener.remove() }
     }
 
-    fun getEjerciciosGuiados(): Flow<List<EjercicioGuiado>> = callbackFlow {
-        val listener = db.collection(FirestoreCollections.GUIDED_EXERCISES)
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) { close(e); return@addSnapshotListener }
-                val ejercicios = snapshot?.toObjects(EjercicioGuiado::class.java) ?: emptyList()
-                trySend(ejercicios)
-            }
-        awaitClose { listener.remove() }
+    fun getEjerciciosGuiados(): Flow<List<EjercicioGuiado>> = flow {
+        try {
+            val snapshot = db.collection(FirestoreCollections.GUIDED_EXERCISES)
+                .get()
+                .await()
+            val ejercicios = snapshot.toObjects(EjercicioGuiado::class.java)
+            emit(ejercicios)
+        } catch (e: Exception) {
+            emit(emptyList())
+        }
     }
 
     fun getActividadesComunidad(): Flow<List<ActividadComunidad>> = callbackFlow {

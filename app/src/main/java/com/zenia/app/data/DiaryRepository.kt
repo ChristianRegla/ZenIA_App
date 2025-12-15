@@ -102,6 +102,7 @@ class DiaryRepository @Inject constructor(
         val listener = db.collection(FirestoreCollections.USERS).document(currentUserId)
             .collection(FirestoreCollections.WELNESS_LOGS)
             .orderBy(FirestoreCollections.FIELD_DATE, Query.Direction.DESCENDING)
+            .limit(10)
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
                     trySend(emptyList())
