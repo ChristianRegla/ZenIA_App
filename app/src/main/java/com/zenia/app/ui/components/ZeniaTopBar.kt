@@ -1,5 +1,6 @@
 package com.zenia.app.ui.components
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -22,7 +23,8 @@ fun ZeniaTopBar(
     title: String? = null,
     onNavigateBack: () -> Unit,
     containerColor: Color = ZeniaTeal,
-    contentColor: Color = Color.White
+    contentColor: Color = Color.White,
+    actions: @Composable RowScope.() -> Unit = {}
 ) {
     CenterAlignedTopAppBar(
         title = {
@@ -45,8 +47,10 @@ fun ZeniaTopBar(
                 )
             }
         },
+        actions = actions,
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = containerColor
+            containerColor = containerColor,
+            actionIconContentColor = contentColor
         )
     )
 }

@@ -130,7 +130,10 @@ fun AppNavigation() {
 
         composable(Destinations.NOTIFICATIONS_ROUTE) {
             NotificationsRoute(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDestination = { route ->
+                    navController.navigate(route)
+                }
             )
         }
 

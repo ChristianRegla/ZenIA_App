@@ -2,6 +2,7 @@ package com.zenia.app.data
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.zenia.app.model.Usuario
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -16,18 +17,26 @@ class AuthRepository @Inject constructor(
     val currentUserId: String?
         get() = auth.currentUser?.uid
 
-    suspend fun checkAndCreateUserDocument(userId: String, email: String?) {
-        val userDocRef = db.collection(FirestoreCollections.USERS).document(userId)
-        val document = userDocRef.get().await()
+    suspend fun createUserIfNew(userId: String, email: String?, isNewUser: Boolean) {
+        val userRef = db.collection(FirestoreCollections.USERS).document(userId)
 
-        if (!document.exists()) {
+        if (isNewUser) {
             val nuevoUsuario = Usuario(
                 id = userId,
                 email = email ?: "",
                 suscripcion = "free"
             )
-            userDocRef.set(nuevoUsuario).await()
+            userRef.set(nuevoUsuario).await()
+        } else {
+            val datosActualizados = mapOf(
+                "email" to (email ?: "")
+            )
+            userRef.set(datosActualizados, SetOptions.merge()).await()
         }
+    }
+
+    suspend fun sendEmailVerification() {
+        auth.currentUser?.sendEmailVerification()?.await()
     }
 
     fun getUsuarioFlow(): Flow<Usuario?> = callbackFlow {

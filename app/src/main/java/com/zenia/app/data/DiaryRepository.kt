@@ -90,7 +90,6 @@ class DiaryRepository @Inject constructor(
         return if (snapshot.exists()) snapshot.toObject(DiarioEntrada::class.java) else null
     }
 
-    // Registros de Bienestar (podrían ir en otro repo, pero encajan en "Tracking")
     fun getRegistrosBienestar(): Flow<List<RegistroBienestar>> = callbackFlow {
         val currentUserId = auth.currentUser?.uid
         if (currentUserId == null) {

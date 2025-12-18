@@ -131,7 +131,7 @@ class AuthViewModel @Inject constructor(
                 val result = auth.signInWithEmailAndPassword(email, password).await()
                 val user = result.user
                 if (user != null && user.isEmailVerified) {
-                    authRepository.checkAndCreateUserDocument(user.uid, user.email)
+                    authRepository.createUserIfNew(user.uid, user.email, isNewUser = false)
                     _uiState.value = AuthUiState.Idle
                 } else {
                     auth.signOut()
@@ -170,7 +170,7 @@ class AuthViewModel @Inject constructor(
                 val result = auth.createUserWithEmailAndPassword(email, password).await()
                 val newUser = result.user
                 if (newUser != null) {
-                    authRepository.checkAndCreateUserDocument(newUser.uid, email)
+                    authRepository.createUserIfNew(newUser.uid, email, isNewUser = true)
                     newUser.sendEmailVerification()
                 }
                 auth.signOut()
@@ -193,9 +193,10 @@ class AuthViewModel @Inject constructor(
             try {
                 val result = auth.signInWithCredential(credential).await()
                 val user = result.user
+                val isNewUser = result.additionalUserInfo?.isNewUser ?: false
 
                 if (user != null) {
-                    authRepository.checkAndCreateUserDocument(user.uid, user.email)
+                    authRepository.createUserIfNew(user.uid, user.email, isNewUser)
                 }
                 _uiState.value = AuthUiState.Idle
             } catch (e: Exception) {
@@ -254,13 +255,8 @@ class AuthViewModel @Inject constructor(
         _uiState.value = AuthUiState.Loading
         viewModelScope.launch {
             try {
-                val user = auth.currentUser
-                if (user != null && !user.isEmailVerified) {
-                    user.sendEmailVerification().await()
-                    _uiState.value = AuthUiState.VerificationSent
-                } else {
-                    _uiState.value = AuthUiState.Error(application.getString(R.string.auth_error_email_already_verified))
-                }
+                authRepository.sendEmailVerification()
+                _uiState.value = AuthUiState.VerificationSent
             } catch (e: Exception) {
                 _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
             }

@@ -211,5 +211,6 @@
     <string name="health_connect_rationale_message">ZenIA utiliza tus datos de ritmo cardíaco exclusivamente para recomendarte ejercicios de relajación personalizados y monitorear tu bienestar. Tus datos no se comparten con terceros.</string>
     <string name="privacy_policy">Política de Privacidad</string>
     <string name="settings_item_settings">Ajustes</string>
+    <string name="notifications_title">Notificaciones</string>
 
 </resources>
