@@ -6,19 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -61,77 +49,87 @@ fun MoreSettingsScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp)
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter
         ) {
-            // --- SECCIÓN SEGURIDAD ---
-            SettingsSectionTitle(text = stringResource(R.string.biometric_title))
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .widthIn(max = 600.dp)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.Start
+            ) {
+                // --- SECCIÓN SEGURIDAD ---
+                SettingsSectionTitle(text = stringResource(R.string.biometric_title))
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Switch Biometría Principal (Diseño Tarjeta)
-            SettingsCard {
-                SettingsSwitchRow(
-                    label = stringResource(R.string.account_biometrics_label),
-                    checked = isBiometricEnabled,
-                    onCheckedChange = onToggleBiometric
-                )
-            }
-
-            // Switch Biometría Débil
-            if (isBiometricEnabled) {
-                Spacer(modifier = Modifier.height(12.dp))
+                // Switch Biometría Principal (Diseño Tarjeta)
                 SettingsCard {
-                    Column {
-                        SettingsSwitchRow(
-                            label = stringResource(R.string.account_biometrics_weak_label),
-                            checked = allowWeakBiometrics,
-                            onCheckedChange = onToggleWeakBiometric,
-                            isSecondary = true
-                        )
-                        if (allowWeakBiometrics) {
-                            Text(
-                                text = stringResource(R.string.account_biometrics_weak_warning),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.padding(top = 8.dp)
+                    SettingsSwitchRow(
+                        label = stringResource(R.string.account_biometrics_label),
+                        checked = isBiometricEnabled,
+                        onCheckedChange = onToggleBiometric
+                    )
+                }
+
+                // Switch Biometría Débil
+                if (isBiometricEnabled) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingsCard {
+                        Column {
+                            SettingsSwitchRow(
+                                label = stringResource(R.string.account_biometrics_weak_label),
+                                checked = allowWeakBiometrics,
+                                onCheckedChange = onToggleWeakBiometric,
+                                isSecondary = true
                             )
+                            if (allowWeakBiometrics) {
+                                Text(
+                                    text = stringResource(R.string.account_biometrics_weak_warning),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.padding(top = 8.dp)
+                                )
+                            }
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(32.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // --- SECCIÓN IDIOMA ---
+                SettingsSectionTitle(text = stringResource(R.string.account_info_title))
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = stringResource(R.string.account_language_label),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                // Selector de Idioma
+                ModernLanguageSelector(
+                    currentLanguage = currentLanguage,
+                    onLanguageSelected = onLanguageChange
+                )
+
+                // Espacio extra al final
+                Spacer(modifier = Modifier.height(32.dp))
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // --- SECCIÓN IDIOMA (Aquí está lo nuevo) ---
-            SettingsSectionTitle(text = stringResource(R.string.account_info_title))
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = stringResource(R.string.account_language_label),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-
-            // ✨ EL COMPONENTE NUEVO Y MODERNO ✨
-            ModernLanguageSelector(
-                currentLanguage = currentLanguage,
-                onLanguageSelected = onLanguageChange
-            )
         }
     }
 }
-
-// --- COMPONENTES AUXILIARES ---
 
 @Composable
 fun ModernLanguageSelector(
@@ -141,22 +139,20 @@ fun ModernLanguageSelector(
     val options = listOf("es" to "Español", "en" to "English")
     val selectedIndex = if (currentLanguage == "en") 1 else 0
 
-    // Contenedor principal (La cápsula gris)
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface) // Fondo suave
-            .padding(4.dp) // Margen interno para el efecto flotante
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(4.dp)
     ) {
         val maxWidth = this.maxWidth
         val tabWidth = maxWidth / 2
 
-        // El indicador animado (La cápsula de color que se mueve)
         val indicatorOffset by animateDpAsState(
             targetValue = if (selectedIndex == 0) 0.dp else tabWidth,
-            animationSpec = tween(durationMillis = 300), // Movimiento suave
+            animationSpec = tween(durationMillis = 300),
             label = "indicator"
         )
 
@@ -165,17 +161,14 @@ fun ModernLanguageSelector(
                 .offset(x = indicatorOffset)
                 .width(tabWidth)
                 .fillMaxHeight()
-                .shadow(4.dp, RoundedCornerShape(12.dp)) // Sombrita elegante
+                .shadow(4.dp, RoundedCornerShape(12.dp))
                 .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.primary) // Color de marca (ZeniaTeal)
+                .background(MaterialTheme.colorScheme.primary)
         )
 
-        // Los textos (encima del fondo y del indicador)
         Row(modifier = Modifier.fillMaxSize()) {
             options.forEachIndexed { index, (code, label) ->
                 val isSelected = index == selectedIndex
-
-                // Animamos el color del texto: Blanco si está seleccionado, Gris si no
                 val textColor by animateColorAsState(
                     targetValue = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                     animationSpec = tween(200),
@@ -189,7 +182,7 @@ fun ModernLanguageSelector(
                         .clip(RoundedCornerShape(12.dp))
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
-                            indication = null // Sin efecto de onda (ripple) para que sea más limpio
+                            indication = null
                         ) {
                             if (!isSelected) onLanguageSelected(code)
                         },
@@ -207,7 +200,6 @@ fun ModernLanguageSelector(
     }
 }
 
-// Tarjeta contenedora para agrupar opciones (Estilo iOS/Modern Android)
 @Composable
 fun SettingsCard(content: @Composable () -> Unit) {
     Box(
@@ -255,9 +247,9 @@ fun SettingsSwitchRow(
     }
 }
 
-@Preview(showBackground = true)
+@Preview
 @Composable
-fun MoreSettingsPreview() {
+fun MoreSettingsPhonePreview() {
     ZenIATheme {
         MoreSettingsScreen(
             isBiometricEnabled = true,
