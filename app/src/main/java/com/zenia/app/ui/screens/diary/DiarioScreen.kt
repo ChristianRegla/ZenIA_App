@@ -7,8 +7,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -55,78 +57,89 @@ fun DiarioScreen(
         Scaffold(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             topBar = {
-                AnimatedContent(
-                    targetState = isEntryView,
-                    label = "TopBarAnimation",
-                    transitionSpec = {
-                        (fadeIn(tween(300)) + slideInVertically(tween(300)) { -it })
-                            .togetherWith(fadeOut(tween(300)) + slideOutVertically(tween(300)) { -it })
-                    }
-                ) { isEntry ->
-                    if (isEntry) {
-                        if (uiState.selectedDate != null) {
-                            Box(modifier = Modifier.background(ZeniaTeal)) {
-                                MiniCalendarTopBar(
-                                    selectedDate = uiState.selectedDate,
-                                    entries = entries,
-                                    onBackClick = onBackToCalendar,
-                                    onDateClick = onDateSelected
-                                )
+                Box(
+                    modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    Box(modifier = Modifier.widthIn(max = 450.dp).fillMaxWidth()) {
+                        AnimatedContent(
+                            targetState = isEntryView,
+                            label = "TopBarAnimation",
+                            transitionSpec = {
+                                (fadeIn(tween(300)) + slideInVertically(tween(300)) { -it })
+                                    .togetherWith(fadeOut(tween(300)) + slideOutVertically(tween(300)) { -it })
                             }
+                        ) { isEntry ->
+                            if (isEntry) {
+                                if (uiState.selectedDate != null) {
+                                    Box(modifier = Modifier.background(ZeniaTeal)) {
+                                        MiniCalendarTopBar(
+                                            selectedDate = uiState.selectedDate,
+                                            entries = entries,
+                                            onBackClick = onBackToCalendar,
+                                            onDateClick = onDateSelected
+                                        )
+                                    }
 
-                        }
-                    } else {
-                        Box(modifier = Modifier.statusBarsPadding()) {
-                            CalendarTopBar(
-                                selectedYear = uiState.selectedYear,
-                                onYearClick = { showYearDialog = true },
-                                onPrevYear = { onYearChange(-1) },
-                                onNextYear = { onYearChange(1) }
-                            )
+                                }
+                            } else {
+                                Box(modifier = Modifier.statusBarsPadding()) {
+                                    CalendarTopBar(
+                                        selectedYear = uiState.selectedYear,
+                                        onYearClick = { showYearDialog = true },
+                                        onPrevYear = { onYearChange(-1) },
+                                        onNextYear = { onYearChange(1) }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
         ) { innerPadding ->
-            Box(modifier = Modifier
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(innerPadding)
-                .fillMaxSize()) {
-
-                Crossfade(
-                    targetState = uiState.isLoading,
-                    animationSpec = tween(500),
-                    label = "LoadingTransition"
-                ) { isLoading ->
-                    if (isLoading) {
-                        CalendarSkeleton()
-                    } else {
-                        AnimatedContent(
-                            targetState = uiState.selectedDate,
-                            label = "DiarioTransition",
-                            transitionSpec = {
-                                if (targetState != null) {
-                                    (fadeIn(tween(300)) + scaleIn(initialScale = 0.92f, animationSpec = tween(300)))
-                                        .togetherWith(fadeOut(tween(300)))
-                                } else {
-                                    (fadeIn(tween(300)) + scaleIn(initialScale = 1.05f, animationSpec = tween(300)))
-                                        .togetherWith(fadeOut(tween(300)) + scaleOut(targetScale = 0.92f, animationSpec = tween(300)))
+            Box(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Box(modifier = Modifier.widthIn(max = 600.dp).fillMaxSize()) {
+                    Crossfade(
+                        targetState = uiState.isLoading,
+                        animationSpec = tween(500),
+                        label = "LoadingTransition"
+                    ) { isLoading ->
+                        if (isLoading) {
+                            CalendarSkeleton()
+                        } else {
+                            AnimatedContent(
+                                targetState = uiState.selectedDate,
+                                label = "DiarioTransition",
+                                transitionSpec = {
+                                    if (targetState != null) {
+                                        (fadeIn(tween(300)) + scaleIn(initialScale = 0.92f, animationSpec = tween(300)))
+                                            .togetherWith(fadeOut(tween(300)))
+                                    } else {
+                                        (fadeIn(tween(300)) + scaleIn(initialScale = 1.05f, animationSpec = tween(300)))
+                                            .togetherWith(fadeOut(tween(300)) + scaleOut(targetScale = 0.92f, animationSpec = tween(300)))
+                                    }
                                 }
-                            }
-                        ) { date ->
-                            if (date != null) {
-                                DiaryEntryContent(
-                                    date = date,
-                                    onSuccessCallback = onBackToCalendar
-                                )
-                            } else {
-                                CalendarPagerView(
-                                    uiState = uiState,
-                                    onDateClick = onDateSelected,
-                                    onYearPageChanged = { diff -> onYearChange(diff) },
-                                    onJumpToToday = onJumpToToday,
-                                    onScrollConsumed = onScrollConsumed
-                                )
+                            ) { date ->
+                                if (date != null) {
+                                    DiaryEntryContent(
+                                        date = date,
+                                        onSuccessCallback = onBackToCalendar
+                                    )
+                                } else {
+                                    CalendarPagerView(
+                                        uiState = uiState,
+                                        onDateClick = onDateSelected,
+                                        onYearPageChanged = { diff -> onYearChange(diff) },
+                                        onJumpToToday = onJumpToToday,
+                                        onScrollConsumed = onScrollConsumed
+                                    )
+                                }
                             }
                         }
                     }
@@ -210,7 +223,10 @@ fun CalendarPagerView(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter
+    ) {
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize(),
@@ -233,13 +249,18 @@ fun CalendarPagerView(
                 rememberLazyListState(initialFirstVisibleItemIndex = initialIndex)
             }
 
-            LazyColumn(
-                state = pageListState,
+            Box(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 80.dp)
+                contentAlignment = Alignment.TopCenter
             ) {
-                itemsIndexed(monthsForPage) { _, monthState ->
-                    MonthSection(monthState = monthState, onDateClick = onDateClick)
+                LazyColumn(
+                    state = pageListState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
+                    itemsIndexed(monthsForPage) { _, monthState ->
+                        MonthSection(monthState = monthState, onDateClick = onDateClick)
+                    }
                 }
             }
         }

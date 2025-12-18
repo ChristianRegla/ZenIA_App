@@ -43,18 +43,28 @@ fun DiaryEntryScreen(
     val allEntries by viewModel.allEntries.collectAsState()
     Scaffold(
         topBar = {
-            MiniCalendarTopBar(
-                selectedDate = date,
-                entries = allEntries,
-                onBackClick = onNavigateBack,
-                onDateClick = { newDate ->
-                    viewModel.cargarEntrada(newDate)
+            Box(
+                modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Box(modifier = Modifier.widthIn(max = 600.dp)) {
+                    MiniCalendarTopBar(
+                        selectedDate = date,
+                        entries = allEntries,
+                        onBackClick = onNavigateBack,
+                        onDateClick = { newDate -> viewModel.cargarEntrada(newDate) }
+                    )
                 }
-            )
+            }
         },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
+        ) {
             DiaryEntryContent(
                 date = date,
                 viewModel = viewModel,
@@ -132,6 +142,7 @@ fun DiaryEntryContent(
 
     LazyColumn(
         modifier = Modifier
+            .widthIn(max = 600.dp)
             .fillMaxSize()
             .padding(horizontal = 24.dp)
             .imePadding(),

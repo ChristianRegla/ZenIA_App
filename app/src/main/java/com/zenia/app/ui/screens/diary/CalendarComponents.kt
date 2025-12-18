@@ -173,7 +173,10 @@ fun MonthSection(
     monthState: MonthState,
     onDateClick: (LocalDate) -> Unit
 ) {
-    Column {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         MonthHeader(monthState = monthState)
 
         val weeks = monthState.days.chunked(7)
@@ -195,7 +198,10 @@ fun MonthSection(
                     }
 
                     days.forEach { dayState ->
-                        Box(modifier = Modifier.weight(1f)) {
+                        Box(
+                            modifier = Modifier.weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
                             if (dayState.date == LocalDate.MIN) {
                                 Box(modifier = Modifier.height(48.dp))
                             } else {
@@ -321,40 +327,42 @@ fun MiniCalendarTopBar(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        val weekDays = remember(selectedDate) {
-            val currentDayOfWeek = selectedDate.dayOfWeek.value
-            val startOfWeek = selectedDate.minusDays((currentDayOfWeek - 1).toLong())
-            (0..6).map { startOfWeek.plusDays(it.toLong()) }
-        }
+        Box(contentAlignment = Alignment.TopCenter, modifier = Modifier.fillMaxWidth()) {
+            val weekDays = remember(selectedDate) {
+                val currentDayOfWeek = selectedDate.dayOfWeek.value
+                val startOfWeek = selectedDate.minusDays((currentDayOfWeek - 1).toLong())
+                (0..6).map { startOfWeek.plusDays(it.toLong()) }
+            }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            weekDays.forEach { day ->
-                val entry = entriesMap[day]
-                val hasEntry = entry != null
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                weekDays.forEach { day ->
+                    val entry = entriesMap[day]
+                    val hasEntry = entry != null
 
-                val dayState = CalendarDayState(
-                    date = day,
-                    isCurrentMonth = true,
-                    isFuture = day.isAfter(LocalDate.now()),
-                    hasEntry = hasEntry,
-                    streakShape = if (hasEntry) calculateStreakShape(day, entryDates) else StreakShape.None,
-                    hasFeelings = entry?.estadoAnimo != null,
-                    hasSleep = entry?.calidadSueno != null,
-                    hasMind = entry?.estadoMental != null,
-                    hasExercise = entry?.ejercicio != null
-                )
-
-                Box(modifier = Modifier.weight(1f)) {
-                    DayCell(
-                        dayState = dayState,
-                        isSelected = day == selectedDate,
-                        onClick = onDateClick
+                    val dayState = CalendarDayState(
+                        date = day,
+                        isCurrentMonth = true,
+                        isFuture = day.isAfter(LocalDate.now()),
+                        hasEntry = hasEntry,
+                        streakShape = if (hasEntry) calculateStreakShape(day, entryDates) else StreakShape.None,
+                        hasFeelings = entry?.estadoAnimo != null,
+                        hasSleep = entry?.calidadSueno != null,
+                        hasMind = entry?.estadoMental != null,
+                        hasExercise = entry?.ejercicio != null
                     )
+
+                    Box(modifier = Modifier.weight(1f)) {
+                        DayCell(
+                            dayState = dayState,
+                            isSelected = day == selectedDate,
+                            onClick = onDateClick
+                        )
+                    }
                 }
             }
         }

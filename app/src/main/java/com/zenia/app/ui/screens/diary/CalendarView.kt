@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -42,11 +43,6 @@ import androidx.compose.ui.unit.sp
 import com.zenia.app.ui.theme.RobotoFlex
 import java.time.LocalDate
 
-/**
- * Vista compuesta que muestra la lista vertical de meses y los controles asociados.
- * Maneja la detección de gestos (swipe para cambiar año), el botón flotante "Hoy"
- * y el diálogo de selección de año.
- */
 @Composable
 fun CalendarViewWithControls(
     uiState: DiarioUiState,
@@ -59,7 +55,6 @@ fun CalendarViewWithControls(
     val todayYear = remember { LocalDate.now().year }
     var showYearDialog by remember { mutableStateOf(false) }
 
-    // Efecto para scrollear automáticamente a un mes específico cuando se solicita
     LaunchedEffect(uiState.scrollTargetIndex) {
         uiState.scrollTargetIndex?.let { index ->
             listState.scrollToItem(index)
@@ -67,7 +62,6 @@ fun CalendarViewWithControls(
         }
     }
 
-    // Lógica para mostrar el botón "Hoy" solo si no estamos viendo el mes actual
     val showFab by remember {
         derivedStateOf {
             val isCurrentYear = uiState.selectedYear == todayYear
@@ -92,6 +86,7 @@ fun CalendarViewWithControls(
         )
     }
 
+    // 1. Box Padre que ocupa toda la pantalla y centra el contenido
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -99,8 +94,8 @@ fun CalendarViewWithControls(
                 var totalDrag = 0f
                 detectHorizontalDragGestures(
                     onDragEnd = {
-                        if (totalDrag > 100) onYearChange(-1) // Swipe derecha -> Año anterior
-                        else if (totalDrag < -100) onYearChange(1) // Swipe izquierda -> Año siguiente
+                        if (totalDrag > 100) onYearChange(-1)
+                        else if (totalDrag < -100) onYearChange(1)
                         totalDrag = 0f
                     },
                     onHorizontalDrag = { change, dragAmount ->
@@ -108,14 +103,20 @@ fun CalendarViewWithControls(
                         totalDrag += dragAmount
                     }
                 )
-            }
+            },
+        contentAlignment = Alignment.TopCenter // Centrado Horizontal
     ) {
-        Column {
-
+        // 2. Columna limitada: Aquí ocurre la magia del responsive
+        Column(
+            modifier = Modifier
+                .widthIn(max = 450.dp) // Ancho máximo ideal para que las celdas de 49dp se vean bien
+                .fillMaxWidth()
+        ) {
             LazyColumn(
                 state = listState,
                 modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(bottom = 80.dp)
+                contentPadding = PaddingValues(bottom = 80.dp),
+                horizontalAlignment = Alignment.CenterHorizontally // Asegura que los items se centren
             ) {
                 itemsIndexed(uiState.months) { _, monthState ->
                     MonthSection(monthState = monthState, onDateClick = onDateClick)
@@ -123,6 +124,7 @@ fun CalendarViewWithControls(
             }
         }
 
+        // 3. FAB (Botón Hoy) centrado abajo
         AnimatedVisibility(
             visible = showFab,
             enter = scaleIn() + fadeIn(),
@@ -142,9 +144,6 @@ fun CalendarViewWithControls(
     }
 }
 
-/**
- * Diálogo simple que permite seleccionar un año de una lista.
- */
 @Composable
 fun YearPickerDialog(
     currentYear: Int,
