@@ -2,6 +2,8 @@ package com.zenia.app.ui.navigation
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -137,7 +139,13 @@ fun AppNavigation() {
             )
         }
 
-        composable(Destinations.SETTINGS_ROUTE) {
+        composable(
+            route = Destinations.SETTINGS_ROUTE,
+            enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300)) },
+            exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300)) },
+            popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300)) },
+            popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300)) }
+        ) {
             SettingsRoute(
                 settingsViewModel = settingsViewModel,
                 onNavigateBack = { navController.popBackStack() },
