@@ -218,4 +218,15 @@
 
     <string name="notifications_title">Notifications</string>
 
+    <string name="profile_set_nickname">Set Nickname</string>
+    <string name="profile_edit_title">Edit Profile</string>
+    <string name="profile_nickname_label">Nickname</string>
+    <string name="profile_nickname_hint">Ex. ZenMaster</string>
+    <string name="profile_community_note">This nickname will be visible to the community.</string>
+    <string name="profile_select_avatar">Choose your Avatar</string>
+    <string name="profile_save">Save Changes</string>
+    <string name="profile_cancel">Cancel</string>
+    <string name="profile_error_char_limit">Max 20 characters</string>
+    <string name="profile_default_name">ZenIA User</string>
+
 </resources>

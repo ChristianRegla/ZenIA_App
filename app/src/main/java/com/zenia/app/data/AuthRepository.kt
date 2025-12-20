@@ -82,4 +82,15 @@ class AuthRepository @Inject constructor(
             throw e
         }
     }
+
+    suspend fun updateProfile(userId: String, newNickname: String, newAvatarIndex: Int) {
+        val updates = mapOf(
+            "apodo" to newNickname,
+            "avatarIndex" to newAvatarIndex
+        )
+        db.collection(FirestoreCollections.USERS)
+            .document(userId)
+            .update(updates)
+            .await()
+    }
 }

@@ -7,5 +7,7 @@ data class Usuario(
     @DocumentId val id: String = "",
     val email: String = "",
     val fechaCreacion: Timestamp = Timestamp.now(),
-    val suscripcion: String = "free"
+    val suscripcion: String = "free",
+    val apodo: String? = null,
+    val avatarIndex: Int = 0
 )

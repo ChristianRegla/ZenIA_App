@@ -1,39 +1,63 @@
 package com.zenia.app.ui.screens.settings
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaInputLabel
 import com.zenia.app.ui.theme.ZeniaSlateGrey
+import com.zenia.app.ui.theme.ZeniaTeal
+
+val availableAvatars = listOf(
+    R.drawable.avatar_1,
+    R.drawable.avatar_2,
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    name: String,
-    email: String,
+    name: String?,
+    email: String?,
+    avatarIndex: Int,
+    onUpdateProfile: (String, Int) -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToMoreSettings: () -> Unit,
@@ -43,6 +67,8 @@ fun SettingsScreen(
     onNavigateToPrivacy: () -> Unit,
     onSignOut: () -> Unit
 ) {
+    var showEditDialog by remember { mutableStateOf(false) }
+
     ZenIATheme {
         Scaffold(
             topBar = {
@@ -71,53 +97,12 @@ fun SettingsScreen(
                 ) {
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // --- FOTO DE PERFIL ---
-                    Box(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(CircleShape)
-                            .background(Color.LightGray.copy(alpha = 0.3f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = stringResource(R.string.settings_profile_picture_desc),
-                            modifier = Modifier.size(60.dp),
-                            tint = Color.Gray
-                        )
-                    }
-
-                    // --- NOMBRE Y EMAIL ---
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable(onClick = onNavigateToProfile)
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = name,
-                                fontFamily = RobotoFlex,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 22.sp,
-                                color = Color.Black
-                            )
-                            Text(
-                                text = email,
-                                fontFamily = RobotoFlex,
-                                fontSize = 14.sp,
-                                color = ZeniaSlateGrey
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "Ir al perfil",
-                            tint = ZeniaInputLabel
-                        )
-                    }
+                    ProfileHeader(
+                        nickname = name,
+                        email = email,
+                        avatarIndex = avatarIndex,
+                        onClick = { showEditDialog = true }
+                    )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -182,6 +167,219 @@ fun SettingsScreen(
                 }
             }
         }
+        if (showEditDialog) {
+            EditProfileDialog(
+                currentNickname = name ?: "",
+                currentAvatarIndex = avatarIndex,
+                onDismiss = { showEditDialog = false },
+                onSave = { newName, newAvatarIdx ->
+                    onUpdateProfile(newName, newAvatarIdx)
+                    showEditDialog = false
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun ProfileHeader(
+    nickname: String?,
+    email: String?,
+    avatarIndex: Int,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(16.dp)
+    ) {
+        // Imagen con indicador de edición
+        Box(contentAlignment = Alignment.BottomEnd) {
+            // Avatar
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(CircleShape)
+                    .background(Color.LightGray.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.Center
+            ) {
+                // Si el índice es válido en nuestra lista, mostramos la imagen
+                if (avatarIndex in availableAvatars.indices) {
+                    Image(
+                        painter = painterResource(id = availableAvatars[avatarIndex]),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(60.dp),
+                        tint = Color.Gray
+                    )
+                }
+            }
+
+            // Icono de lápiz pequeño
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(ZeniaTeal)
+                    .border(2.dp, MaterialTheme.colorScheme.surfaceVariant, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    tint = Color.White,
+                    modifier = Modifier.size(14.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Nombre / Placeholder
+        if (!nickname.isNullOrEmpty()) {
+            Text(
+                text = nickname,
+                fontFamily = RobotoFlex,
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp,
+                color = Color.Black
+            )
+        } else {
+            // Estilo para cuando no hay apodo
+            Text(
+                text = stringResource(R.string.profile_set_nickname),
+                fontFamily = RobotoFlex,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                color = ZeniaTeal // Color acentuado para llamar la atención
+            )
+        }
+
+        if (email != null) {
+            Text(
+                text = email,
+                fontFamily = RobotoFlex,
+                fontSize = 14.sp,
+                color = ZeniaSlateGrey
+            )
+        }
+    }
+}
+
+@Composable
+fun EditProfileDialog(
+    currentNickname: String,
+    currentAvatarIndex: Int,
+    onDismiss: () -> Unit,
+    onSave: (String, Int) -> Unit
+) {
+    var nickname by remember { mutableStateOf(currentNickname) }
+    var selectedAvatarIdx by remember { mutableIntStateOf(currentAvatarIndex) }
+    val maxChar = 20
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = stringResource(R.string.profile_edit_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Selector de Avatar
+                Text(
+                    text = stringResource(R.string.profile_select_avatar),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(3),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.height(150.dp) // Altura limitada para el grid
+                ) {
+                    itemsIndexed(availableAvatars) { index, drawableRes ->
+                        Box(
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .clip(CircleShape)
+                                .border(
+                                    width = if (selectedAvatarIdx == index) 3.dp else 0.dp,
+                                    color = if (selectedAvatarIdx == index) ZeniaTeal else Color.Transparent,
+                                    shape = CircleShape
+                                )
+                                .clickable { selectedAvatarIdx = index },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = drawableRes),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize().padding(4.dp).clip(CircleShape)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Campo de Apodo
+                OutlinedTextField(
+                    value = nickname,
+                    onValueChange = { if (it.length <= maxChar) nickname = it },
+                    label = { Text(stringResource(R.string.profile_nickname_label)) },
+                    placeholder = { Text(stringResource(R.string.profile_nickname_hint)) },
+                    singleLine = true,
+                    supportingText = {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(stringResource(R.string.profile_community_note), style = MaterialTheme.typography.bodySmall)
+                            Text("${nickname.length}/$maxChar", style = MaterialTheme.typography.bodySmall)
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Sentences,
+                        imeAction = ImeAction.Done
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text(stringResource(R.string.profile_cancel), color = ZeniaSlateGrey)
+                    }
+                    Button(
+                        onClick = { onSave(nickname.trim(), selectedAvatarIdx) },
+                        enabled = nickname.isNotBlank(),
+                        colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal)
+                    ) {
+                        Text(stringResource(R.string.profile_save))
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -239,9 +437,12 @@ private fun SettingsDivider() {
 fun SettingsPhonePreview() {
     ZenIATheme {
         SettingsScreen(
-            name = "John Doe",
+            name = null,
             email = "john.doe@example.com",
-            {}, {}, {}, {}, {}, {}, {}, {}
+            avatarIndex = -1,
+            onUpdateProfile = { _, _ -> },
+            {}, {}, {}, {}, {}, {}, {},
+            onSignOut = {}
         )
     }
 }

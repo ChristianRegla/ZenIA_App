@@ -213,4 +213,15 @@
     <string name="settings_item_settings">Ajustes</string>
     <string name="notifications_title">Notificaciones</string>
 
+    <string name="profile_set_nickname">Definir Apodo</string>
+    <string name="profile_edit_title">Editar Perfil</string>
+    <string name="profile_nickname_label">Apodo</string>
+    <string name="profile_nickname_hint">Ej. ZenMaster</string>
+    <string name="profile_community_note">Este apodo será visible en la comunidad.</string>
+    <string name="profile_select_avatar">Elige tu Avatar</string>
+    <string name="profile_save">Guardar Cambios</string>
+    <string name="profile_cancel">Cancelar</string>
+    <string name="profile_error_char_limit">Máximo 20 caracteres</string>
+    <string name="profile_default_name">Usuario de ZenIA</string>
+
 </resources>
