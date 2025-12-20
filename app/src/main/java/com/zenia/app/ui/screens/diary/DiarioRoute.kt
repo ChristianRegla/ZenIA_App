@@ -19,6 +19,12 @@ fun DiarioRoute(
         onBackToCalendar = { viewModel.clearSelection() },
         onYearChange = { increment -> viewModel.changeYear(increment) },
         onJumpToToday = { viewModel.jumpToToday() },
-        onScrollConsumed = { viewModel.resetScrollTarget() }
+        onScrollConsumed = { viewModel.resetScrollTarget() },
+        entryContent = { date ->
+            ConnectedDiaryEntry(
+                date = date,
+                onSuccessCallback = { viewModel.clearSelection() }
+            )
+        }
     )
 }

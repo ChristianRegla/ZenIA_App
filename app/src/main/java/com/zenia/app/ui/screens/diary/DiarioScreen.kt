@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.zenia.app.R
 import com.zenia.app.model.DiarioEntrada
@@ -44,7 +45,8 @@ fun DiarioScreen(
     onBackToCalendar: () -> Unit,
     onYearChange: (Int) -> Unit,
     onJumpToToday: () -> Unit,
-    onScrollConsumed: () -> Unit
+    onScrollConsumed: () -> Unit,
+    entryContent: @Composable (LocalDate) -> Unit
 ) {
     BackHandler(enabled = uiState.selectedDate != null) {
         onBackToCalendar()
@@ -127,10 +129,7 @@ fun DiarioScreen(
                                 }
                             ) { date ->
                                 if (date != null) {
-                                    DiaryEntryContent(
-                                        date = date,
-                                        onSuccessCallback = onBackToCalendar
-                                    )
+                                    entryContent(date)
                                 } else {
                                     CalendarPagerView(
                                         uiState = uiState,
@@ -310,7 +309,11 @@ fun rememberMonthsForYear(
 
                 val days = mutableListOf<CalendarDayState>()
                 repeat(emptyDaysCount) {
-                    days.add(CalendarDayState(LocalDate.MIN, false, false, false, StreakShape.None))
+                    days.add(CalendarDayState(LocalDate.MIN, false,
+                        isFuture = false,
+                        hasEntry = false,
+                        streakShape = StreakShape.None
+                    ))
                 }
                 for (day in 1..lastDayOfMonth.dayOfMonth) {
                     val date = yearMonth.atDay(day)
@@ -319,5 +322,23 @@ fun rememberMonthsForYear(
                 MonthState(yearMonth, days)
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DiarioScreenPreview() {
+    val mockState = DiarioUiState(selectedYear = 2025, months = rememberMonthsForYear(2025, 2025, emptyList()))
+    ZenIATheme {
+        DiarioScreen(
+            uiState = mockState,
+            entries = emptyList(),
+            onDateSelected = {},
+            onBackToCalendar = {},
+            onYearChange = {},
+            onJumpToToday = {},
+            onScrollConsumed = {},
+            entryContent = { Text("Contenido de entrada (Preview)") }
+        )
     }
 }
