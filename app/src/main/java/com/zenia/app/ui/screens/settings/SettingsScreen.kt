@@ -49,6 +49,9 @@ import com.zenia.app.ui.theme.ZeniaTeal
 val availableAvatars = listOf(
     R.drawable.avatar_1,
     R.drawable.avatar_2,
+    R.drawable.avatar_3,
+    R.drawable.avatar_4,
+    R.drawable.avatar_5
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -195,7 +198,6 @@ fun ProfileHeader(
             .clickable(onClick = onClick)
             .padding(16.dp)
     ) {
-        // Imagen con indicador de edición
         Box(contentAlignment = Alignment.BottomEnd) {
             // Avatar
             Box(
@@ -223,7 +225,6 @@ fun ProfileHeader(
                 }
             }
 
-            // Icono de lápiz pequeño
             Box(
                 modifier = Modifier
                     .size(28.dp)
@@ -243,7 +244,6 @@ fun ProfileHeader(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Nombre / Placeholder
         if (!nickname.isNullOrEmpty()) {
             Text(
                 text = nickname,
@@ -253,13 +253,12 @@ fun ProfileHeader(
                 color = Color.Black
             )
         } else {
-            // Estilo para cuando no hay apodo
             Text(
                 text = stringResource(R.string.profile_set_nickname),
                 fontFamily = RobotoFlex,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
-                color = ZeniaTeal // Color acentuado para llamar la atención
+                color = ZeniaTeal
             )
         }
 
@@ -288,10 +287,13 @@ fun EditProfileDialog(
     Dialog(onDismissRequest = onDismiss) {
         Card(
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            modifier = Modifier.widthIn(max = 400.dp)
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier
+                    .padding(24.dp)
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
@@ -314,7 +316,7 @@ fun EditProfileDialog(
                     columns = GridCells.Fixed(3),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.height(150.dp) // Altura limitada para el grid
+                    modifier = Modifier.height(150.dp)
                 ) {
                     itemsIndexed(availableAvatars) { index, drawableRes ->
                         Box(
@@ -341,7 +343,6 @@ fun EditProfileDialog(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Campo de Apodo
                 OutlinedTextField(
                     value = nickname,
                     onValueChange = { if (it.length <= maxChar) nickname = it },
@@ -349,9 +350,20 @@ fun EditProfileDialog(
                     placeholder = { Text(stringResource(R.string.profile_nickname_hint)) },
                     singleLine = true,
                     supportingText = {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(stringResource(R.string.profile_community_note), style = MaterialTheme.typography.bodySmall)
-                            Text("${nickname.length}/$maxChar", style = MaterialTheme.typography.bodySmall)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Text(
+                                text = stringResource(R.string.profile_community_note),
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.weight(1f).padding(end = 8.dp)
+                            )
+                            Text(
+                                text = "${nickname.length}/$maxChar",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.wrapContentWidth()
+                            )
                         }
                     },
                     keyboardOptions = KeyboardOptions(
