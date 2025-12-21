@@ -5,6 +5,7 @@ import java.time.LocalDate
 object Destinations {
     const val AUTH_ROUTE = "auth"
     const val HOME_ROUTE = "home"
+    const val SOS = "sos"
     const val ACCOUNT_ROUTE = "account"
     const val LOCK_ROUTE = "lock"
     const val SETTINGS_ROUTE = "settings"

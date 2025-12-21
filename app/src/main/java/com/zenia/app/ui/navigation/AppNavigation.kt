@@ -33,6 +33,7 @@ import com.zenia.app.ui.screens.settings.HelpCenterRoute
 import com.zenia.app.ui.screens.settings.MoreSettingsRoute
 import com.zenia.app.ui.screens.settings.PrivacyRoute
 import com.zenia.app.ui.screens.settings.SettingsRoute
+import com.zenia.app.ui.screens.sos.HelplineRoute
 import com.zenia.app.viewmodel.MainViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
 import java.time.LocalDate
@@ -107,9 +108,18 @@ fun AppNavigation() {
                 onNotificationClick = {
                     navController.navigate(Destinations.NOTIFICATIONS_ROUTE)
                 },
+                onNavigateToSOS = {
+                    navController.navigate(Destinations.SOS)
+                },
                 onNavigateToDiaryEntry = { date ->
                     navController.navigate(Destinations.createDiaryEntryRoute(date))
                 }
+            )
+        }
+
+        composable(Destinations.SOS) {
+            HelplineRoute(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

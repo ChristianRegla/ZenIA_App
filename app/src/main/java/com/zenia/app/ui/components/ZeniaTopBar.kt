@@ -21,7 +21,7 @@ import com.zenia.app.ui.theme.ZeniaTeal
 @Composable
 fun ZeniaTopBar(
     title: String? = null,
-    onNavigateBack: () -> Unit,
+    onNavigateBack: (() -> Unit)? = null,
     containerColor: Color = ZeniaTeal,
     contentColor: Color = Color.White,
     actions: @Composable RowScope.() -> Unit = {}
@@ -39,12 +39,14 @@ fun ZeniaTopBar(
             }
         },
         navigationIcon = {
-            IconButton(onClick = onNavigateBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.nav_back_desc),
-                    tint = contentColor
-                )
+            if (onNavigateBack != null) {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.nav_back_desc),
+                        tint = contentColor
+                    )
+                }
             }
         },
         actions = actions,

@@ -60,7 +60,8 @@ fun HomeScreen(
     onInstallHealthConnect: () -> Unit,
     onSettingsClick: () -> Unit,
     onNotificationClick: () -> Unit,
-    onResetState: () -> Unit
+    onResetState: () -> Unit,
+    onNavigateToSOS: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -169,6 +170,13 @@ fun HomeScreen(
             TextButton(onClick = onSignOut) {
                 Text(stringResource(R.string.sign_out))
             }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Botones de navegación generales
+            Button(onClick = onNavigateToSOS) {
+                Text(text = "Ir a SOS")
+            }
         }
     }
 }
@@ -192,7 +200,8 @@ fun HomeScreenPreview_Free() {
             onInstallHealthConnect = {},
             onSettingsClick = {},
             onNotificationClick = {},
-            onResetState = {}
+            onResetState = {},
+            onNavigateToSOS = {}
         )
     }
 }
@@ -214,7 +223,8 @@ fun HomeScreenPreview_Connected() {
             onInstallHealthConnect = {},
             onSettingsClick = {},
             onNotificationClick = {},
-            onResetState = {}
+            onResetState = {},
+            onNavigateToSOS = {}
         )
     }
 }

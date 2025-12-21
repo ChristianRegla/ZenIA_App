@@ -223,5 +223,16 @@
     <string name="profile_cancel">Cancelar</string>
     <string name="profile_error_char_limit">Máximo 20 caracteres</string>
     <string name="profile_default_name">Usuario de ZenIA</string>
+    <string name="helpline">SOS</string>
+
+    <string name="sos_title">SOS</string>
+    <string name="sos_header">¡ESTAMOS AQUÍ PARA AYUDARTE!</string>
+    <string name="sos_body_html">Sabemos que este es un momento difícil. <b>No tienes que pasar por esto en soledad.</b> Hay personas dispuestas a escucharte y apoyarte. <b>Por favor, contacta a alguien.</b></string>
+
+    <string name="sos_btn_lifeline">Línea de la vida</string>
+    <string name="sos_btn_friend">Llamar a un amigo</string>
+    <string name="sos_btn_support_chat">Chat de apoyo</string>
+    <string name="sos_btn_calm_exercises">Ejercicios de calma</string>
+    <string name="sos_close_desc">Cerrar pantalla SOS</string>
 
 </resources>

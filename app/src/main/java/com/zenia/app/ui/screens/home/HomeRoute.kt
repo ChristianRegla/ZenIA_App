@@ -23,6 +23,7 @@ fun HomeRoute(
     onNavigateToPremium: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNotificationClick: () -> Unit,
+    onNavigateToSOS: () -> Unit,
     onSignOut: () -> Unit
 ) {
     // 1. Obtiene el ViewModel
@@ -97,6 +98,7 @@ fun HomeRoute(
         },
         onSettingsClick = onNavigateToSettings,
         onNotificationClick = onNotificationClick,
-        onResetState = { homeViewModel.resetState() }
+        onResetState = { homeViewModel.resetState() },
+        onNavigateToSOS = onNavigateToSOS,
     )
 }

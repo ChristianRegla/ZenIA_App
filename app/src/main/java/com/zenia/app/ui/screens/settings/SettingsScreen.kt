@@ -45,6 +45,7 @@ import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaInputLabel
 import com.zenia.app.ui.theme.ZeniaSlateGrey
 import com.zenia.app.ui.theme.ZeniaTeal
+import com.zenia.app.util.ProfanityFilter
 
 val availableAvatars = listOf(
     R.drawable.avatar_1,
@@ -282,6 +283,8 @@ fun EditProfileDialog(
 ) {
     var nickname by remember { mutableStateOf(currentNickname) }
     var selectedAvatarIdx by remember { mutableIntStateOf(currentAvatarIndex) }
+
+    var isError by remember { mutableStateOf(false) }
     val maxChar = 20
 
     Dialog(onDismissRequest = onDismiss) {
@@ -345,25 +348,39 @@ fun EditProfileDialog(
 
                 OutlinedTextField(
                     value = nickname,
-                    onValueChange = { if (it.length <= maxChar) nickname = it },
+                    onValueChange = {
+                        if (it.length <= maxChar){
+                            nickname = it
+                            isError = ProfanityFilter.hasProfanity(it)
+                        }
+                    },
                     label = { Text(stringResource(R.string.profile_nickname_label)) },
                     placeholder = { Text(stringResource(R.string.profile_nickname_hint)) },
                     singleLine = true,
+                    isError = isError,
                     supportingText = {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.Top
-                        ) {
+                        if (isError) {
                             Text(
-                                text = stringResource(R.string.profile_community_note),
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.weight(1f).padding(end = 8.dp)
+                                text = "Elige un apodo respetuoso para la comunidad",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
                             )
-                            Text(
-                                text = "${nickname.length}/$maxChar",
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.wrapContentWidth()
-                            )
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.profile_community_note),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.weight(1f).padding(end = 8.dp)
+                                )
+                                Text(
+                                    text = "${nickname.length}/$maxChar",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.wrapContentWidth()
+                                )
+                            }
                         }
                     },
                     keyboardOptions = KeyboardOptions(
@@ -383,8 +400,14 @@ fun EditProfileDialog(
                         Text(stringResource(R.string.profile_cancel), color = ZeniaSlateGrey)
                     }
                     Button(
-                        onClick = { onSave(nickname.trim(), selectedAvatarIdx) },
-                        enabled = nickname.isNotBlank(),
+                        onClick = {
+                            if (!ProfanityFilter.hasProfanity(nickname)) {
+                                onSave(nickname.trim(), selectedAvatarIdx)
+                            } else {
+                                isError = true
+                            }
+                        },
+                        enabled = nickname.isNotBlank() && !isError,
                         colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal)
                     ) {
                         Text(stringResource(R.string.profile_save))

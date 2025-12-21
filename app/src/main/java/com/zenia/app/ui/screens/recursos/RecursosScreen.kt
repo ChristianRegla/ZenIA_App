@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.zenia.app.R
 import com.zenia.app.model.Recurso
+import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.screens.recursos.RecursosUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,7 +37,9 @@ fun RecursosScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.nav_resources)) })
+            ZeniaTopBar(
+                title = stringResource(R.string.nav_resources)
+            )
         }
     ) { padding ->
         Box(
