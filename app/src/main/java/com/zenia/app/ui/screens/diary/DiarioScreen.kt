@@ -102,18 +102,20 @@ fun DiarioScreen(
                 }
             },
             floatingActionButton = {
-                FloatingActionButton(
-                    onClick = {
-                        onDateSelected(LocalDate.now())
-                    },
-                    shape = CircleShape,
-                    containerColor = ZeniaTeal,
-                    contentColor = Color.White
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_simbolo_mas),
-                        contentDescription = "mas"
-                    )
+                if (!isEntryView) {
+                    FloatingActionButton(
+                        onClick = {
+                            onDateSelected(LocalDate.now())
+                        },
+                        shape = CircleShape,
+                        containerColor = ZeniaTeal,
+                        contentColor = Color.White
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_simbolo_mas),
+                            contentDescription = "mas"
+                        )
+                    }
                 }
             }
         ) { innerPadding ->
