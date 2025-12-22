@@ -7,8 +7,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -20,6 +23,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,6 +33,7 @@ import androidx.health.connect.client.HealthConnectClient
 import com.zenia.app.R
 import com.zenia.app.ui.components.HomeTopBar
 import com.zenia.app.ui.theme.ZenIATheme
+import com.zenia.app.ui.theme.ZeniaTeal
 
 /**
  * Pantalla principal "tonta" (Stateless Composable).
@@ -79,6 +85,19 @@ fun HomeScreen(
                 onSettingsClick = onSettingsClick,
                 onNotificationClick = onNotificationClick
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToSOS,
+                shape = CircleShape,
+                containerColor = ZeniaTeal,
+                contentColor = Color.White
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.telefono),
+                    contentDescription = stringResource(R.string.sos_btn_lifeline)
+                )
+            }
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->

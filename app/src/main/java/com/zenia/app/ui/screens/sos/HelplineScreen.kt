@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -61,75 +62,82 @@ fun HelplineScreen(
             },
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ) { paddingValues ->
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 24.dp)
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(paddingValues),
+                contentAlignment = Alignment.TopCenter
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Título Principal
-                Text(
-                    text = stringResource(R.string.sos_header),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Black,
-                    textAlign = TextAlign.Center,
-                    // fontFamily = RobotoFlex,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Cuerpo de texto con negritas (stringResource procesa el HTML <b>)
-                Text(
-                    text = stringResource(R.string.sos_body_html),
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
-                    // fontFamily = RobotoFlex,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 24.sp
-                )
-
-                Spacer(modifier = Modifier.height(40.dp))
-
-                // Lista de Botones
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .widthIn(max = 600.dp)
+                        .fillMaxSize()
+                        .padding(horizontal = 24.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    SosButton(
-                        icon = Icons.Default.Favorite, // Icono de corazón para línea de vida
-                        text = stringResource(R.string.sos_btn_lifeline),
-                        accentColor = ColorLifeline,
-                        onClick = { /* Acción: Llamar línea de vida */ }
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Título Principal
+                    Text(
+                        text = stringResource(R.string.sos_header),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Black,
+                        textAlign = TextAlign.Center,
+                        // fontFamily = RobotoFlex,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
 
-                    SosButton(
-                        icon = Icons.Default.Person, // Icono de persona para amigo
-                        text = stringResource(R.string.sos_btn_friend),
-                        accentColor = ColorFriend,
-                        onClick = { /* Acción: Abrir contactos */ }
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Cuerpo de texto con negritas (stringResource procesa el HTML <b>)
+                    Text(
+                        text = stringResource(R.string.sos_body_html),
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        // fontFamily = RobotoFlex,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 24.sp
                     )
 
-                    SosButton(
-                        icon = Icons.Default.ChatBubble, // Icono de chat
-                        text = stringResource(R.string.sos_btn_support_chat),
-                        accentColor = ColorChat,
-                        onClick = { /* Acción: Ir al chat de apoyo */ }
-                    )
+                    Spacer(modifier = Modifier.height(40.dp))
 
-                    SosButton(
-                        icon = Icons.Default.SelfImprovement, // Icono de meditación/calma
-                        text = stringResource(R.string.sos_btn_calm_exercises),
-                        accentColor = ColorCalm,
-                        onClick = { /* Acción: Ir a ejercicios */ }
-                    )
+                    // Lista de Botones
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        SosButton(
+                            icon = Icons.Default.Favorite, // Icono de corazón para línea de vida
+                            text = stringResource(R.string.sos_btn_lifeline),
+                            accentColor = ColorLifeline,
+                            onClick = { /* Acción: Llamar línea de vida */ }
+                        )
+
+                        SosButton(
+                            icon = Icons.Default.Person, // Icono de persona para amigo
+                            text = stringResource(R.string.sos_btn_friend),
+                            accentColor = ColorFriend,
+                            onClick = { /* Acción: Abrir contactos */ }
+                        )
+
+                        SosButton(
+                            icon = Icons.Default.ChatBubble, // Icono de chat
+                            text = stringResource(R.string.sos_btn_support_chat),
+                            accentColor = ColorChat,
+                            onClick = { /* Acción: Ir al chat de apoyo */ }
+                        )
+
+                        SosButton(
+                            icon = Icons.Default.SelfImprovement, // Icono de meditación/calma
+                            text = stringResource(R.string.sos_btn_calm_exercises),
+                            accentColor = ColorCalm,
+                            onClick = { /* Acción: Ir a ejercicios */ }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
-
-                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
@@ -145,11 +153,12 @@ private fun SosButton(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow, // Un gris muy clarito o blanco según el tema
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
         shadowElevation = 4.dp,
         modifier = Modifier
             .fillMaxWidth()
             .height(85.dp)
+            .clip(RoundedCornerShape(20.dp))
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -177,7 +186,8 @@ private fun SosButton(
                 text = text,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
             )
         }
     }
