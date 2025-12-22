@@ -51,6 +51,7 @@ import com.zenia.app.ui.theme.ZeniaTeal
  * @param onInstallHealthConnect Acción para ir a la Play Store a instalar Health Connect.
  * @param onSettingsClick Acción al pulsar el engranaje en la barra superior.
  * @param onNotificationClick Acción al pulsar la campana en la barra superior.
+ * @param onNavigateToSOS Acción al pulsar el botón flotante.
  */
 @Composable
 fun HomeScreen(
@@ -183,18 +184,6 @@ fun HomeScreen(
             // Botones de navegación generales
             Button(onClick = onNavigateToAccount) {
                 Text(stringResource(R.string.home_my_account))
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-
-            TextButton(onClick = onSignOut) {
-                Text(stringResource(R.string.sign_out))
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Botones de navegación generales
-            Button(onClick = onNavigateToSOS) {
-                Text(text = "Ir a SOS")
             }
         }
     }

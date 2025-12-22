@@ -45,6 +45,8 @@ ksp = "2.0.21-1.0.27"
 
 billing = "7.1.1"
 
+vico = "1.16.0"
+
 
 [libraries]
 # --- AndroidX Core & Testing ---
@@ -102,6 +104,10 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.r
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 
 androidx-billing-ktx = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billing" }
+
+vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vico" }
+vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
+vico-core = { group = "com.patrykandpatrick.vico", name = "core", version.ref = "vico" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
