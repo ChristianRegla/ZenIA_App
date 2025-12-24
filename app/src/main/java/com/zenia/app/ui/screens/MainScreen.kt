@@ -75,6 +75,7 @@ fun MainScreen(
                             onNavigateToSettings = onNavigateToSettings,
                             onNotificationClick = onNotificationClick,
                             onNavigateToSOS = onNavigateToSOS,
+                            onNavigateToDiaryEntry = onNavigateToDiaryEntry
                         )
                     }
 

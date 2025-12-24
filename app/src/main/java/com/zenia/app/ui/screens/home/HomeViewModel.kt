@@ -6,12 +6,15 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
+import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
+import com.patrykandpatrick.vico.core.entry.entryOf
 import com.zenia.app.R
 import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.ContentRepository
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.HealthConnectRepository
 import com.zenia.app.model.RegistroBienestar
+import com.zenia.app.util.ChartUtils
 import com.zenia.app.util.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +25,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.ZoneId
 import javax.inject.Inject
 
 /**
@@ -50,6 +55,32 @@ class HomeViewModel @Inject constructor(
     private val diaryRepository: DiaryRepository,
     private val healthConnectRepository: HealthConnectRepository?,
 ) : ViewModel() {
+
+    // --- ESTADO DEL USUARIO ---
+    val userName = authRepository.getUsuarioFlow()
+        .map { it?.apodo ?: "Usuario" }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Cargando...")
+
+    // --- GRÁFICA DE EMOCIONES ---
+    // Productor de datos para Vico
+    val chartProducer = ChartEntryModelProducer()
+
+    // Observamos los registros y actualizamos la gráfica automáticamente
+    val registrosRecientes = diaryRepository.getRegistrosBienestar()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Estado derivado: ¿Ya escribió hoy?
+    val hasEntryToday: StateFlow<Boolean> = registrosRecientes.map { lista ->
+        val today = LocalDate.now()
+        lista.any { registro ->
+            val registroDate = registro.fecha.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+            registroDate.isEqual(today)
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    // Estado derivado: Actividades de comunidad (Mock o Repo)
+    val communityActivities = contentRepository.getActividadesComunidad()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     /**
      * StateFlow interno para el estado de la UI (Cargando, Éxito, Error) al guardar un registro.
      */
@@ -111,6 +142,21 @@ class HomeViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             checkPermissions()
+        }
+    }
+
+    fun processChartData(registros: List<RegistroBienestar>) {
+        val entries = registros
+            .sortedBy { it.fecha } // Ordenar por fecha ascendente
+            .takeLast(7) // Solo los últimos 7 días para que se vea bonito
+            .map { registro ->
+                val x = registro.fecha.toDate().time.toFloat()
+                val y = ChartUtils.mapMoodToValue(registro.estadoAnimo)
+                entryOf(x, y)
+            }
+
+        if (entries.isNotEmpty()) {
+            chartProducer.setEntries(entries)
         }
     }
 

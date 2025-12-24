@@ -1,39 +1,46 @@
 package com.zenia.app.ui.screens.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.health.connect.client.HealthConnectClient
+import com.patrykandpatrick.vico.compose.axis.horizontal.bottomAxis
+import com.patrykandpatrick.vico.compose.axis.vertical.startAxis
+import com.patrykandpatrick.vico.compose.chart.Chart
+import com.patrykandpatrick.vico.compose.chart.line.lineChart
+import com.patrykandpatrick.vico.compose.component.shape.shader.fromBrush
+import com.patrykandpatrick.vico.core.chart.line.LineChart
+import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders
 import com.zenia.app.R
+import com.zenia.app.model.ActividadComunidad
 import com.zenia.app.ui.components.HomeTopBar
+import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaTeal
+import com.zenia.app.ui.theme.ZeniaWhite
+import com.zenia.app.util.ChartUtils
+import java.time.LocalDate
 
 /**
  * Pantalla principal "tonta" (Stateless Composable).
@@ -56,6 +63,12 @@ import com.zenia.app.ui.theme.ZeniaTeal
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
+    userName: String,
+    registrosRecientes: List<com.zenia.app.model.RegistroBienestar>,
+    hasEntryToday: Boolean,
+    communityActivities: List<ActividadComunidad>,
+    chartProducer: com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer,
+    onNavigateToDiaryEntry: (LocalDate) -> Unit,
     esPremium: Boolean,
     hasPermission: Boolean,
     healthConnectStatus: Int,
@@ -102,137 +115,237 @@ fun HomeScreen(
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(paddingValues)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            if (uiState is HomeUiState.Loading) {
-                CircularProgressIndicator()
-                Spacer(modifier = Modifier.height(16.dp))
+            // 1. SALUDO
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Hola, $userName 👋",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontFamily = RobotoFlex,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "¿Cómo te sientes hoy?",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-            Text(
-                text = stringResource(R.string.home_welcome),
-                style = MaterialTheme.typography.headlineMedium,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(32.dp))
 
-            // Lógica de UI basada en el estado de Health Connect
-            when (healthConnectStatus) {
-                HealthConnectClient.SDK_AVAILABLE -> {
-                    if (esPremium) {
-                        if (!hasPermission) {
-                            // Usuario Premium pero sin permisos -> Botón de conectar
-                            Button(onClick = onConnectSmartwatch) {
-                                Text(stringResource(R.string.home_connect_watch))
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            // Botón de ayuda por si el popup no sale (fuerza ir a ajustes)
-                            TextButton(onClick = onNavigateToManualPermission) {
-                                Text(
-                                    text = stringResource(R.string.home_connect_watch_help),
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
-                        } else {
-                            // Premium Y Conectado -> Mensaje de éxito
-                            Text(
-                                text = stringResource(R.string.home_watch_connected),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
+            // 2. TARJETA DE "HOY" (Call to Action)
+            item {
+                TodayEntryCard(
+                    hasEntry = hasEntryToday,
+                    onClick = { onNavigateToDiaryEntry(LocalDate.now()) }
+                )
+            }
+
+            // 3. GRÁFICA DE EMOCIONES
+            item {
+                Text(
+                    text = "Tu balance emocional",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                if (registrosRecientes.isNotEmpty()) {
+                    EmotionChartCard(chartProducer)
+                } else {
+                    EmptyChartCard(onClick = { onNavigateToDiaryEntry(LocalDate.now()) })
+                }
+            }
+
+            // 4. COMUNIDAD (Carrusel)
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Comunidad Zen",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    TextButton(onClick = { /* Ver más */ }) {
+                        Text("Ver todo")
+                    }
+                }
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 24.dp) // Espacio al final
+                ) {
+                    // Si no hay datos, mostramos placehoders
+                    if (communityActivities.isEmpty()) {
+                        items(3) { CommunityCardPlaceholder() }
                     } else {
-                        // Usuario Free -> Botón para hacerse Premium
-                        Button(onClick = onNavigateToPremium) {
-                            Text(stringResource(R.string.home_connect_watch_premium))
+                        items(communityActivities) { actividad ->
+                            CommunityCard(actividad)
                         }
                     }
                 }
-                HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED -> {
-                    // El SDK está soportado pero falta instalar la app de Google
-                    Text(
-                        text = stringResource(R.string.home_health_connect_missing),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = onInstallHealthConnect) {
-                        Text(stringResource(R.string.home_install_health_connect))
-                    }
-                }
-                else -> {
-                    // SDK_UNAVAILABLE o casos raros.
-                    Text(
-                        text = stringResource(R.string.account_biometrics_not_available),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Botones de navegación generales
-            Button(onClick = onNavigateToAccount) {
-                Text(stringResource(R.string.home_my_account))
             }
         }
     }
 }
 
-// --- PREVIEWS ---
-
-@Preview(name = "Usuario Free", showBackground = true)
 @Composable
-fun HomeScreenPreview_Free() {
-    ZenIATheme {
-        HomeScreen(
-            uiState = HomeUiState.Idle,
-            esPremium = false,
-            hasPermission = false,
-            healthConnectStatus = HealthConnectClient.SDK_AVAILABLE,
-            onSignOut = {},
-            onNavigateToAccount = {},
-            onConnectSmartwatch = {},
-            onNavigateToPremium = {},
-            onNavigateToManualPermission = {},
-            onInstallHealthConnect = {},
-            onSettingsClick = {},
-            onNotificationClick = {},
-            onResetState = {},
-            onNavigateToSOS = {}
-        )
+fun TodayEntryCard(hasEntry: Boolean, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (hasEntry) ZeniaTeal.copy(alpha = 0.15f) else MaterialTheme.colorScheme.primary
+        ),
+        modifier = Modifier.fillMaxWidth().height(100.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize().padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(
+                    text = if (hasEntry) "Registro completado" else "Registrar mi día",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (hasEntry) ZeniaTeal else Color.White
+                )
+                Text(
+                    text = if (hasEntry) "¡Buen trabajo manteniendo tu racha!" else "Tómate un momento para ti.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (hasEntry) ZeniaTeal.copy(alpha = 0.8f) else Color.White.copy(alpha = 0.8f)
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(if (hasEntry) ZeniaTeal else Color.White.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = if (hasEntry) Icons.Default.Check else Icons.Default.Add,
+                    contentDescription = null,
+                    tint = if (hasEntry) Color.White else Color.White
+                )
+            }
+        }
     }
 }
 
-@Preview(name = "Usuario Premium Conectado", showBackground = true)
 @Composable
-fun HomeScreenPreview_Connected() {
-    ZenIATheme {
-        HomeScreen(
-            uiState = HomeUiState.Idle,
-            esPremium = true,
-            hasPermission = true,
-            healthConnectStatus = HealthConnectClient.SDK_AVAILABLE,
-            onSignOut = {},
-            onNavigateToAccount = {},
-            onConnectSmartwatch = {},
-            onNavigateToPremium = {},
-            onNavigateToManualPermission = {},
-            onInstallHealthConnect = {},
-            onSettingsClick = {},
-            onNotificationClick = {},
-            onResetState = {},
-            onNavigateToSOS = {}
-        )
+fun EmotionChartCard(chartProducer: com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = ZeniaWhite),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.fillMaxWidth().height(250.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Configuración visual de la línea
+            val lineSpec = remember {
+                LineChart.LineSpec(
+                    lineColor = ZeniaTeal.toArgb(),
+                    lineThicknessDp = 3f,
+                    lineBackgroundShader = DynamicShaders.fromBrush(
+                        Brush.verticalGradient(
+                            listOf(ZeniaTeal.copy(alpha = 0.4f), Color.Transparent)
+                        )
+                    )
+                )
+            }
+
+            Chart(
+                chart = lineChart(lines = listOf(lineSpec)),
+                chartModelProducer = chartProducer,
+                startAxis = startAxis(
+                    valueFormatter = ChartUtils.moodValueFormatter,
+                    maxLabelCount = 5,
+                    guideline = null
+                ),
+                bottomAxis = bottomAxis(
+                    valueFormatter = ChartUtils.dateAxisFormatter,
+                    guideline = null
+                ),
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+}
+
+@Composable
+fun EmptyChartCard(onClick: () -> Unit) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = ZeniaWhite),
+        modifier = Modifier.fillMaxWidth().height(200.dp).clickable(onClick = onClick),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.TrendingUp,
+                    contentDescription = null,
+                    tint = Color.Gray,
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Sin datos aún. ¡Registra tu primer día!", color = Color.Gray)
+            }
+        }
+    }
+}
+
+@Composable
+fun CommunityCard(actividad: ActividadComunidad) {
+    Card(
+        modifier = Modifier.width(160.dp).height(180.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = ZeniaWhite)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Group, null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = actividad.titulo,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                maxLines = 2
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "${actividad.participantes} participantes",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.Gray
+            )
+        }
+    }
+}
+
+@Composable
+fun CommunityCardPlaceholder() {
+    Card(
+        modifier = Modifier.width(160.dp).height(180.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.LightGray.copy(alpha = 0.2f))
+    ) {
+        // Placeholder visual
     }
 }

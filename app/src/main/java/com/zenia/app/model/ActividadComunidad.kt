@@ -7,5 +7,6 @@ data class ActividadComunidad(
     @DocumentId val id: String = "",
     val titulo: String = "",
     val descripcion: String = "",
-    val fechaProgramada: Timestamp = Timestamp.now()
+    val fechaProgramada: Timestamp = Timestamp.now(),
+    val participantes: Int = 0
 )
