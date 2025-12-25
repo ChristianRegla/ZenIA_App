@@ -113,6 +113,9 @@ fun AppNavigation() {
                 },
                 onNavigateToDiaryEntry = { date ->
                     navController.navigate(Destinations.createDiaryEntryRoute(date))
+                },
+                onNavigateToPremium = {
+                    navController.navigate(Destinations.PREMIUM_ROUTE)
                 }
             )
         }
