@@ -64,8 +64,8 @@ fun RecursosScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp), // Espacio vertical entre items
-            horizontalArrangement = Arrangement.spacedBy(16.dp), // Espacio horizontal entre columnas
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(top = 16.dp, bottom = 24.dp)
         ) {
             items(mockRecursos) { recurso ->
@@ -102,10 +102,9 @@ fun RecursoCard(
         elevation = CardDefaults.cardElevation(defaultElevation = if (isLocked) 0.dp else 2.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .height(130.dp) // Aumenté un poco la altura para que respire mejor en tablets
+            .height(130.dp)
     ) {
         Row(modifier = Modifier.fillMaxSize()) {
-            // IMAGEN
             Box(
                 modifier = Modifier
                     .width(110.dp)
@@ -136,7 +135,6 @@ fun RecursoCard(
                 }
             }
 
-            // CONTENIDO
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -176,7 +174,7 @@ fun RecursoCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.weight(1f)) // Empuja la descripción hacia abajo si sobra espacio
+                Spacer(modifier = Modifier.weight(1f))
 
                 Text(
                     text = recurso.description,
@@ -191,7 +189,7 @@ fun RecursoCard(
     }
 }
 
-@Preview // Preview Celular
+@Preview
 @Composable
 fun RecursosScreenPhonePreview() {
     ZenIATheme {

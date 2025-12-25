@@ -1,5 +1,6 @@
 package com.zenia.app.ui.navigation
 
+import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,6 +38,7 @@ import com.zenia.app.ui.screens.settings.SettingsRoute
 import com.zenia.app.ui.screens.sos.HelplineRoute
 import com.zenia.app.viewmodel.MainViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
+import kotlinx.coroutines.delay
 import java.time.LocalDate
 
 /**
@@ -47,7 +50,7 @@ import java.time.LocalDate
  */
 @RequiresApi(Build.VERSION_CODES.P)
 @Composable
-fun AppNavigation() {
+fun AppNavigation(pendingDeepLink: Uri? = null) {
     val navController = rememberNavController()
 
     val mainViewModel: MainViewModel = hiltViewModel()
@@ -66,6 +69,22 @@ fun AppNavigation() {
             CircularProgressIndicator()
         }
         return
+    }
+
+    LaunchedEffect(pendingDeepLink, startDestination) {
+        if (pendingDeepLink != null) {
+            delay(500)
+
+            when (pendingDeepLink.toString()) {
+                "zenia://diary/new" -> {
+                    val today = LocalDate.now()
+                    navController.navigate(Destinations.createDiaryEntryRoute(today))
+                }
+                "zenia://sos" -> {
+                    navController.navigate(Destinations.SOS)
+                }
+            }
+        }
     }
 
     NavHost(

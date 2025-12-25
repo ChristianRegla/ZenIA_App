@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:shortcutId="new_entry"
+        android:enabled="true"
+        android:icon="@drawable/ic_journal"
+        android:shortcutShortLabel="@string/shortcut_new_entry_short"
+        android:shortcutLongLabel="@string/shortcut_new_entry_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.zenia.app"
+            android:targetClass="com.zenia.app.MainActivity"
+            android:data="zenia://diary/new" /> </shortcut>
+
+    <shortcut
+        android:shortcutId="sos_help"
+        android:enabled="true"
+        android:icon="@drawable/telefono"
+        android:shortcutShortLabel="@string/shortcut_sos_short"
+        android:shortcutLongLabel="@string/shortcut_sos_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.zenia.app"
+            android:targetClass="com.zenia.app.MainActivity"
+            android:data="zenia://sos" />
+    </shortcut>
+
+</shortcuts>

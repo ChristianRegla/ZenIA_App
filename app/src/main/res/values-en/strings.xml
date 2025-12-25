@@ -239,4 +239,9 @@
     <string name="sos_btn_calm_exercises">Calm exercises</string>
     <string name="sos_close_desc">Close SOS screen</string>
 
+    <string name="shortcut_new_entry_short">New Entry</string>
+    <string name="shortcut_new_entry_long">Write in Diary</string>
+    <string name="shortcut_sos_short">Get Help</string>
+    <string name="shortcut_sos_long">Helpline</string>
+
 </resources>

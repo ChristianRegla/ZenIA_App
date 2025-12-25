@@ -29,7 +29,6 @@ import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaTeal
 import com.zenia.app.ui.theme.ZeniaWhite
 
-// --- MODELOS DE DATOS ---
 data class RelaxExercise(
     val id: Int,
     val title: String,
@@ -64,13 +63,11 @@ fun RelaxScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // --- FILTROS (Chips) ---
-            // Estos se quedan en LazyRow porque son navegación horizontal estándar
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 16.dp),
-                contentPadding = PaddingValues(horizontal = 20.dp), // Padding interno para scroll suave
+                contentPadding = PaddingValues(horizontal = 20.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 item {
@@ -94,9 +91,7 @@ fun RelaxScreen(
                 item { FilterChip(selected = false, onClick = {}, label = { Text("Sonidos") }) }
             }
 
-            // --- LISTA DE EJERCICIOS (Responsiva) ---
             LazyVerticalGrid(
-                // Si hay espacio para 350dp, pon otra columna. Si no, solo una.
                 columns = GridCells.Adaptive(minSize = 350.dp),
                 modifier = Modifier
                     .fillMaxSize()
@@ -177,7 +172,6 @@ fun RelaxExerciseCard(
                 }
             }
 
-            // --- CONTENIDO DE TEXTO ---
             Column(
                 modifier = Modifier
                     .weight(1f)
