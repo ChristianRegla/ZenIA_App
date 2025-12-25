@@ -1,8 +1,6 @@
 package com.zenia.app.ui.navigation
 
 import android.net.Uri
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
@@ -15,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -48,15 +47,11 @@ import java.time.LocalDate
  * Obtiene los ViewModels de autenticación ([AuthViewModel]) y configuración ([SettingsViewModel])
  * para determinar la pantalla de inicio correcta.
  */
-@RequiresApi(Build.VERSION_CODES.P)
 @Composable
 fun AppNavigation(pendingDeepLink: Uri? = null) {
     val navController = rememberNavController()
 
     val mainViewModel: MainViewModel = hiltViewModel()
-
-    val authViewModel: AuthViewModel = hiltViewModel()
-    val settingsViewModel: SettingsViewModel = hiltViewModel()
     /**
      * Lógica clave para determinar la pantalla de inicio de la app (startDestination).
      * 1. Si el usuario está logueado Y tiene biometría activada -> Va a [Destinations.LOCK_ROUTE].
@@ -73,7 +68,7 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
 
     LaunchedEffect(pendingDeepLink, startDestination) {
         if (pendingDeepLink != null) {
-            delay(500)
+            delay(100)
 
             when (pendingDeepLink.toString()) {
                 "zenia://diary/new" -> {
@@ -92,6 +87,7 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
         startDestination = startDestination!!
     ) {
         composable(Destinations.AUTH_ROUTE) {
+            val authViewModel: AuthViewModel = hiltViewModel()
             AuthRoute(
                 authViewModel = authViewModel,
                 onNavigateToForgotPassword = {
@@ -101,41 +97,37 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
         }
 
         composable(Destinations.FORGOT_PASSWORD_ROUTE) {
+            val authViewModel: AuthViewModel = hiltViewModel()
             ForgotPasswordScreen(
                 viewModel = authViewModel,
                 onNavigateBack = {
-                    authViewModel.resetForgotPasswordState()
                     navController.popBackStack()
                 }
             )
         }
 
-        composable(Destinations.HOME_ROUTE) {
+        composable(
+            route = Destinations.HOME_ROUTE,
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
+            ) {
             MainScreen(
                 onSignOut = {
-                    authViewModel.signOut()
+                    mainViewModel.signOut()
                     navController.navigate(Destinations.AUTH_ROUTE) {
                         popUpTo(Destinations.HOME_ROUTE) { inclusive = true }
                     }
                 },
-                onNavigateToAccount = {
-                    navController.navigate(Destinations.ACCOUNT_ROUTE)
-                },
-                onNavigateToSettings = {
-                    navController.navigate(Destinations.SETTINGS_ROUTE)
-                },
-                onNotificationClick = {
-                    navController.navigate(Destinations.NOTIFICATIONS_ROUTE)
-                },
-                onNavigateToSOS = {
-                    navController.navigate(Destinations.SOS)
-                },
+                onNavigateToAccount = { navController.safeNavigate(Destinations.ACCOUNT_ROUTE) },
+                onNavigateToSettings = { navController.safeNavigate(Destinations.SETTINGS_ROUTE) },
+                onNotificationClick = { navController.safeNavigate(Destinations.NOTIFICATIONS_ROUTE) },
+                onNavigateToSOS = { navController.safeNavigate(Destinations.SOS) },
                 onNavigateToDiaryEntry = { date ->
-                    navController.navigate(Destinations.createDiaryEntryRoute(date))
+                    navController.safeNavigate(Destinations.createDiaryEntryRoute(date))
                 },
-                onNavigateToPremium = {
-                    navController.navigate(Destinations.PREMIUM_ROUTE)
-                }
+                onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) }
             )
         }
 
@@ -173,34 +165,23 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
 
         composable(
             route = Destinations.SETTINGS_ROUTE,
-            enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300)) },
-            exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300)) },
-            popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300)) },
-            popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300)) }
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
         ) {
+            val settingsVM: SettingsViewModel = hiltViewModel()
             SettingsRoute(
-                settingsViewModel = settingsViewModel,
+                settingsViewModel = settingsVM,
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToProfile = {
-                    navController.navigate(Destinations.ACCOUNT_ROUTE)
-                },
-                onNavigateToPremium = {
-                    navController.navigate(Destinations.PREMIUM_ROUTE)
-                },
-                onNavigateToMoreSettings = {
-                    navController.navigate(Destinations.MORE_SETTINGS_ROUTE)
-                },
-                onNavigateToHelp = {
-                    navController.navigate(Destinations.HELP_CENTER_ROUTE)
-                },
-                onNavigateToDonations = {
-                    navController.navigate(Destinations.DONATIONS_ROUTE)
-                },
-                onNavigateToPrivacy = {
-                    navController.navigate(Destinations.PRIVACY_POLICY_ROUTE)
-                },
+                onNavigateToProfile = { navController.safeNavigate(Destinations.ACCOUNT_ROUTE) },
+                onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) },
+                onNavigateToMoreSettings = { navController.safeNavigate(Destinations.MORE_SETTINGS_ROUTE) },
+                onNavigateToHelp = { navController.safeNavigate(Destinations.HELP_CENTER_ROUTE) },
+                onNavigateToDonations = { navController.safeNavigate(Destinations.DONATIONS_ROUTE) },
+                onNavigateToPrivacy = { navController.safeNavigate(Destinations.PRIVACY_POLICY_ROUTE) },
                 onSignOut = {
-                    authViewModel.signOut()
+                    mainViewModel.signOut()
                     navController.navigate(Destinations.AUTH_ROUTE) {
                         popUpTo(Destinations.HOME_ROUTE) { inclusive = true }
                     }
@@ -208,37 +189,68 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
             )
         }
 
-        composable(Destinations.MORE_SETTINGS_ROUTE) {
+        composable(
+            route = Destinations.MORE_SETTINGS_ROUTE,
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
+        ) {
             MoreSettingsRoute(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
 
-        composable(Destinations.PREMIUM_ROUTE) {
+        composable(
+            route = Destinations.PREMIUM_ROUTE,
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
+        ) {
             PremiumRoute(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
 
-        composable(Destinations.HELP_CENTER_ROUTE) {
+        composable(
+            route = Destinations.HELP_CENTER_ROUTE,
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
+            ) {
             HelpCenterRoute(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
 
-        composable(Destinations.DONATIONS_ROUTE) {
+        composable(
+            route = Destinations.DONATIONS_ROUTE,
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
+            ) {
             DonationsRoute(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
 
-        composable(Destinations.PRIVACY_POLICY_ROUTE) {
+        composable(
+            route = Destinations.PRIVACY_POLICY_ROUTE,
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
+            ) {
             PrivacyRoute(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
 
         composable(Destinations.ACCOUNT_ROUTE) {
+            val authViewModel: AuthViewModel = hiltViewModel()
             AccountRoute(
                 authViewModel = authViewModel,
                 onNavigateBack = { navController.popBackStack() },
@@ -251,6 +263,7 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
         }
 
         composable(Destinations.LOCK_ROUTE) {
+            val lockAuthViewModel: AuthViewModel = hiltViewModel()
             LockRoute(
                 onUnlockSuccess = {
                     navController.navigate(Destinations.HOME_ROUTE) {
@@ -258,12 +271,38 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
                     }
                 },
                 onSignOut = {
-                    authViewModel.signOut()
+                    mainViewModel.signOut()
                     navController.navigate(Destinations.AUTH_ROUTE) {
                         popUpTo(Destinations.LOCK_ROUTE) { inclusive = true }
                     }
                 }
             )
+        }
+    }
+}
+
+fun AnimatedContentTransitionScope<*>.slideIn() =
+    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
+
+fun AnimatedContentTransitionScope<*>.slideOut() =
+    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
+
+fun AnimatedContentTransitionScope<*>.popSlideIn() =
+    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
+
+fun AnimatedContentTransitionScope<*>.popSlideOut() =
+    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
+
+/**
+ * FUNCIÓN DE EXTENSIÓN PARA EVITAR DOBLE CLIC / NAVEGACIÓN MÚLTIPLE
+ * Solo navega si la pantalla actual está en estado RESUMED (Activa y lista).
+ * Si ya se inició otra navegación, el estado cambia y esto evita el segundo clic.
+ */
+fun androidx.navigation.NavController.safeNavigate(route: String) {
+    val lifecycle = this.currentBackStackEntry?.lifecycle
+    if (lifecycle != null && lifecycle.currentState == Lifecycle.State.RESUMED) {
+        this.navigate(route) {
+            launchSingleTop = true
         }
     }
 }
