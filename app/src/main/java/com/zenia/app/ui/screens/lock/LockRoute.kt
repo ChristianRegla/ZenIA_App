@@ -1,6 +1,7 @@
 package com.zenia.app.ui.screens.lock
 
 import android.widget.Toast
+import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
@@ -14,21 +15,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.zenia.app.R
 import com.zenia.app.viewmodel.SettingsViewModel
 
-/**
- * Composable "inteligente" (Smart Composable) para la ruta de bloqueo.
- * Obtiene el estado, maneja la lógica de UI (mostrar el prompt biométrico)
- * y pasa el estado y las acciones al Composable "tonto" [LockScreen].
- */
 @Composable
 fun LockRoute(
     onUnlockSuccess: () -> Unit,
     onSignOut: () -> Unit
 ) {
-    // --- 1. Estado y Handlers ---
     val context = LocalContext.current
     val activity = context as? FragmentActivity
 
@@ -39,21 +33,7 @@ fun LockRoute(
         {
             if (activity != null) {
                 val executor = ContextCompat.getMainExecutor(context)
-                val biometricPrompt = BiometricPrompt(activity, executor,
-                    object : BiometricPrompt.AuthenticationCallback() {
-                        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                            super.onAuthenticationSucceeded(result)
-                            onUnlockSuccess()
-                        }
-
-                        override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                            super.onAuthenticationError(errorCode, errString)
-                            if (errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
-                                errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
-                                Toast.makeText(context, context.getString(R.string.biometric_error_prefix, errString), Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    })
+                val biometricManager = BiometricManager.from(context)
 
                 val authenticators = if (allowWeak) {
                     BIOMETRIC_STRONG or BIOMETRIC_WEAK or DEVICE_CREDENTIAL
@@ -61,12 +41,40 @@ fun LockRoute(
                     BIOMETRIC_STRONG or DEVICE_CREDENTIAL
                 }
 
-                val promptInfoBuilder = BiometricPrompt.PromptInfo.Builder()
-                    .setTitle(context.getString(R.string.biometric_title))
-                    .setSubtitle(context.getString(R.string.biometric_subtitle))
-                    .setAllowedAuthenticators(authenticators)
+                val canAuthenticate = biometricManager.canAuthenticate(authenticators)
 
-                biometricPrompt.authenticate(promptInfoBuilder.build())
+                if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS) {
+                    val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                        .setTitle(context.getString(R.string.lock_title))
+                        .setSubtitle(context.getString(R.string.lock_subtitle))
+                        .setAllowedAuthenticators(authenticators)
+                        .build()
+
+                    val biometricPrompt = BiometricPrompt(activity, executor,
+                        object : BiometricPrompt.AuthenticationCallback() {
+                            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                                super.onAuthenticationSucceeded(result)
+                                onUnlockSuccess()
+                            }
+
+                            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                                super.onAuthenticationError(errorCode, errString)
+                                if (errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
+                                    errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON
+                                ) {
+                                    Toast.makeText(
+                                        context,
+                                        "Error: $errString",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        })
+
+                    biometricPrompt.authenticate(promptInfo)
+                } else {
+                    Toast.makeText(context, "Biometría no disponible", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
