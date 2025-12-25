@@ -29,6 +29,8 @@ import com.zenia.app.ui.screens.diary.DiarioRoute
 import com.zenia.app.ui.screens.diary.DiaryEntryScreen
 import com.zenia.app.ui.screens.notifications.NotificationsRoute
 import com.zenia.app.ui.screens.premium.PremiumRoute
+import com.zenia.app.ui.screens.recursos.RecursosRoute
+import com.zenia.app.ui.screens.relax.RelaxRoute
 import com.zenia.app.ui.screens.settings.DonationsRoute
 import com.zenia.app.ui.screens.settings.HelpCenterRoute
 import com.zenia.app.ui.screens.settings.MoreSettingsRoute
@@ -262,8 +264,21 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
             )
         }
 
+        composable(Destinations.RELAX_ROUTE) {
+            RelaxRoute(
+                onNavigateToPlayer = { /* TODO: Player */ },
+                onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) }
+            )
+        }
+
+        composable(Destinations.RECURSOS_ROUTE) {
+            RecursosRoute(
+                onNavigateToDetail = { /* TODO: Detail */ },
+                onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) }
+            )
+        }
+
         composable(Destinations.LOCK_ROUTE) {
-            val lockAuthViewModel: AuthViewModel = hiltViewModel()
             LockRoute(
                 onUnlockSuccess = {
                     navController.navigate(Destinations.HOME_ROUTE) {
