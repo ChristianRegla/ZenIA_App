@@ -38,11 +38,11 @@ data class RecursoUiModel(
 )
 
 val mockRecursos = listOf(
-    RecursoUiModel(1, "Guía Básica de Ansiedad", "Entiende los síntomas y aprende técnicas rápidas.", "Guía", R.drawable.placeholder_relax_1, false),
-    RecursoUiModel(2, "Masterclass: Dormir Mejor", "Curso completo de higiene del sueño por expertos.", "Curso", R.drawable.placeholder_relax_1, true),
-    RecursoUiModel(3, "Técnicas de Grounding", "Ejercicios para volver al presente en crisis.", "Artículo", R.drawable.placeholder_relax_1, false),
-    RecursoUiModel(4, "Nutrición y Salud Mental", "Cómo lo que comes afecta tu estado de ánimo.", "Artículo", R.drawable.placeholder_relax_1, true),
-    RecursoUiModel(5, "Diario de Gratitud", "Plantillas y beneficios de agradecer diariamente.", "Herramienta", R.drawable.placeholder_relax_1, false)
+    RecursoUiModel(1, "Guía Básica de Ansiedad", "Entiende los síntomas y aprende técnicas rápidas.", "Guía", R.drawable.placeholder_resource_1, false),
+    RecursoUiModel(2, "Masterclass: Dormir Mejor", "Curso completo de higiene del sueño por expertos.", "Curso", R.drawable.placeholder_resource_1, true),
+    RecursoUiModel(3, "Técnicas de Grounding", "Ejercicios para volver al presente en crisis.", "Artículo", R.drawable.placeholder_resource_1, false),
+    RecursoUiModel(4, "Nutrición y Salud Mental", "Cómo lo que comes afecta tu estado de ánimo.", "Artículo", R.drawable.placeholder_resource_1, true),
+    RecursoUiModel(5, "Diario de Gratitud", "Plantillas y beneficios de agradecer diariamente.", "Herramienta", R.drawable.placeholder_resource_1, false)
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
