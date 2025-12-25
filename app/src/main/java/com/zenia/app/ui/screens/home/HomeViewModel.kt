@@ -13,6 +13,7 @@ import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.ContentRepository
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.HealthConnectRepository
+import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.model.RegistroBienestar
 import com.zenia.app.util.ChartUtils
 import com.zenia.app.util.UiText
@@ -66,16 +67,12 @@ class HomeViewModel @Inject constructor(
     val chartProducer = ChartEntryModelProducer()
 
     // Observamos los registros y actualizamos la gráfica automáticamente
-    val registrosRecientes = diaryRepository.getRegistrosBienestar()
+    val registrosDiario = diaryRepository.diaryEntries
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Estado derivado: ¿Ya escribió hoy?
-    val hasEntryToday: StateFlow<Boolean> = registrosRecientes.map { lista ->
-        val today = LocalDate.now()
-        lista.any { registro ->
-            val registroDate = registro.fecha.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-            registroDate.isEqual(today)
-        }
+    val hasEntryToday: StateFlow<Boolean> = registrosDiario.map { lista ->
+        val todayStr = LocalDate.now().toString() // "2025-12-25"
+        lista.any { it.fecha == todayStr }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     // Estado derivado: Actividades de comunidad (Mock o Repo)
@@ -145,18 +142,32 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun processChartData(registros: List<RegistroBienestar>) {
+    fun processChartData(registros: List<DiarioEntrada>) {
+        android.util.Log.d("ZENIA_CHART", "Procesando ${registros.size} entradas del diario")
+
         val entries = registros
-            .sortedBy { it.fecha } // Ordenar por fecha ascendente
-            .takeLast(7) // Solo los últimos 7 días para que se vea bonito
-            .map { registro ->
-                val x = registro.fecha.toDate().time.toFloat()
-                val y = ChartUtils.mapMoodToValue(registro.estadoAnimo)
-                entryOf(x, y)
+            .filter { !it.estadoAnimo.isNullOrBlank() }
+            .mapNotNull { entrada ->
+                try {
+                    val date = LocalDate.parse(entrada.fecha)
+                    val millis = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli().toFloat()
+                    val moodValue = ChartUtils.mapMoodToValue(entrada.estadoAnimo)
+
+                    if (moodValue > 0f) {
+                        entryOf(millis, moodValue)
+                    } else null
+                } catch (e: Exception) {
+                    null
+                }
             }
+            .sortedBy { it.x }
+            .takeLast(7)
 
         if (entries.isNotEmpty()) {
+            android.util.Log.d("ZENIA_CHART", "Graficando ${entries.size} puntos")
             chartProducer.setEntries(entries)
+        } else {
+            android.util.Log.d("ZENIA_CHART", "No hay datos válidos para graficar")
         }
     }
 

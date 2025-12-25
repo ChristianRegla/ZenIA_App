@@ -91,26 +91,37 @@ class DiaryRepository @Inject constructor(
     }
 
     fun getRegistrosBienestar(): Flow<List<RegistroBienestar>> = callbackFlow {
-        val currentUserId = auth.currentUser?.uid
-        if (currentUserId == null) {
-            trySend(emptyList())
-            close()
-            return@callbackFlow
+        var firestoreListener: ListenerRegistration? = null
+
+        val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            val currentUserId = firebaseAuth.currentUser?.uid
+
+            firestoreListener?.remove()
+
+            if (currentUserId.isNullOrBlank()) {
+                trySend(emptyList())
+            } else {
+                firestoreListener = db.collection(FirestoreCollections.USERS).document(currentUserId)
+                    .collection(FirestoreCollections.WELNESS_LOGS)
+                    .orderBy(FirestoreCollections.FIELD_DATE, Query.Direction.ASCENDING)
+                    .limit(30)
+                    .addSnapshotListener { snapshot, e ->
+                        if (e != null) {
+                            trySend(emptyList())
+                            return@addSnapshotListener
+                        }
+                        val registros = snapshot?.toObjects(RegistroBienestar::class.java) ?: emptyList()
+                        trySend(registros)
+                    }
+            }
         }
 
-        val listener = db.collection(FirestoreCollections.USERS).document(currentUserId)
-            .collection(FirestoreCollections.WELNESS_LOGS)
-            .orderBy(FirestoreCollections.FIELD_DATE, Query.Direction.DESCENDING)
-            .limit(10)
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    trySend(emptyList())
-                    return@addSnapshotListener
-                }
-                val registros = snapshot?.toObjects(RegistroBienestar::class.java) ?: emptyList()
-                trySend(registros)
-            }
-        awaitClose { listener.remove() }
+        auth.addAuthStateListener(authListener)
+
+        awaitClose {
+            auth.removeAuthStateListener(authListener)
+            firestoreListener?.remove()
+        }
     }
 
     suspend fun addRegistroBienestar(registro: RegistroBienestar) {

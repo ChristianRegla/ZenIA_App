@@ -10,11 +10,11 @@ import java.util.Locale
 object ChartUtils {
     fun mapMoodToValue(mood: String?): Float {
         return when (mood?.lowercase()?.trim()) {
-            "increíble", "radiactivo", "excelente", "5" -> 5f
-            "bien", "feliz", "contento", "4" -> 4f
-            "normal", "neutral", "regular", "3" -> 3f
-            "mal", "triste", "cansado", "2" -> 2f
-            "terrible", "pésimo", "enojado", "1" -> 1f
+            "increíble", "radiactivo", "excelente", "5", "feliz", "alegre", "muy bien" -> 5f
+            "bien", "contento", "4", "energético", "claridad", "descansado" -> 4f
+            "normal", "neutral", "regular", "3", "tranquilidad", "ligero" -> 3f
+            "mal", "triste", "cansado", "2", "desanimado", "sin motivación" -> 2f
+            "terrible", "pésimo", "enojado", "1", "estresado" -> 1f
             else -> 0f
         }
     }

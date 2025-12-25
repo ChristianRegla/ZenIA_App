@@ -51,7 +51,7 @@ fun HomeRoute(
 
     // 3. Recolecta todos los estados necesarios
     val uiState by homeViewModel.uiState.collectAsState()
-    val registros by homeViewModel.registros.collectAsState()
+    val registros by homeViewModel.registrosDiario.collectAsState()
     val esPremium by homeViewModel.esPremium.collectAsState()
     val hasPermission by homeViewModel.hasHealthPermissions.collectAsState()
     val healthConnectStatus = homeViewModel.healthConnectStatus
@@ -63,11 +63,10 @@ fun HomeRoute(
         homeViewModel.processChartData(registros)
     }
 
-    // 4. Pasa los estados y las lambdas a la HomeScreen "tonta"
     HomeScreen(
         uiState = uiState,
         userName = userName,
-        registrosRecientes = registros,
+        registrosDiario = registros,
         hasEntryToday = hasEntryToday,
         communityActivities = communityActivities,
         chartProducer = homeViewModel.chartProducer,

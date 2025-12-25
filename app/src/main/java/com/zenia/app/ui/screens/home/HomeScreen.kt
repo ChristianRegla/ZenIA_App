@@ -34,6 +34,7 @@ import com.patrykandpatrick.vico.core.chart.line.LineChart
 import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders
 import com.zenia.app.R
 import com.zenia.app.model.ActividadComunidad
+import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.components.HomeTopBar
 import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZenIATheme
@@ -64,7 +65,7 @@ import java.time.LocalDate
 fun HomeScreen(
     uiState: HomeUiState,
     userName: String,
-    registrosRecientes: List<com.zenia.app.model.RegistroBienestar>,
+    registrosDiario: List<DiarioEntrada>,
     hasEntryToday: Boolean,
     communityActivities: List<ActividadComunidad>,
     chartProducer: com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer,
@@ -156,7 +157,14 @@ fun HomeScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                if (registrosRecientes.isNotEmpty()) {
+
+                // Verificamos si hay entradas válidas (con estado de ánimo)
+                // Esto asegura que la gráfica no se intente pintar vacía
+                val hayDatosGraficables = remember(registrosDiario) {
+                    registrosDiario.any { !it.estadoAnimo.isNullOrBlank() }
+                }
+
+                if (hayDatosGraficables) {
                     EmotionChartCard(chartProducer)
                 } else {
                     EmptyChartCard(onClick = { onNavigateToDiaryEntry(LocalDate.now()) })
