@@ -1,9 +1,12 @@
 package com.zenia.app.ui.screens.diary
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.model.DiarioEntrada
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,11 +16,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
+import javax.inject.Inject
 
-class DiarioViewModel(
+@HiltViewModel
+class DiarioViewModel @Inject constructor(
     private val diaryRepository: DiaryRepository
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(DiarioUiState())
+
+    private val _uiState = MutableStateFlow(DiarioUiState(isLoading = true))
     val uiState: StateFlow<DiarioUiState> = _uiState.asStateFlow()
 
     val allEntries = diaryRepository.getDiaryEntriesStream()
@@ -36,7 +42,7 @@ class DiarioViewModel(
                     try {
                         LocalDate.parse(it.fecha)
                     } catch (e: Exception) {
-                        e.printStackTrace()
+                        Log.e("DiarioViewModel", "Error parsing date", e)
                         LocalDate.MIN
                     }
                 }
@@ -45,6 +51,10 @@ class DiarioViewModel(
         }
     }
 
+    /**
+     * Carga y procesa los meses del año seleccionado.
+     * Activa el Skeleton (isLoading=true) mientras procesa.
+     */
     fun loadYearData(year: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
@@ -119,7 +129,7 @@ class DiarioViewModel(
         val firstDayOfMonth = yearMonth.atDay(1)
         val lastDayOfMonth = yearMonth.atEndOfMonth()
         val firstDayOfWeekVal = firstDayOfMonth.dayOfWeek.value
-        val emptyDaysCount = if (firstDayOfWeekVal == 7) 0 else firstDayOfWeekVal
+        val emptyDaysCount = if (firstDayOfWeekVal == 7) 6 else firstDayOfWeekVal - 1
 
         val days = mutableListOf<CalendarDayState>()
 
@@ -139,7 +149,6 @@ class DiarioViewModel(
             } else {
                 StreakShape.None
             }
-
 
             days.add(
                 CalendarDayState(

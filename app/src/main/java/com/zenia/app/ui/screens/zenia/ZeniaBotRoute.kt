@@ -3,14 +3,13 @@ package com.zenia.app.ui.screens.zenia
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.zenia.app.viewmodel.AppViewModelProvider
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun ZeniaBotRoute(
     onNavigateBack: () -> Unit
 ) {
-    val viewModel: ZeniaChatViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    val viewModel: ZeniaChatViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
     val isTyping by viewModel.isTyping.collectAsState()
 

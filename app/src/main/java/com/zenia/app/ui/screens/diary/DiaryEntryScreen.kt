@@ -20,99 +20,71 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.zenia.app.R
+import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.theme.RobotoFlex
-import com.zenia.app.ui.theme.ZeniaSlateGrey
-import com.zenia.app.viewmodel.AppViewModelProvider
+import com.zenia.app.ui.theme.ZenIATheme
+import com.zenia.app.ui.theme.ZeniaFeelings
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-/**
- * [1] Esta función crea una pantalla independiente con su propia TopBar.
- * Se usa cuando navegas directamente a una fecha desde Home o Notificaciones.
- */
+// --- 1. ENTRY POINT (Ruta de Navegación) ---
 @Composable
 fun DiaryEntryScreen(
     date: LocalDate,
     onNavigateBack: () -> Unit
 ) {
-    val viewModel: DiaryEntryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = AppViewModelProvider.Factory)
+    // TopBar específica para cuando entras a una fecha sola
+    val viewModel: DiaryEntryViewModel = hiltViewModel()
     val allEntries by viewModel.allEntries.collectAsState()
+
     Scaffold(
         topBar = {
-            MiniCalendarTopBar(
-                selectedDate = date,
-                entries = allEntries,
-                onBackClick = onNavigateBack,
-                onDateClick = { newDate ->
-                    viewModel.cargarEntrada(newDate)
+            // TopBar Responsive Wrapper
+            Box(
+                modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Box(modifier = Modifier.widthIn(max = 600.dp)) {
+                    MiniCalendarTopBar(
+                        selectedDate = date,
+                        entries = allEntries,
+                        onBackClick = onNavigateBack,
+                        onDateClick = { newDate -> viewModel.cargarEntrada(newDate) }
+                    )
                 }
-            )
+            }
         },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
-            DiaryEntryContent(
+        Box(modifier = Modifier.padding(innerPadding).fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+            // Llamamos al componente "Conectado"
+            ConnectedDiaryEntry(
                 date = date,
-                viewModel = viewModel,
                 onSuccessCallback = onNavigateBack
             )
         }
     }
 }
 
-/**
- * [2] CONTENIDO REUTILIZABLE (Lo usa DiarioScreen y DiaryEntryScreen)
- * Contiene toda la lógica visual de la entrada (sentimientos, chips, texto).
- */
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+// --- 2. COMPONENTE CONECTADO (Stateful) ---
+// Este se encarga de hablar con el ViewModel y preparar los datos
 @Composable
-fun DiaryEntryContent(
+fun ConnectedDiaryEntry(
     date: LocalDate,
-    viewModel: DiaryEntryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = AppViewModelProvider.Factory),
+    viewModel: DiaryEntryViewModel = hiltViewModel(),
     onSuccessCallback: () -> Unit
 ) {
-    var feelingIdx by rememberSaveable { mutableStateOf<Int?>(null) }
-    var sleepIdx by rememberSaveable { mutableStateOf<Int?>(null) }
-    var mindIdx by rememberSaveable { mutableStateOf<Int?>(null) }
-    var exerciseIdx by rememberSaveable { mutableStateOf<Int?>(null) }
-    var noteText by rememberSaveable { mutableStateOf("") }
-    val selectedActivities = remember { mutableStateListOf<String>() }
-
     val uiState by viewModel.uiState.collectAsState()
     val existingEntry by viewModel.existingEntry.collectAsState()
     val context = LocalContext.current
 
-    val datePattern = stringResource(R.string.diary_date_format_full)
-    val formattedDate = remember(date, datePattern) {
-        val formatter = DateTimeFormatter.ofPattern(datePattern, Locale.getDefault()) // Usamos Locale por defecto
-        date.format(formatter).replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-    }
-
     LaunchedEffect(date) { viewModel.cargarEntrada(date) }
-
-    LaunchedEffect(existingEntry) {
-        if (existingEntry != null) {
-            val entry = existingEntry!!
-            feelingIdx = viewModel.findIndexByDbValue(viewModel.feelings, entry.estadoAnimo)
-            sleepIdx = viewModel.findIndexByDbValue(viewModel.dreamQuality, entry.calidadSueno)
-            mindIdx = viewModel.findIndexByDbValue(viewModel.mind, entry.estadoMental)
-            exerciseIdx = viewModel.findIndexByDbValue(viewModel.exercise, entry.ejercicio)
-            noteText = entry.notas
-            selectedActivities.clear()
-            selectedActivities.addAll(entry.actividades)
-        } else {
-            feelingIdx = null
-            sleepIdx = null
-            mindIdx = null
-            exerciseIdx = null
-            noteText = ""
-            selectedActivities.clear()
-        }
-    }
 
     LaunchedEffect(uiState) {
         when (uiState) {
@@ -130,8 +102,75 @@ fun DiaryEntryContent(
         }
     }
 
+    // Pasamos TODO como parámetros simples al componente de UI pura
+    DiaryEntryContent(
+        date = date,
+        uiState = uiState,
+        existingEntry = existingEntry,
+        // Pasamos las listas estáticas del ViewModel
+        feelingsList = viewModel.feelings,
+        sleepList = viewModel.dreamQuality,
+        mindList = viewModel.mind,
+        exerciseList = viewModel.exercise,
+        activitiesList = viewModel.activitiesList,
+        // Eventos
+        onSave = { mood, sleep, mind, exercise, activities, notes ->
+            viewModel.guardarEntrada(date, mood, sleep, mind, exercise, activities, notes) {}
+        },
+        onDelete = { viewModel.eliminarEntrada(date) }
+    )
+}
+
+// --- 3. COMPONENTE UI PURO (Stateless) ---
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun DiaryEntryContent(
+    date: LocalDate,
+    uiState: DiaryEntryUiState,
+    existingEntry: DiarioEntrada?,
+    feelingsList: List<FeelingData>,
+    sleepList: List<FeelingData>,
+    mindList: List<FeelingData>,
+    exerciseList: List<FeelingData>,
+    activitiesList: List<ActivityData>,
+    onSave: (String?, String?, String?, String?, List<String>, String) -> Unit,
+    onDelete: () -> Unit
+) {
+    // Estado local del formulario
+    var feelingIdx by rememberSaveable(existingEntry) { mutableStateOf<Int?>(null) }
+    var sleepIdx by rememberSaveable(existingEntry) { mutableStateOf<Int?>(null) }
+    var mindIdx by rememberSaveable(existingEntry) { mutableStateOf<Int?>(null) }
+    var exerciseIdx by rememberSaveable(existingEntry) { mutableStateOf<Int?>(null) }
+    var noteText by rememberSaveable(existingEntry) { mutableStateOf("") }
+    val selectedActivities = remember(existingEntry) { mutableStateListOf<String>() }
+
+    // Inicializar valores si estamos editando
+    LaunchedEffect(existingEntry) {
+        if (existingEntry != null) {
+            feelingIdx = feelingsList.find { it.dbValue == existingEntry.estadoAnimo }?.id
+            sleepIdx = sleepList.find { it.dbValue == existingEntry.calidadSueno }?.id
+            mindIdx = mindList.find { it.dbValue == existingEntry.estadoMental }?.id
+            exerciseIdx = exerciseList.find { it.dbValue == existingEntry.ejercicio }?.id
+            noteText = existingEntry.notas
+            selectedActivities.clear()
+            selectedActivities.addAll(existingEntry.actividades)
+        } else {
+            // Reset si es nuevo (o cambió la fecha y no hay entrada)
+            feelingIdx = null; sleepIdx = null; mindIdx = null; exerciseIdx = null
+            noteText = ""
+            selectedActivities.clear()
+        }
+    }
+
+    val datePattern = stringResource(R.string.diary_date_format_full)
+    val formattedDate = remember(date, datePattern) {
+        val formatter = DateTimeFormatter.ofPattern(datePattern, Locale.getDefault())
+        date.format(formatter).replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+    }
+
     LazyColumn(
         modifier = Modifier
+            .widthIn(max = 600.dp) // Responsive
             .fillMaxSize()
             .padding(horizontal = 24.dp)
             .imePadding(),
@@ -149,14 +188,10 @@ fun DiaryEntryContent(
             )
         }
 
-        item {
-            SelectionSection(
-                stringResource(R.string.diary_section_feelings),
-                viewModel.feelings,
-                feelingIdx) { feelingIdx = if (feelingIdx == it) null else it } }
-        item { SelectionSection(stringResource(R.string.diary_section_sleep), viewModel.dreamQuality, sleepIdx) { sleepIdx = if (sleepIdx == it) null else it } }
-        item { SelectionSection(stringResource(R.string.diary_section_mind), viewModel.mind, mindIdx) { mindIdx = if (mindIdx == it) null else it } }
-        item { SelectionSection(stringResource(R.string.diary_section_exercise), viewModel.exercise, exerciseIdx) { exerciseIdx = if (exerciseIdx == it) null else it } }
+        item { SelectionSection(stringResource(R.string.diary_section_feelings), feelingsList, feelingIdx) { feelingIdx = if (feelingIdx == it) null else it } }
+        item { SelectionSection(stringResource(R.string.diary_section_sleep), sleepList, sleepIdx) { sleepIdx = if (sleepIdx == it) null else it } }
+        item { SelectionSection(stringResource(R.string.diary_section_mind), mindList, mindIdx) { mindIdx = if (mindIdx == it) null else it } }
+        item { SelectionSection(stringResource(R.string.diary_section_exercise), exerciseList, exerciseIdx) { exerciseIdx = if (exerciseIdx == it) null else it } }
 
         item {
             SectionTitle("¿Qué has hecho?")
@@ -165,7 +200,7 @@ fun DiaryEntryContent(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                viewModel.activitiesList.forEach { activityItem ->
+                activitiesList.forEach { activityItem ->
                     val isSelected = selectedActivities.contains(activityItem.dbValue)
                     FilterChip(
                         selected = isSelected,
@@ -174,19 +209,10 @@ fun DiaryEntryContent(
                             else selectedActivities.add(activityItem.dbValue)
                         },
                         label = { Text(stringResource(activityItem.labelRes), fontFamily = RobotoFlex) },
-                        leadingIcon = if (isSelected) {
-                            { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp)) }
-                        } else null,
+                        leadingIcon = if (isSelected) { { Icon(Icons.Default.Check, null, Modifier.size(18.dp)) } } else null,
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            enabled = true,
-                            selected = isSelected,
-                            borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-                            borderWidth = 1.dp
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     )
                 }
@@ -198,9 +224,7 @@ fun DiaryEntryContent(
             OutlinedTextField(
                 value = noteText,
                 onValueChange = { noteText = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp),
+                modifier = Modifier.fillMaxWidth().height(180.dp),
                 placeholder = { Text(stringResource(R.string.diary_placeholder_notes)) },
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -211,139 +235,70 @@ fun DiaryEntryContent(
         }
 
         item {
-            val hasContent = feelingIdx != null || sleepIdx != null ||
-                    mindIdx != null || exerciseIdx != null ||
-                    noteText.isNotEmpty()
-
+            val hasContent = feelingIdx != null || sleepIdx != null || mindIdx != null || exerciseIdx != null || noteText.isNotEmpty()
             val isLoading = uiState is DiaryEntryUiState.Loading
-
             val buttonText = if (existingEntry != null) stringResource(R.string.diary_btn_edit) else stringResource(R.string.diary_btn_save)
 
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Button(
                     onClick = {
-                        val mood = feelingIdx?.let { viewModel.feelings.find { f -> f.id == it }?.dbValue }
-                        val sleep = sleepIdx?.let { viewModel.dreamQuality.find { f -> f.id == it }?.dbValue }
-                        val mind = mindIdx?.let { viewModel.mind.find { f -> f.id == it }?.dbValue }
-                        val exercise = exerciseIdx?.let { viewModel.exercise.find { f -> f.id == it }?.dbValue }
-
-                        viewModel.guardarEntrada(
-                            date = date,
-                            estadoAnimo = mood,
-                            calidadSueno = sleep,
-                            estadoMental = mind,
-                            ejercicio = exercise,
-                            actividades = selectedActivities.toList(),
-                            notas = noteText,
-                            onSuccess = {}
-                        )
+                        val mood = feelingIdx?.let { id -> feelingsList.find { it.id == id }?.dbValue }
+                        val sleep = sleepIdx?.let { id -> sleepList.find { it.id == id }?.dbValue }
+                        val mind = mindIdx?.let { id -> mindList.find { it.id == id }?.dbValue }
+                        val exercise = exerciseIdx?.let { id -> exerciseList.find { it.id == id }?.dbValue }
+                        onSave(mood, sleep, mind, exercise, selectedActivities.toList(), noteText)
                     },
                     enabled = hasContent && !isLoading,
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    } else {
-                        Text(buttonText, fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    }
+                    if (isLoading) CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    else Text(buttonText, fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
 
                 if (existingEntry != null) {
                     OutlinedButton(
-                        onClick = { viewModel.eliminarEntrada(date) },
+                        onClick = onDelete,
                         enabled = !isLoading,
                         modifier = Modifier.fillMaxWidth().height(50.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        ),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error)
                     ) {
                         Text(stringResource(R.string.diary_btn_delete), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
                 }
             }
-
-
-            if (uiState is DiaryEntryUiState.Error) {
-                val errorMsg = stringResource((uiState as DiaryEntryUiState.Error).msgRes)
-                Text(
-                    text = errorMsg,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
         }
     }
 }
 
+// ... SelectionSection, SectionTitle, FeelingItem (Mismos de antes) ...
 @Composable
-fun SelectionSection(
-    title: String,
-    items: List<FeelingData>,
-    selectedIndex: Int?,
-    onSelect: (Int) -> Unit
-) {
+fun SelectionSection(title: String, items: List<FeelingData>, selectedIndex: Int?, onSelect: (Int) -> Unit) {
     SectionTitle(title)
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         items.forEach { item ->
-            FeelingItem(
-                iconRes = item.iconRes,
-                label = stringResource(item.labelRes),
-                isSelected = selectedIndex == item.id,
-                color = item.color,
-                onClick = { onSelect(item.id) }
-            )
+            FeelingItem(item.iconRes, stringResource(item.labelRes), selectedIndex == item.id, item.color) { onSelect(item.id) }
         }
     }
 }
-
-// --- Componentes Auxiliares ---
 
 @Composable
 fun SectionTitle(text: String) {
-    Text(
-        text = text,
-        fontFamily = RobotoFlex,
-        fontWeight = FontWeight.Bold,
-        fontSize = 18.sp,
-        color = MaterialTheme.colorScheme.onSurface,
-        modifier = Modifier.padding(bottom = 8.dp)
-    )
+    Text(text, fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(bottom = 8.dp))
 }
 
 @Composable
-fun FeelingItem(
-    iconRes: Int,
-    label: String,
-    isSelected: Boolean,
-    color: Color,
-    onClick: () -> Unit
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable(onClick = onClick).padding(4.dp)
-    ) {
+fun FeelingItem(iconRes: Int, label: String, isSelected: Boolean, color: Color, onClick: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable(onClick = onClick).padding(4.dp)) {
         Box(
             modifier = Modifier
                 .size(52.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(if (isSelected) color else MaterialTheme.colorScheme.surfaceVariant)
-                .border(
-                    width = 3.dp,
-                    color = color,
-                    shape = RoundedCornerShape(12.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
+                .border(3.dp, color, RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.Center) {
             Icon(
                 painter = painterResource(id = iconRes),
                 contentDescription = label,
@@ -352,12 +307,38 @@ fun FeelingItem(
             )
         }
         Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            fontSize = 11.sp,
-            fontFamily = RobotoFlex,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-            color = ZeniaSlateGrey
+        Text(text = label, fontSize = 11.sp, fontFamily = RobotoFlex, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
+    }
+}
+
+// --- PREVIEWS (¡Ahora sí funcionan!) ---
+
+@Preview(name = "Formulario Vacío", showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Composable
+fun DiaryEntryPreview() {
+    // Necesitamos mocks simples de las listas (normalmente estarían en un objeto MockData)
+    val mockFeelings = listOf(
+        FeelingData(
+            1,
+            R.drawable.ic_sol_feli,
+            R.string.mood_happy,
+            "Bien",
+            ZeniaFeelings
+        )
+    )
+
+    ZenIATheme {
+        DiaryEntryContent(
+            date = LocalDate.now(),
+            uiState = DiaryEntryUiState.Idle,
+            existingEntry = null,
+            feelingsList = mockFeelings,
+            sleepList = emptyList(),
+            mindList = emptyList(),
+            exerciseList = emptyList(),
+            activitiesList = emptyList(),
+            onSave = { _, _, _, _, _, _ -> },
+            onDelete = {}
         )
     }
 }

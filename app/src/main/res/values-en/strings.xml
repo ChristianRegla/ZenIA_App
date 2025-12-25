@@ -211,4 +211,32 @@
     <string name="activity_trip">Trip</string>
     <string name="activity_rest">Rest</string>
 
+    <string name="health_connect_rationale_title">Health Data Access</string>
+    <string name="health_connect_rationale_message">ZenIA uses your heart rate data exclusively to recommend personalized relaxation exercises and monitor your well-being. Your data is not shared with third parties.</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="settings_item_settings">Settings</string>
+
+    <string name="notifications_title">Notifications</string>
+
+    <string name="profile_set_nickname">Set Nickname</string>
+    <string name="profile_edit_title">Edit Profile</string>
+    <string name="profile_nickname_label">Nickname</string>
+    <string name="profile_nickname_hint">Ex. ZenMaster</string>
+    <string name="profile_community_note">This nickname will be visible to the community.</string>
+    <string name="profile_select_avatar">Choose your Avatar</string>
+    <string name="profile_save">Save Changes</string>
+    <string name="profile_cancel">Cancel</string>
+    <string name="profile_error_char_limit">Max 20 characters</string>
+    <string name="profile_default_name">ZenIA User</string>
+    <string name="helpline">SOS</string>
+    <string name="sos_title">SOS</string>
+    <string name="sos_header">WE ARE HERE TO HELP YOU!</string>
+    <string name="sos_body_html">We know this is a difficult moment. <b>You don\'t have to go through this alone.</b> There are people willing to listen and support you. <b>Please contact someone.</b></string>
+
+    <string name="sos_btn_lifeline">Life Line</string>
+    <string name="sos_btn_friend">Call a friend</string>
+    <string name="sos_btn_support_chat">Support chat</string>
+    <string name="sos_btn_calm_exercises">Calm exercises</string>
+    <string name="sos_close_desc">Close SOS screen</string>
+
 </resources>

@@ -8,17 +8,23 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import com.zenia.app.R
+import com.zenia.app.ui.components.ZeniaTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RelajacionScreen() {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(text = "Relajación") })
+            ZeniaTopBar(
+                title = stringResource(R.string.nav_relax),
+                onNavigateBack = null,
+            )
         }
     ) { paddingValues ->
         Box(
@@ -31,7 +37,7 @@ fun RelajacionScreen() {
             Text(
                 text = "🧘\nAquí irán los ejercicios\nde respiración y meditación.",
                 style = MaterialTheme.typography.bodyLarge,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }

@@ -7,6 +7,9 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
     alias(libs.plugins.google.firebase.crashlytics)
+
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt.android)
 }
 
 val localProperties = Properties()
@@ -35,7 +38,7 @@ android {
     defaultConfig {
         applicationId = "com.zenia.app"
         minSdk = 28
-        targetSdk = 36
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -118,4 +121,15 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
 
     implementation(libs.androidx.core.splashscreen)
+
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    implementation(libs.androidx.billing.ktx)
+
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
+    implementation(libs.vico.core)
+
 }

@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.ChatRepository
 import com.zenia.app.model.MensajeChatbot
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -11,8 +13,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 sealed interface ChatUiState {
     data object Loading : ChatUiState
@@ -20,9 +24,18 @@ sealed interface ChatUiState {
     data class Error(val mensaje: String) : ChatUiState
 }
 
-class ZeniaChatViewModel(
+sealed interface ChatUiEvent {
+    data class ShowError(val message: String) : ChatUiEvent
+}
+
+@HiltViewModel
+class ZeniaChatViewModel @Inject constructor(
     private val chatRepository: ChatRepository
 ) : ViewModel() {
+
+    private val _uiEvent = Channel<ChatUiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
+
     val uiState: StateFlow<ChatUiState> = chatRepository.getHistorialChat()
         .map { ChatUiState.Success(it) as ChatUiState }
         .catch { emit(ChatUiState.Error(it.message ?: "Error desconocido")) }
@@ -39,23 +52,25 @@ class ZeniaChatViewModel(
         if (texto.isBlank()) return
 
         viewModelScope.launch {
-            val mensajeUsuario = MensajeChatbot(
-                emisor = "usuario",
-                texto = texto
-            )
+            val mensajeUsuario = MensajeChatbot(emisor = "usuario", texto = texto)
 
-            chatRepository.addChatMessage(mensajeUsuario)
-            _isTyping.value = true
-            simularRespuestaIA()
+            try {
+                chatRepository.addChatMessage(mensajeUsuario)
+                _isTyping.value = true
+                simularRespuestaIA()
+            } catch (e: Exception) {
+                _uiEvent.send(ChatUiEvent.ShowError("No se pudo enviar el mensaje"))
+            }
         }
     }
 
     fun eliminarHistorial() {
         viewModelScope.launch {
-            try{
+            try {
                 chatRepository.deleteChatHistory()
             } catch (e: Exception) {
-                e.printStackTrace()
+                _uiEvent.send(ChatUiEvent.ShowError("No se pudo borrar el historial"))
+                android.util.Log.e("ZeniaChatVM", "Error deleting", e)
             }
         }
     }

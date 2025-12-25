@@ -25,7 +25,6 @@ fun DonationsRoute(
     }
 
     DonationsScreen(
-        onNavigateBack = onNavigateBack,
-        onDonateClick = onDonateClick
+        onNavigateBack = onNavigateBack
     )
 }

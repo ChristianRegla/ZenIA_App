@@ -3,14 +3,21 @@ package com.zenia.app.ui.screens.home
 import android.app.Application
 import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
+import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
+import com.patrykandpatrick.vico.core.entry.entryOf
 import com.zenia.app.R
 import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.ContentRepository
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.HealthConnectRepository
+import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.model.RegistroBienestar
+import com.zenia.app.util.ChartUtils
+import com.zenia.app.util.UiText
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +26,10 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.ZoneId
+import javax.inject.Inject
+
 /**
  * Define los posibles estados de la UI para la pantalla principal,
  * específicamente para operaciones asíncronas como guardar un registro.
@@ -27,7 +38,7 @@ sealed interface HomeUiState {
     object Idle : HomeUiState
     object Loading : HomeUiState
     object Success : HomeUiState
-    data class Error(val message: String) : HomeUiState
+    data class Error(val message: UiText) : HomeUiState
 }
 /**
  * ViewModel para la [HomeScreen].
@@ -38,13 +49,35 @@ sealed interface HomeUiState {
  * @param healthConnectRepository Repositorio para interactuar con la API de Health Connect. Es nulable si el SDK no está disponible.
  * @param application La instancia de la aplicación para acceder a recursos (strings).
  */
-class HomeViewModel(
+@HiltViewModel
+class HomeViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val contentRepository: ContentRepository,
     private val diaryRepository: DiaryRepository,
     private val healthConnectRepository: HealthConnectRepository?,
-    application: Application
-) : AndroidViewModel(application) {
+) : ViewModel() {
+
+    // --- ESTADO DEL USUARIO ---
+    val userName = authRepository.getUsuarioFlow()
+        .map { it?.apodo ?: "Usuario" }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Cargando...")
+
+    // --- GRÁFICA DE EMOCIONES ---
+    // Productor de datos para Vico
+    val chartProducer = ChartEntryModelProducer()
+
+    // Observamos los registros y actualizamos la gráfica automáticamente
+    val registrosDiario = diaryRepository.diaryEntries
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val hasEntryToday: StateFlow<Boolean> = registrosDiario.map { lista ->
+        val todayStr = LocalDate.now().toString() // "2025-12-25"
+        lista.any { it.fecha == todayStr }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    // Estado derivado: Actividades de comunidad (Mock o Repo)
+    val communityActivities = contentRepository.getActividadesComunidad()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     /**
      * StateFlow interno para el estado de la UI (Cargando, Éxito, Error) al guardar un registro.
      */
@@ -62,7 +95,9 @@ class HomeViewModel(
      * ordenados por fecha descendente. Maneja errores de carga.
      */
     val registros = diaryRepository.getRegistrosBienestar()
-        .catch { _uiState.value = HomeUiState.Error(application.getString(R.string.error_loading_records)) }
+        .catch {
+            _uiState.value = HomeUiState.Error(UiText.StringResource(R.string.error_loading_records))
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     /**
      * StateFlow interno para rastrear si se tienen los permisos de Health Connect.
@@ -94,12 +129,50 @@ class HomeViewModel(
      */
     val permissionRequestContract
         get() = healthConnectRepository?.getPermissionRequestContract()
+
+    val healthConnectAvailability = healthConnectRepository?.getAvailabilityStatus()
+        ?: HealthConnectClient.SDK_UNAVAILABLE
     /**
      * Bloque de inicialización.
      * Comprueba los permisos de Health Connect en cuanto se crea el ViewModel.
      */
     init {
-        checkHealthPermissions()
+        viewModelScope.launch {
+            checkPermissions()
+        }
+    }
+
+    fun processChartData(registros: List<DiarioEntrada>) {
+        android.util.Log.d("ZENIA_CHART", "Procesando ${registros.size} entradas del diario")
+
+        val entries = registros
+            .filter { !it.estadoAnimo.isNullOrBlank() }
+            .mapNotNull { entrada ->
+                try {
+                    val date = LocalDate.parse(entrada.fecha)
+                    val millis = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli().toFloat()
+                    val moodValue = ChartUtils.mapMoodToValue(entrada.estadoAnimo)
+
+                    if (moodValue > 0f) {
+                        entryOf(millis, moodValue)
+                    } else null
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            .sortedBy { it.x }
+            .takeLast(7)
+
+        if (entries.isNotEmpty()) {
+            android.util.Log.d("ZENIA_CHART", "Graficando ${entries.size} puntos")
+            chartProducer.setEntries(entries)
+        } else {
+            android.util.Log.d("ZENIA_CHART", "No hay datos válidos para graficar")
+        }
+    }
+
+    suspend fun checkPermissions(): Boolean {
+        return healthConnectRepository?.hasPermissions() ?: false
     }
     /**
      * Comprueba si la app tiene actualmente los permisos de Health Connect
@@ -139,7 +212,10 @@ class HomeViewModel(
                 diaryRepository.addRegistroBienestar(nuevoRegistro)
                 _uiState.value = HomeUiState.Success
             } catch (e: Exception) {
-                _uiState.value = HomeUiState.Error(e.message ?: application.getString(R.string.error_saving_record))
+                val errorText = e.message?.let { UiText.DynamicString(it) }
+                    ?: UiText.StringResource(R.string.error_saving_record)
+
+                _uiState.value = HomeUiState.Error(errorText)
             }
         }
     }

@@ -4,11 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.ContentRepository
 import com.zenia.app.model.Recurso
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 sealed interface RecursosUiState {
     object Loading : RecursosUiState
@@ -16,7 +18,8 @@ sealed interface RecursosUiState {
     data class Error(val message: String) : RecursosUiState
 }
 
-class RecursosViewModel(
+@HiltViewModel
+class RecursosViewModel @Inject constructor(
     private val contentRepository: ContentRepository
 ) : ViewModel() {
 

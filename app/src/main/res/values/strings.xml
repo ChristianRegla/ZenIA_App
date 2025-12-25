@@ -150,8 +150,8 @@
     <string name="diary_section_mind">Mente</string>
     <string name="diary_section_exercise">Ejercicio</string>
     <string name="diary_section_activities">¿Qué has hecho?</string>
-    <string name="diary_section_notes">Cuéntame más...</string>
-    <string name="diary_placeholder_notes">Escribe aquí tus pensamientos...</string>
+    <string name="diary_section_notes">Cuéntame más…</string>
+    <string name="diary_placeholder_notes">Escribe aquí tus pensamientos…</string>
     <string name="diary_btn_save">Guardar Entrada</string>
     <string name="diary_btn_edit">Editar Registro</string>
     <string name="diary_btn_delete">Eliminar Entrada</string>
@@ -206,5 +206,33 @@
     <string name="activity_date">Cita</string>
     <string name="activity_trip">Viaje</string>
     <string name="activity_rest">Descanso</string>
+
+    <string name="health_connect_rationale_title">Acceso a Datos de Salud</string>
+    <string name="health_connect_rationale_message">ZenIA utiliza tus datos de ritmo cardíaco exclusivamente para recomendarte ejercicios de relajación personalizados y monitorear tu bienestar. Tus datos no se comparten con terceros.</string>
+    <string name="privacy_policy">Política de Privacidad</string>
+    <string name="settings_item_settings">Ajustes</string>
+    <string name="notifications_title">Notificaciones</string>
+
+    <string name="profile_set_nickname">Definir Apodo</string>
+    <string name="profile_edit_title">Editar Perfil</string>
+    <string name="profile_nickname_label">Apodo</string>
+    <string name="profile_nickname_hint">Ej. ZenMaster</string>
+    <string name="profile_community_note">Este apodo será visible en la comunidad.</string>
+    <string name="profile_select_avatar">Elige tu Avatar</string>
+    <string name="profile_save">Guardar Cambios</string>
+    <string name="profile_cancel">Cancelar</string>
+    <string name="profile_error_char_limit">Máximo 20 caracteres</string>
+    <string name="profile_default_name">Usuario de ZenIA</string>
+    <string name="helpline">SOS</string>
+
+    <string name="sos_title">SOS</string>
+    <string name="sos_header">¡ESTAMOS AQUÍ PARA AYUDARTE!</string>
+    <string name="sos_body_html">Sabemos que este es un momento difícil. <b>No tienes que pasar por esto en soledad.</b> Hay personas dispuestas a escucharte y apoyarte. <b>Por favor, contacta a alguien.</b></string>
+
+    <string name="sos_btn_lifeline">Línea de la vida</string>
+    <string name="sos_btn_friend">Llamar a un amigo</string>
+    <string name="sos_btn_support_chat">Chat de apoyo</string>
+    <string name="sos_btn_calm_exercises">Ejercicios de calma</string>
+    <string name="sos_close_desc">Cerrar pantalla SOS</string>
 
 </resources>

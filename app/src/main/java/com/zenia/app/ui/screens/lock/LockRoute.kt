@@ -13,9 +13,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.zenia.app.R
-import com.zenia.app.viewmodel.AppViewModelProvider
 import com.zenia.app.viewmodel.SettingsViewModel
 
 /**
@@ -32,7 +32,7 @@ fun LockRoute(
     val context = LocalContext.current
     val activity = context as? FragmentActivity
 
-    val settingsViewModel: SettingsViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    val settingsViewModel: SettingsViewModel = hiltViewModel()
     val allowWeak by settingsViewModel.allowWeakBiometrics.collectAsState()
 
     val launchBiometric = remember(allowWeak) {

@@ -2,10 +2,17 @@ package com.zenia.app.ui.navigation
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -14,9 +21,7 @@ import androidx.navigation.navArgument
 import com.zenia.app.ui.screens.MainScreen
 import com.zenia.app.ui.screens.account.AccountRoute
 import com.zenia.app.ui.screens.auth.AuthRoute
-import com.zenia.app.ui.screens.home.HomeRoute
 import com.zenia.app.ui.screens.lock.LockRoute
-import com.zenia.app.viewmodel.AppViewModelProvider
 import com.zenia.app.ui.screens.auth.AuthViewModel
 import com.zenia.app.ui.screens.auth.ForgotPasswordScreen
 import com.zenia.app.ui.screens.diary.DiarioRoute
@@ -25,8 +30,11 @@ import com.zenia.app.ui.screens.notifications.NotificationsRoute
 import com.zenia.app.ui.screens.premium.PremiumRoute
 import com.zenia.app.ui.screens.settings.DonationsRoute
 import com.zenia.app.ui.screens.settings.HelpCenterRoute
+import com.zenia.app.ui.screens.settings.MoreSettingsRoute
 import com.zenia.app.ui.screens.settings.PrivacyRoute
 import com.zenia.app.ui.screens.settings.SettingsRoute
+import com.zenia.app.ui.screens.sos.HelplineRoute
+import com.zenia.app.viewmodel.MainViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
 import java.time.LocalDate
 
@@ -41,39 +49,29 @@ import java.time.LocalDate
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    val authViewModel: AuthViewModel = viewModel(factory = AppViewModelProvider.Factory)
-    val settingsViewModel: SettingsViewModel = viewModel(factory = AppViewModelProvider.Factory)
 
-    val isLoggedIn by authViewModel.isUserLoggedIn.collectAsState()
+    val mainViewModel: MainViewModel = hiltViewModel()
 
-    val isBiometricEnabledState by settingsViewModel.isBiometricEnabled.collectAsState()
-
-    if (isBiometricEnabledState == null) {
-        return // O un Box(Modifier.fillMaxSize()) { CircularProgressIndicator() }
-    }
-
-    val isBiometricEnabled = isBiometricEnabledState!!
-
+    val authViewModel: AuthViewModel = hiltViewModel()
+    val settingsViewModel: SettingsViewModel = hiltViewModel()
     /**
      * Lógica clave para determinar la pantalla de inicio de la app (startDestination).
      * 1. Si el usuario está logueado Y tiene biometría activada -> Va a [Destinations.LOCK_ROUTE].
      * 2. Si está logueado pero SIN biometría -> Va directo a [Destinations.HOME_ROUTE].
      * 3. Si no está logueado (en cualquier otro caso) -> Va a [Destinations.AUTH_ROUTE].
      */
-    val startDestination = when {
-        isLoggedIn && isBiometricEnabled -> Destinations.LOCK_ROUTE
-        isLoggedIn && !isBiometricEnabled -> Destinations.HOME_ROUTE
-        else -> Destinations.AUTH_ROUTE
+    val startDestination by mainViewModel.startDestinationState.collectAsState()
+    if (startDestination == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
     }
 
     NavHost(
         navController = navController,
-        startDestination = startDestination
+        startDestination = startDestination!!
     ) {
-        /**
-         * Pantalla de Autenticación (Login / Registro).
-         * La lógica de esta pantalla está contenida en [AuthRoute].
-         */
         composable(Destinations.AUTH_ROUTE) {
             AuthRoute(
                 authViewModel = authViewModel,
@@ -87,16 +85,12 @@ fun AppNavigation() {
             ForgotPasswordScreen(
                 viewModel = authViewModel,
                 onNavigateBack = {
-                    authViewModel.resetForgotPasswordState() // Limpiamos al salir
+                    authViewModel.resetForgotPasswordState()
                     navController.popBackStack()
                 }
             )
         }
 
-        /**
-         * Pantalla Principal (Home).
-         * La lógica de esta pantalla está contenida en [HomeRoute].
-         */
         composable(Destinations.HOME_ROUTE) {
             MainScreen(
                 onSignOut = {
@@ -114,9 +108,18 @@ fun AppNavigation() {
                 onNotificationClick = {
                     navController.navigate(Destinations.NOTIFICATIONS_ROUTE)
                 },
+                onNavigateToSOS = {
+                    navController.navigate(Destinations.SOS)
+                },
                 onNavigateToDiaryEntry = { date ->
                     navController.navigate(Destinations.createDiaryEntryRoute(date))
                 }
+            )
+        }
+
+        composable(Destinations.SOS) {
+            HelplineRoute(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
@@ -126,9 +129,9 @@ fun AppNavigation() {
 
         composable(
             route = Destinations.DIARY_ENTRY_ROUTE,
-            arguments = listOf(navArgument("date") { type = NavType.StringType })
+            arguments = listOf(navArgument(NavArgs.DATE) { type = NavType.StringType })
         ) { backStackEntry ->
-            val dateString = backStackEntry.arguments?.getString("date")
+            val dateString = backStackEntry.arguments?.getString(NavArgs.DATE)
             val date = LocalDate.parse(dateString)
 
             DiaryEntryScreen(
@@ -139,11 +142,20 @@ fun AppNavigation() {
 
         composable(Destinations.NOTIFICATIONS_ROUTE) {
             NotificationsRoute(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDestination = { route ->
+                    navController.navigate(route)
+                }
             )
         }
 
-        composable(Destinations.SETTINGS_ROUTE) {
+        composable(
+            route = Destinations.SETTINGS_ROUTE,
+            enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300)) },
+            exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300)) },
+            popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300)) },
+            popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300)) }
+        ) {
             SettingsRoute(
                 settingsViewModel = settingsViewModel,
                 onNavigateBack = { navController.popBackStack() },
@@ -152,6 +164,9 @@ fun AppNavigation() {
                 },
                 onNavigateToPremium = {
                     navController.navigate(Destinations.PREMIUM_ROUTE)
+                },
+                onNavigateToMoreSettings = {
+                    navController.navigate(Destinations.MORE_SETTINGS_ROUTE)
                 },
                 onNavigateToHelp = {
                     navController.navigate(Destinations.HELP_CENTER_ROUTE)
@@ -168,6 +183,12 @@ fun AppNavigation() {
                         popUpTo(Destinations.HOME_ROUTE) { inclusive = true }
                     }
                 },
+            )
+        }
+
+        composable(Destinations.MORE_SETTINGS_ROUTE) {
+            MoreSettingsRoute(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
@@ -195,14 +216,9 @@ fun AppNavigation() {
             )
         }
 
-        /**
-         * Pantalla de Configuración de Cuenta.
-         * La lógica de esta pantalla está contenida en [AccountRoute].
-         */
         composable(Destinations.ACCOUNT_ROUTE) {
             AccountRoute(
                 authViewModel = authViewModel,
-                settingsViewModel = settingsViewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToAuth = {
                     navController.navigate(Destinations.AUTH_ROUTE) {
@@ -212,10 +228,6 @@ fun AppNavigation() {
             )
         }
 
-        /**
-         * Pantalla de Bloqueo Biométrico.
-         * La lógica de esta pantalla está contenida en [LockRoute].
-         */
         composable(Destinations.LOCK_ROUTE) {
             LockRoute(
                 onUnlockSuccess = {
