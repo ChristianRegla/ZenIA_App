@@ -58,10 +58,8 @@ fun HomeRoute(
     val userName by homeViewModel.userName.collectAsState()
     val hasEntryToday by homeViewModel.hasEntryToday.collectAsState()
     val communityActivities by homeViewModel.communityActivities.collectAsState()
-
-    LaunchedEffect(registros) {
-        homeViewModel.processChartData(registros)
-    }
+    val currentStreak by homeViewModel.currentStreak.collectAsState()
+    val moodInsights by homeViewModel.moodInsights.collectAsState()
 
     HomeScreen(
         uiState = uiState,
@@ -116,5 +114,8 @@ fun HomeRoute(
         onNotificationClick = onNotificationClick,
         onResetState = { homeViewModel.resetState() },
         onNavigateToSOS = onNavigateToSOS,
+        currentStreak = currentStreak,
+        topBooster = moodInsights.first,
+        topDrainer = moodInsights.second
     )
 }

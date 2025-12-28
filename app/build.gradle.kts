@@ -132,4 +132,6 @@ dependencies {
     implementation(libs.vico.compose.m3)
     implementation(libs.vico.core)
 
+    implementation("com.airbnb.android:lottie-compose:6.7.1")
+
 }

@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
+import com.patrykandpatrick.vico.core.entry.entriesOf
 import com.patrykandpatrick.vico.core.entry.entryOf
 import com.zenia.app.R
 import com.zenia.app.data.AuthRepository
@@ -15,6 +16,7 @@ import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.HealthConnectRepository
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.model.RegistroBienestar
+import com.zenia.app.util.AnalysisUtils
 import com.zenia.app.util.ChartUtils
 import com.zenia.app.util.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -57,23 +60,24 @@ class HomeViewModel @Inject constructor(
     private val healthConnectRepository: HealthConnectRepository?,
 ) : ViewModel() {
 
-    // --- ESTADO DEL USUARIO ---
     val userName = authRepository.getUsuarioFlow()
         .map { it?.apodo ?: "Usuario" }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Cargando...")
 
-    // --- GRÁFICA DE EMOCIONES ---
-    // Productor de datos para Vico
-    val chartProducer = ChartEntryModelProducer()
+    private val sevenDaysAgo = LocalDate.now().minusDays(7).toString()
 
-    // Observamos los registros y actualizamos la gráfica automáticamente
-    val registrosDiario = diaryRepository.diaryEntries
+    val registrosDiario = diaryRepository.getEntriesFromDate(sevenDaysAgo)
+        .onEach { entradas -> processChartData(entradas) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val hasEntryToday: StateFlow<Boolean> = registrosDiario.map { lista ->
-        val todayStr = LocalDate.now().toString() // "2025-12-25"
+        val todayStr = LocalDate.now().toString()
         lista.any { it.fecha == todayStr }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    // --- GRÁFICA DE EMOCIONES ---
+    // Productor de datos para Vico
+    val chartProducer = ChartEntryModelProducer()
 
     // Estado derivado: Actividades de comunidad (Mock o Repo)
     val communityActivities = contentRepository.getActividadesComunidad()
@@ -90,15 +94,7 @@ class HomeViewModel @Inject constructor(
     val esPremium: StateFlow<Boolean> = authRepository.getUsuarioFlow()
         .map { it?.suscripcion == "premium" }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-    /**
-     * Expone el flujo de registros de bienestar del usuario desde Firestore,
-     * ordenados por fecha descendente. Maneja errores de carga.
-     */
-    val registros = diaryRepository.getRegistrosBienestar()
-        .catch {
-            _uiState.value = HomeUiState.Error(UiText.StringResource(R.string.error_loading_records))
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     /**
      * StateFlow interno para rastrear si se tienen los permisos de Health Connect.
      */
@@ -132,29 +128,56 @@ class HomeViewModel @Inject constructor(
 
     val healthConnectAvailability = healthConnectRepository?.getAvailabilityStatus()
         ?: HealthConnectClient.SDK_UNAVAILABLE
+
+    val currentStreak: StateFlow<Int> = diaryRepository.getEntriesFromDate(
+        LocalDate.now().minusDays(30).toString()
+    ).map { entries ->
+        calculateStreak(entries)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val moodInsights = diaryRepository.getEntriesFromDate(
+        LocalDate.now().minusDays(30).toString()
+    ).map { entries ->
+        AnalysisUtils.analyzePatterns(entries)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Pair(null, null))
+
     /**
      * Bloque de inicialización.
      * Comprueba los permisos de Health Connect en cuanto se crea el ViewModel.
      */
     init {
-        viewModelScope.launch {
-            checkPermissions()
-        }
+        checkHealthPermissions()
     }
 
-    fun processChartData(registros: List<DiarioEntrada>) {
-        android.util.Log.d("ZENIA_CHART", "Procesando ${registros.size} entradas del diario")
+    private fun calculateStreak(entries: List<DiarioEntrada>): Int {
+        if (entries.isEmpty()) return 0
 
+        val recordedDates = entries.map { it.fecha }.toSet()
+        var streak = 0
+        var checkDate = LocalDate.now()
+
+        if (!recordedDates.contains(checkDate.toString())) {
+            checkDate = checkDate.minusDays(1)
+        }
+
+        while (recordedDates.contains(checkDate.toString())) {
+            streak++
+            checkDate = checkDate.minusDays(1)
+        }
+        return streak
+    }
+
+    private fun processChartData(registros: List<DiarioEntrada>) {
         val entries = registros
             .filter { !it.estadoAnimo.isNullOrBlank() }
             .mapNotNull { entrada ->
                 try {
                     val date = LocalDate.parse(entrada.fecha)
-                    val millis = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli().toFloat()
+                    val xValue = date.toEpochDay().toFloat()
                     val moodValue = ChartUtils.mapMoodToValue(entrada.estadoAnimo)
 
                     if (moodValue > 0f) {
-                        entryOf(millis, moodValue)
+                        entryOf(xValue, moodValue)
                     } else null
                 } catch (e: Exception) {
                     null
@@ -164,10 +187,7 @@ class HomeViewModel @Inject constructor(
             .takeLast(7)
 
         if (entries.isNotEmpty()) {
-            android.util.Log.d("ZENIA_CHART", "Graficando ${entries.size} puntos")
             chartProducer.setEntries(entries)
-        } else {
-            android.util.Log.d("ZENIA_CHART", "No hay datos válidos para graficar")
         }
     }
 
@@ -185,38 +205,6 @@ class HomeViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _hasHealthPermissions.value = healthConnectRepository.hasPermissions()
-        }
-    }
-    /**
-     * Guarda un nuevo registro de bienestar en Firestore.
-     * Si el usuario es [esPremium] y [hasHealthPermissions], también intenta
-     * leer el promedio de ritmo cardíaco del último día y lo adjunta al registro.
-     *
-     * @param estado El estado de ánimo seleccionado por el usuario.
-     * @param notas Las notas de diario opcionales.
-     */
-    fun guardarRegistro(estado: String, notas: String) {
-        _uiState.value = HomeUiState.Loading
-        viewModelScope.launch {
-            try {
-                var avgHeartRate: Int? = null
-
-                if (isHealthConnectAvailable && hasHealthPermissions.value && esPremium.value) {
-                    avgHeartRate = healthConnectRepository?.readDailyHeartRateAverage()
-                }
-                val nuevoRegistro = RegistroBienestar(
-                    estadoAnimo = estado,
-                    notas = notas,
-                    frecuenciaCardiaca = avgHeartRate
-                )
-                diaryRepository.addRegistroBienestar(nuevoRegistro)
-                _uiState.value = HomeUiState.Success
-            } catch (e: Exception) {
-                val errorText = e.message?.let { UiText.DynamicString(it) }
-                    ?: UiText.StringResource(R.string.error_saving_record)
-
-                _uiState.value = HomeUiState.Error(errorText)
-            }
         }
     }
 

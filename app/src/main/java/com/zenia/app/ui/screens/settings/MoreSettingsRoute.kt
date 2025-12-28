@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.os.LocaleListCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
@@ -21,6 +22,8 @@ fun MoreSettingsRoute(
     val currentLocale = AppCompatDelegate.getApplicationLocales()[0] ?: Locale.getDefault()
     val currentLanguage = currentLocale.language
 
+    val context = LocalContext.current
+
     MoreSettingsScreen(
         isBiometricEnabled = isBiometricEnabled == true,
         allowWeakBiometrics = allowWeakBiometrics,
@@ -31,6 +34,9 @@ fun MoreSettingsRoute(
             val appLocale = LocaleListCompat.forLanguageTags(newLanguage)
             AppCompatDelegate.setApplicationLocales(appLocale)
         },
-        onNavigateBack = onNavigateBack
+        onNavigateBack = onNavigateBack,
+        onExportPdf = { includeLogo ->
+            settingsViewModel.exportarDatos(context, includeLogo)
+        }
     )
 }

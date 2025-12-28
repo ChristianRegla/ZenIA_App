@@ -1,6 +1,7 @@
 package com.zenia.app.viewmodel
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.ViewModel
@@ -17,12 +18,17 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import androidx.core.net.toUri
+import com.zenia.app.data.DiaryRepository
+import com.zenia.app.util.PdfGenerator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val billingRepository: BillingRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val diaryRepository: DiaryRepository
 ) : ViewModel() {
 
     val isUserPremium = billingRepository.isPremium
@@ -91,6 +97,37 @@ class SettingsViewModel @Inject constructor(
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
+            }
+        }
+    }
+
+    fun exportarDatos(context: Context, includeLogo: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // 1. Obtener todas las entradas (una sola vez, sin observar cambios)
+                val entries = diaryRepository.getAllEntriesOnce()
+
+                // 2. Obtener el nombre del usuario actual
+                val user = authRepository.getUsuarioFlow().firstOrNull()?.apodo ?: "Usuario ZenIA"
+
+                // 3. Generar el PDF usando tu utilidad
+                val pdfUri = PdfGenerator.generateDiaryPdf(context, entries, user, includeLogo)
+
+                // 4. Compartir el archivo
+                if (pdfUri != null) {
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "application/pdf"
+                        putExtra(Intent.EXTRA_STREAM, pdfUri)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+
+                    val chooser = Intent.createChooser(shareIntent, "Tu reporte de ZenIA")
+                    chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    context.startActivity(chooser)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // Aquí podrías emitir un estado de error si quisieras mostrar un Toast
             }
         }
     }

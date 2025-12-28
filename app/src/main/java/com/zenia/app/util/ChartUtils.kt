@@ -2,7 +2,7 @@ package com.zenia.app.util
 
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
-import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -32,10 +32,9 @@ object ChartUtils {
 
     val dateAxisFormatter = AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
         try {
-            val instant = Instant.ofEpochMilli(value.toLong())
+            val date = LocalDate.ofEpochDay(value.toLong())
             val formatter = DateTimeFormatter.ofPattern("dd MMM", Locale.getDefault())
-                .withZone(ZoneId.systemDefault())
-            formatter.format(instant)
+            formatter.format(date)
         } catch (e: Exception) {
             ""
         }

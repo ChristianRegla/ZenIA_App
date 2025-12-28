@@ -37,6 +37,7 @@ import com.zenia.app.R
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaTeal
+import com.zenia.app.util.DarkStatusIconsEffect
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -51,6 +52,7 @@ fun DiarioScreen(
     onScrollConsumed: () -> Unit,
     entryContent: @Composable (LocalDate) -> Unit
 ) {
+    DarkStatusIconsEffect()
     BackHandler(enabled = uiState.selectedDate != null) {
         onBackToCalendar()
     }

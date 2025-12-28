@@ -25,6 +25,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.patrykandpatrick.vico.compose.axis.horizontal.bottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.startAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
@@ -36,10 +41,12 @@ import com.zenia.app.R
 import com.zenia.app.model.ActividadComunidad
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.components.HomeTopBar
+import com.zenia.app.ui.components.MoodPatternsCard
 import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaTeal
 import com.zenia.app.ui.theme.ZeniaWhite
+import com.zenia.app.util.AnalysisUtils
 import com.zenia.app.util.ChartUtils
 import java.time.LocalDate
 
@@ -82,7 +89,10 @@ fun HomeScreen(
     onSettingsClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onResetState: () -> Unit,
-    onNavigateToSOS: () -> Unit
+    onNavigateToSOS: () -> Unit,
+    currentStreak: Int,
+    topBooster: AnalysisUtils.Insight?,
+    topDrainer: AnalysisUtils.Insight?
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -145,6 +155,7 @@ fun HomeScreen(
             item {
                 TodayEntryCard(
                     hasEntry = hasEntryToday,
+                    streak = currentStreak,
                     onClick = { onNavigateToDiaryEntry(LocalDate.now()) }
                 )
             }
@@ -169,6 +180,13 @@ fun HomeScreen(
                 } else {
                     EmptyChartCard(onClick = { onNavigateToDiaryEntry(LocalDate.now()) })
                 }
+            }
+
+            item {
+                MoodPatternsCard(
+                    topBooster = topBooster,
+                    topDrainer = topDrainer
+                )
             }
 
             // 4. COMUNIDAD (Carrusel)
@@ -207,46 +225,68 @@ fun HomeScreen(
 }
 
 @Composable
-fun TodayEntryCard(hasEntry: Boolean, onClick: () -> Unit) {
+fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
+    // Configuración de la animación
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.fire_animation))
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+        iterations = LottieConstants.IterateForever // Que se repita siempre
+    )
+
     Card(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
+            // Cambiamos el color de fondo según el estado
             containerColor = if (hasEntry) ZeniaTeal.copy(alpha = 0.15f) else MaterialTheme.colorScheme.primary
         ),
         modifier = Modifier.fillMaxWidth().height(100.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxSize().padding(20.dp),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = if (hasEntry) "Registro completado" else "Registrar mi día",
+                    text = if (hasEntry) "¡Racha activa!" else "Registrar mi día",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = if (hasEntry) ZeniaTeal else Color.White
                 )
                 Text(
-                    text = if (hasEntry) "¡Buen trabajo manteniendo tu racha!" else "Tómate un momento para ti.",
+                    text = if (streak > 0) "¡Llevas $streak días seguidos! 🔥" else "Inicia tu racha hoy.",
                     style = MaterialTheme.typography.bodySmall,
                     color = if (hasEntry) ZeniaTeal.copy(alpha = 0.8f) else Color.White.copy(alpha = 0.8f)
                 )
             }
 
+            // CÍRCULO CON LA ANIMACIÓN
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(56.dp)
                     .clip(CircleShape)
-                    .background(if (hasEntry) ZeniaTeal else Color.White.copy(alpha = 0.2f)),
+                    .background(
+                        if (hasEntry) ZeniaTeal.copy(alpha = 0.2f)
+                        else Color.White.copy(alpha = 0.2f)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = if (hasEntry) Icons.Default.Check else Icons.Default.Add,
-                    contentDescription = null,
-                    tint = if (hasEntry) Color.White else Color.White
-                )
+                // Si tiene racha o ya registró -> Muestra animación
+                if (hasEntry || streak > 0) {
+                    LottieAnimation(
+                        composition = composition,
+                        progress = { progress },
+                        modifier = Modifier.size(40.dp)
+                    )
+                } else {
+                    // Si no tiene racha y no ha registrado -> Icono estático (invitación)
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                }
             }
         }
     }

@@ -44,7 +44,7 @@ fun ZenIATheme(
         SideEffect {
             val window = (view.context as Activity).window
 
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }
 
