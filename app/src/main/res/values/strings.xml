@@ -240,4 +240,17 @@
     <string name="shortcut_sos_short">Ayuda</string>
     <string name="shortcut_sos_long">Línea de Ayuda</string>
 
+    <string-array name="diary_prompts">
+        <item>¿Qué fue lo mejor de tu día hoy?</item>
+        <item>¿Hubo algo que te causara estrés? ¿Cómo lo manejaste?</item>
+        <item>Escribe 3 cosas por las que estás agradecido hoy.</item>
+        <item>¿Qué harías diferente si pudieras repetir el día?</item>
+        <item>¿Cómo describirías tu nivel de energía hoy?</item>
+        <item>¿Alguien te hizo sonreír? ¿Quién y por qué?</item>
+        <item>¿Qué aprendiste nuevo hoy?</item>
+        <item>Dedícate unas palabras de aliento a ti mismo:</item>
+        <item>¿Qué es lo que más necesitas en este momento?</item>
+        <item>Si tu día tuviera un título de película, ¿cuál sería?</item>
+    </string-array>
+
 </resources>

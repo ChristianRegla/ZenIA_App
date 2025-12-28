@@ -1,17 +1,21 @@
 package com.zenia.app.util
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.zenia.app.model.DiarioEntrada
 import androidx.core.graphics.scale
 import com.zenia.app.R
 import java.io.File
 import java.io.FileOutputStream
+import androidx.core.graphics.createBitmap
 
 object PdfGenerator {
 
@@ -36,9 +40,13 @@ object PdfGenerator {
         val endX = pageWidth - 40f
 
         if (includeLogo) {
-            val logoBitmap = BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
-            val scaledLogo = logoBitmap.scale(50, 50, false)
-            canvas.drawBitmap(scaledLogo, startX, 40f, paint)
+            val logoBitmap = getBitmapFromDrawable(context, R.mipmap.ic_launcher)
+
+            if (logoBitmap != null) {
+                // Redimensionamos a 50x50 de forma segura
+                val scaledLogo = logoBitmap.scale(50, 50, false)
+                canvas.drawBitmap(scaledLogo, startX, 40f, paint)
+            }
         }
 
         titlePaint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
@@ -98,6 +106,7 @@ object PdfGenerator {
 
         val folder = File(context.cacheDir, "pdfs")
         if (!folder.exists()) folder.mkdirs()
+        folder.listFiles()?.forEach { it.delete() }
         val file = File(folder, "Zenia_Report_${System.currentTimeMillis()}.pdf")
 
         return try {
@@ -109,5 +118,16 @@ object PdfGenerator {
             pdfDocument.close()
             null
         }
+    }
+
+    private fun getBitmapFromDrawable(context: Context, drawableId: Int): Bitmap? {
+        val drawable = ContextCompat.getDrawable(context, drawableId) ?: return null
+
+        val bitmap = createBitmap(drawable.intrinsicWidth.takeIf { it > 0 } ?: 1,
+            drawable.intrinsicHeight.takeIf { it > 0 } ?: 1)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        return bitmap
     }
 }

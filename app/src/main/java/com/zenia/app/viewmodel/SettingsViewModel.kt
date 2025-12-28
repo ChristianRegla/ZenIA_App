@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.AuthRepository
@@ -22,6 +23,7 @@ import com.zenia.app.data.DiaryRepository
 import com.zenia.app.util.PdfGenerator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -104,16 +106,14 @@ class SettingsViewModel @Inject constructor(
     fun exportarDatos(context: Context, includeLogo: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // 1. Obtener todas las entradas (una sola vez, sin observar cambios)
-                val entries = diaryRepository.getAllEntriesOnce()
+                // Notificar inicio (Opcional, requiere cambiar al Main Thread para Toast)
+                // withContext(Dispatchers.Main) { Toast.makeText(context, "Generando PDF...", Toast.LENGTH_SHORT).show() }
 
-                // 2. Obtener el nombre del usuario actual
+                val entries = diaryRepository.getAllEntriesOnce()
                 val user = authRepository.getUsuarioFlow().firstOrNull()?.apodo ?: "Usuario ZenIA"
 
-                // 3. Generar el PDF usando tu utilidad
                 val pdfUri = PdfGenerator.generateDiaryPdf(context, entries, user, includeLogo)
 
-                // 4. Compartir el archivo
                 if (pdfUri != null) {
                     val shareIntent = Intent(Intent.ACTION_SEND).apply {
                         type = "application/pdf"
@@ -124,10 +124,18 @@ class SettingsViewModel @Inject constructor(
                     val chooser = Intent.createChooser(shareIntent, "Tu reporte de ZenIA")
                     chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     context.startActivity(chooser)
+                } else {
+                    // Si retorna null
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Error al generar el archivo PDF", Toast.LENGTH_LONG).show()
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                // Aquí podrías emitir un estado de error si quisieras mostrar un Toast
+                // MOSTRAR ERROR AL USUARIO
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
