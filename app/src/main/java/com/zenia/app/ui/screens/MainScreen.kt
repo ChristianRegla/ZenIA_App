@@ -37,7 +37,8 @@ fun MainScreen(
     onNavigateToSettings: () -> Unit,
     onNotificationClick: () -> Unit,
     onNavigateToSOS: () -> Unit,
-    onNavigateToDiaryEntry: (LocalDate) -> Unit
+    onNavigateToDiaryEntry: (LocalDate) -> Unit,
+    onNavigateToAnalytics: () -> Unit
 ) {
     val bottomNavController = rememberNavController()
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
@@ -78,7 +79,8 @@ fun MainScreen(
                             onNavigateToSettings = onNavigateToSettings,
                             onNotificationClick = onNotificationClick,
                             onNavigateToSOS = onNavigateToSOS,
-                            onNavigateToDiaryEntry = onNavigateToDiaryEntry
+                            onNavigateToDiaryEntry = onNavigateToDiaryEntry,
+                            onNavigateToAnalytics = onNavigateToAnalytics
                         )
                     }
 

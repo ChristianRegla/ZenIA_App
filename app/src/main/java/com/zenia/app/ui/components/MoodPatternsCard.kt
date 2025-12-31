@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Lightbulb
@@ -41,28 +42,45 @@ fun MoodPatternsCard(
             }
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Lo que te hace bien
-            if (topBooster != null) {
-                InsightRow(
-                    label = "Te hace sentir increíble:",
-                    activity = topBooster.activityName,
-                    iconTint = Color(0xFF4CAF50), // Verde
-                    isPositive = true
-                )
+            if (topBooster == null && topDrainer == null) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Analytics,
+                        contentDescription = null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Sigue registrando tus días. Pronto descubriré qué te hace sentir bien.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                }
             }
+            else {
+                if (topBooster != null) {
+                    InsightRow(
+                        label = "Te hace sentir increíble:",
+                        activity = topBooster.activityName,
+                        iconTint = Color(0xFF4CAF50), // Verde
+                        isPositive = true
+                    )
+                }
 
-            if (topBooster != null && topDrainer != null) {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-            }
+                if (topBooster != null && topDrainer != null) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                }
 
-            // Lo que te baja el ánimo
-            if (topDrainer != null) {
-                InsightRow(
-                    label = "Sueles sentirte mal con:",
-                    activity = topDrainer.activityName,
-                    iconTint = Color(0xFFEF5350),
-                    isPositive = false
-                )
+                // Lo que te baja el ánimo
+                if (topDrainer != null) {
+                    InsightRow(
+                        label = "Sueles sentirte mal con:",
+                        activity = topDrainer.activityName,
+                        iconTint = Color(0xFFEF5350), // Rojo
+                        isPositive = false
+                    )
+                }
             }
         }
     }

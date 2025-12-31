@@ -21,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.zenia.app.ui.screens.MainScreen
 import com.zenia.app.ui.screens.account.AccountRoute
+import com.zenia.app.ui.screens.analytics.AnalyticsRoute
 import com.zenia.app.ui.screens.auth.AuthRoute
 import com.zenia.app.ui.screens.lock.LockRoute
 import com.zenia.app.ui.screens.auth.AuthViewModel
@@ -129,7 +130,8 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
                 onNavigateToDiaryEntry = { date ->
                     navController.safeNavigate(Destinations.createDiaryEntryRoute(date))
                 },
-                onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) }
+                onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) },
+                onNavigateToAnalytics = { navController.safeNavigate(Destinations.ANALYTICS_ROUTE) }
             )
         }
 
@@ -156,7 +158,13 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
             )
         }
 
-        composable(Destinations.NOTIFICATIONS_ROUTE) {
+        composable(
+            route = Destinations.NOTIFICATIONS_ROUTE,
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
+        ) {
             NotificationsRoute(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToDestination = { route ->
@@ -291,6 +299,20 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
                         popUpTo(Destinations.LOCK_ROUTE) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        composable(
+            route = Destinations.ANALYTICS_ROUTE,
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
+        ) {
+            AnalyticsRoute(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) },
+                isPremium = true
             )
         }
     }

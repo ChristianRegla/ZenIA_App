@@ -28,13 +28,12 @@ fun HomeRoute(
     onNotificationClick: () -> Unit,
     onNavigateToSOS: () -> Unit,
     onSignOut: () -> Unit,
-    onNavigateToDiaryEntry: (LocalDate) -> Unit
+    onNavigateToDiaryEntry: (LocalDate) -> Unit,
+    onNavigateToAnalytics: () -> Unit
 ) {
-    // 1. Obtiene el ViewModel
     val homeViewModel: HomeViewModel = hiltViewModel()
     val context = LocalContext.current
 
-    // 2. Define el Launcher de Permisos
     val dummyContract = object : ActivityResultContract<Set<String>, Set<String>>() {
         override fun createIntent(context: android.content.Context, input: Set<String>) = Intent()
         override fun parseResult(resultCode: Int, intent: Intent?) = emptySet<String>()
@@ -49,7 +48,6 @@ fun HomeRoute(
         }
     )
 
-    // 3. Recolecta todos los estados necesarios
     val uiState by homeViewModel.uiState.collectAsState()
     val registros by homeViewModel.registrosDiario.collectAsState()
     val esPremium by homeViewModel.esPremium.collectAsState()
@@ -116,6 +114,7 @@ fun HomeRoute(
         onNavigateToSOS = onNavigateToSOS,
         currentStreak = currentStreak,
         topBooster = moodInsights.first,
-        topDrainer = moodInsights.second
+        topDrainer = moodInsights.second,
+        onNavigateToAnalytics = onNavigateToAnalytics
     )
 }
