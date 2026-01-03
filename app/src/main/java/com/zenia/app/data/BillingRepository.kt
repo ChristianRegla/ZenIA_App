@@ -5,23 +5,30 @@ import android.content.Context
 import android.util.Log
 import com.android.billingclient.api.*
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class BillingRepository @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    private val authRepository: AuthRepository // Inyectar AuthRepository
 ) : PurchasesUpdatedListener {
+
+    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _billingConnectionState = MutableStateFlow(false)
     val billingConnectionState = _billingConnectionState.asStateFlow()
 
-    private val _isPremium = MutableStateFlow(false)
-    val isPremium = _isPremium.asStateFlow()
+    // ELIMINADO: El estado "isPremium" ahora se obtiene de AuthRepository como única fuente.
+    // private val _isPremium = MutableStateFlow(false)
+    // val isPremium = _isPremium.asStateFlow()
 
     private val TEST_PRODUCT_ID = "android.test.purchased"
 
@@ -44,7 +51,7 @@ class BillingRepository @Inject constructor(
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                     Log.d("BillingRepo", "Conectado a Google Play Billing")
                     _billingConnectionState.value = true
-                    // Al conectar, verificamos si ya tiene suscripciones activas
+                    // Al conectar, verificamos compras para actualizar el estado en Firestore si es necesario.
                     checkSubscriptionStatus()
                 }
             }
@@ -58,8 +65,7 @@ class BillingRepository @Inject constructor(
     }
 
     /**
-     * Consulta las compras existentes para restaurar el estado Premium si el usuario
-     * cierra y abre la app.
+     * Consulta las compras existentes para asegurar que el estado en Firestore esté actualizado.
      */
     private fun checkSubscriptionStatus() {
         val queryPurchasesParams = QueryPurchasesParams.newBuilder()
@@ -68,15 +74,11 @@ class BillingRepository @Inject constructor(
 
         billingClient.queryPurchasesAsync(queryPurchasesParams) { billingResult, purchases ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                // Si hay alguna compra de suscripción válida y no consumida/cancelada
-                val hasActiveSubscription = purchases.any { purchase ->
-                    purchase.purchaseState == Purchase.PurchaseState.PURCHASED
+                val hasActiveSubscription = purchases.any { it.purchaseState == Purchase.PurchaseState.PURCHASED }
+                // Actualiza Firestore. La UI reaccionará al Flow de AuthRepository.
+                repositoryScope.launch {
+                    authRepository.updateUserSubscription(hasActiveSubscription)
                 }
-                _isPremium.value = hasActiveSubscription
-
-                // Nota para Tesis: Como usamos IDs de prueba que a veces no persisten bien en emuladores,
-                // _isPremium iniciará en false al reiniciar la app.
-                // En una app real, esto restauraría la compra real.
             }
         }
     }
@@ -114,8 +116,8 @@ class BillingRepository @Inject constructor(
                         .setProductDetails(productDetails)
                         .apply {
                             if (isSubscription) {
-                                productDetails.subscriptionOfferDetails?.firstOrNull()?.offerToken?.let { token ->
-                                    setOfferToken(token)
+                                productDetails.subscriptionOfferDetails?.firstOrNull()?.offerToken?.let {
+                                    token -> setOfferToken(token)
                                 }
                             }
                         }
@@ -145,29 +147,14 @@ class BillingRepository @Inject constructor(
 
     private fun handlePurchase(purchase: Purchase) {
         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-
-            // LÓGICA IMPORTANTE: Distinguir Donación vs Suscripción
-            // Como usamos el mismo ID de prueba, usaremos una lógica simple:
-            // Si NO está reconocido (acknowledged), asumimos que es suscripción nueva y la activamos.
-            // Si ya está reconocido o queremos simular donación repetitiva, consumimos.
-
-            // Para fines de TU TESIS y pruebas fáciles:
-            // Vamos a consumir TODO para que siempre puedas volver a comprar y probar el flujo.
-            // Pero simularemos la activación de Premium visualmente.
-
+            // Para fines de prueba, consumimos todo para poder comprar de nuevo.
+            // En producción, distinguirías entre suscripción y donación.
             consumePurchase(purchase)
 
-            // Simulación: Si acabamos de comprar, activamos Premium en la UI temporalmente
-            _isPremium.value = true
-
-            /* CÓDIGO REAL PARA PRODUCCIÓN (Descomentar cuando tengas IDs reales):
-            if (purchase.products.contains("id_suscripcion_real")) {
-                acknowledgePurchase(purchase)
-                _isPremium.value = true
-            } else if (purchase.products.contains("id_donacion_real")) {
-                consumePurchase(purchase)
+            // **MEJORA CLAVE**: Actualizamos Firestore, nuestra fuente de verdad.
+            repositoryScope.launch {
+                authRepository.updateUserSubscription(true)
             }
-            */
         }
     }
 
@@ -183,6 +170,7 @@ class BillingRepository @Inject constructor(
         }
     }
 
+    // acknowledgePurchase se mantiene por si se usa para suscripciones reales en el futuro
     private fun acknowledgePurchase(purchase: Purchase) {
         if (!purchase.isAcknowledged) {
             val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
@@ -192,7 +180,9 @@ class BillingRepository @Inject constructor(
             billingClient.acknowledgePurchase(acknowledgePurchaseParams) { billingResult ->
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                     Log.d("BillingRepo", "¡Suscripción reconocida y activa!")
-                    _isPremium.value = true
+                    repositoryScope.launch {
+                        authRepository.updateUserSubscription(true)
+                    }
                 }
             }
         }

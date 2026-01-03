@@ -68,7 +68,7 @@
 
     <string name="home_welcome">Welcome to ZenIA!</string>
     <string name="home_connect_watch">Connect Smartwatch</string>
-    <string name="home_watch_connected">Watch Connected ✔\uFE0F</string>
+    <string name="home_watch_connected">Watch Connected ✔️</string>
     <string name="home_connect_watch_premium">Connect Smartwatch (Premium Feature)</string>
     <string name="home_my_account">My Account</string>
     <string name="home_connect_watch_help">Trouble connecting? Grant permission manually here.</string>
@@ -154,8 +154,8 @@
     <string name="diary_section_mind">Mind</string>
     <string name="diary_section_exercise">Exercise</string>
     <string name="diary_section_activities">What have you done?</string>
-    <string name="diary_section_notes">Tell me more...</string>
-    <string name="diary_placeholder_notes">Write your thoughts here...</string>
+    <string name="diary_section_notes">Tell me more…</string>
+    <string name="diary_placeholder_notes">Write your thoughts here…</string>
     <string name="diary_btn_save">Save Entry</string>
     <string name="diary_btn_edit">Edit Record</string>
     <string name="diary_btn_delete">Delete Entry</string>
@@ -215,33 +215,33 @@
     <string name="health_connect_rationale_message">ZenIA uses your heart rate data exclusively to recommend personalized relaxation exercises and monitor your well-being. Your data is not shared with third parties.</string>
     <string name="privacy_policy">Privacy Policy</string>
     <string name="settings_item_settings">Settings</string>
-
     <string name="notifications_title">Notifications</string>
 
     <string name="profile_set_nickname">Set Nickname</string>
     <string name="profile_edit_title">Edit Profile</string>
     <string name="profile_nickname_label">Nickname</string>
-    <string name="profile_nickname_hint">Ex. ZenMaster</string>
-    <string name="profile_community_note">This nickname will be visible to the community.</string>
+    <string name="profile_nickname_hint">e.g. ZenMaster</string>
+    <string name="profile_community_note">This nickname will be visible in the community.</string>
     <string name="profile_select_avatar">Choose your Avatar</string>
     <string name="profile_save">Save Changes</string>
     <string name="profile_cancel">Cancel</string>
-    <string name="profile_error_char_limit">Max 20 characters</string>
+    <string name="profile_error_char_limit">Maximum 20 characters</string>
     <string name="profile_default_name">ZenIA User</string>
     <string name="helpline">SOS</string>
+
     <string name="sos_title">SOS</string>
     <string name="sos_header">WE ARE HERE TO HELP YOU!</string>
-    <string name="sos_body_html">We know this is a difficult moment. <b>You don\'t have to go through this alone.</b> There are people willing to listen and support you. <b>Please contact someone.</b></string>
+    <string name="sos_body_html">We know this is a difficult time. <b>You don\'t have to go through this alone.</b> There are people willing to listen and support you. <b>Please, reach out to someone.</b></string>
 
-    <string name="sos_btn_lifeline">Life Line</string>
+    <string name="sos_btn_lifeline">Lifeline</string>
     <string name="sos_btn_friend">Call a friend</string>
     <string name="sos_btn_support_chat">Support chat</string>
     <string name="sos_btn_calm_exercises">Calm exercises</string>
     <string name="sos_close_desc">Close SOS screen</string>
 
-    <string name="shortcut_new_entry_short">New Entry</string>
-    <string name="shortcut_new_entry_long">Write in Diary</string>
-    <string name="shortcut_sos_short">Get Help</string>
+    <string name="shortcut_new_entry_short">Write</string>
+    <string name="shortcut_new_entry_long">New Entry</string>
+    <string name="shortcut_sos_short">Help</string>
     <string name="shortcut_sos_long">Helpline</string>
 
     <string-array name="diary_prompts">
@@ -252,15 +252,29 @@
         <item>How would you describe your energy level today?</item>
         <item>Did someone make you smile? Who and why?</item>
         <item>What did you learn today?</item>
-        <item>Write some words of encouragement to yourself:</item>
+        <item>Give yourself a few words of encouragement:</item>
         <item>What do you need most right now?</item>
         <item>If your day had a movie title, what would it be?</item>
     </string-array>
 
-    <string name="feedback_happy">So glad to hear! Cherish this moment.</string>
-    <string name="feedback_good">Great! Keep up that energy.</string>
-    <string name="feedback_neutral">Entry saved. Everything counts.</string>
+    <string name="feedback_happy">So glad! We love to see you like this.</string>
+    <string name="feedback_good">Excellent! Keep up that energy.</string>
+    <string name="feedback_neutral">Record saved. Everything counts.</string>
     <string name="feedback_sad">Thanks for sharing. One step at a time.</string>
-    <string name="feedback_awful">We\'re here for you. Remember to use the SOS button if needed.</string>
+    <string name="feedback_awful">We\'re sorry. Remember to use the SOS button if you need it.</string>
+
+    <!-- HomeScreen -->
+    <string name="home_greeting">Hello, %1$s 👋</string>
+    <string name="home_how_are_you">How are you feeling today?</string>
+    <string name="home_emotion_balance">Your emotional balance</string>
+    <string name="home_view_analysis">View analysis</string>
+    <string name="home_community_title">Zen Community</string>
+    <string name="home_view_all">View all</string>
+    <string name="home_streak_active">Streak active!</string>
+    <string name="home_log_day">Log my day</string>
+    <string name="home_streak_counter">You\'re on a %1$d day streak! 🔥</string>
+    <string name="home_start_streak">Start your streak today.</string>
+    <string name="home_no_chart_data">No data yet. Log your first day!</string>
+    <string name="home_community_participants">%1$d participants</string>
 
 </resources>

@@ -1,21 +1,17 @@
 package com.zenia.app.ui.screens.home
 
-import android.app.Application
 import androidx.health.connect.client.HealthConnectClient
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
-import com.patrykandpatrick.vico.core.entry.entriesOf
 import com.patrykandpatrick.vico.core.entry.entryOf
-import com.zenia.app.R
 import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.ContentRepository
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.HealthConnectRepository
 import com.zenia.app.model.DiarioEntrada
-import com.zenia.app.model.RegistroBienestar
+import com.zenia.app.model.SubscriptionType
 import com.zenia.app.util.AnalysisUtils
 import com.zenia.app.util.ChartUtils
 import com.zenia.app.util.UiText
@@ -24,13 +20,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.ZoneId
 import javax.inject.Inject
 
 /**
@@ -92,7 +86,7 @@ class HomeViewModel @Inject constructor(
      * Se actualiza en tiempo real observando el documento del usuario en Firestore.
      */
     val esPremium: StateFlow<Boolean> = authRepository.getUsuarioFlow()
-        .map { it?.suscripcion == "premium" }
+        .map { it?.suscripcion == SubscriptionType.PREMIUM }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     /**

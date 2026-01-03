@@ -1,8 +1,10 @@
 package com.zenia.app.data
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.zenia.app.model.SubscriptionType
 import com.zenia.app.model.Usuario
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -104,7 +106,7 @@ class AuthRepository @Inject constructor(
             val nuevoUsuario = Usuario(
                 id = userId,
                 email = email ?: "",
-                suscripcion = "free"
+                suscripcion = SubscriptionType.FREE
             )
             userRef.set(nuevoUsuario).await()
         } else {
@@ -139,34 +141,42 @@ class AuthRepository @Inject constructor(
 
     /**
      * Elimina permanentemente los datos del usuario de Firestore.
-     * Realiza un borrado en cascada (Batch Delete) eliminando primero las subcolecciones
-     * (Bienestar, Chat, Diario) y finalmente el documento del usuario.
      *
-     * @param userId El ID del usuario a eliminar.
-     * @throws Exception Si ocurre un error durante el proceso de borrado.
+     * IMPORTANTE: La implementación original que borraba desde el cliente ha sido eliminada
+     * por ser peligrosa y no escalable. Un borrado masivo desde el cliente puede fallar
+     * y dejar datos inconsistentes o crashear la app por exceso de memoria.
+     *
+     * SOLUCIÓN CORRECTA: Utilizar una Cloud Function en Firebase que se active
+     * al eliminar un usuario de Firebase Auth y borre sus subcolecciones de forma segura
+     * en el backend.
+     * @see https://firebase.google.com/products/extensions/firebase-delete-user-data
+     *
+     * @param userId El ID del usuario a eliminar (actualmente no se usa).
      */
     suspend fun deleteUserData(userId: String) {
-        try {
-            val userRef = db.collection(FirestoreCollections.USERS).document(userId)
-            val batch = db.batch()
+        // Esta función ahora solo registra una advertencia. La lógica real debe estar en el backend.
+        Log.w(
+            "AuthRepository",
+            "La eliminación de datos de Firestore ($userId) debe ser manejada por una Cloud Function. " +
+            "La implementación del lado del cliente ha sido deshabilitada para evitar la pérdida de datos o crashes."
+        )
+        // La eliminación de la cuenta de Auth (auth.currentUser.delete()) se maneja por separado
+        // en el ViewModel, ya que es una operación distinta.
+    }
 
-            val registrosRef = userRef.collection(FirestoreCollections.WELNESS_LOGS)
-            val registrosSnapshot = registrosRef.get().await()
-            for (doc in registrosSnapshot.documents) batch.delete(doc.reference)
-
-            val chatRef = userRef.collection(FirestoreCollections.CHAT_HISTORY)
-            val chatSnapshot = chatRef.get().await()
-            for (doc in chatSnapshot.documents) batch.delete(doc.reference)
-
-            val diaryRef = userRef.collection(FirestoreCollections.DIARY)
-            val diarySnapshot = diaryRef.get().await()
-            for(doc in diarySnapshot.documents) batch.delete(doc.reference)
-
-            batch.delete(userRef)
-            batch.commit().await()
-        } catch (e: Exception) {
-            throw e
-        }
+    /**
+     * Actualiza el estado de la suscripción del usuario en Firestore.
+     * Debería ser llamado desde el BillingRepository tras una compra exitosa.
+     *
+     * @param isPremium El nuevo estado de la suscripción.
+     */
+    suspend fun updateUserSubscription(isPremium: Boolean) {
+        val userId = currentUserId ?: return
+        val newStatus = if (isPremium) SubscriptionType.PREMIUM else SubscriptionType.FREE
+        db.collection(FirestoreCollections.USERS)
+            .document(userId)
+            .update("suscripcion", newStatus)
+            .await()
     }
 
     /**

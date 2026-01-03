@@ -28,6 +28,19 @@ import com.zenia.app.ui.screens.zenia.ZeniaBotRoute
 import com.zenia.app.ui.theme.ZenIATheme
 import java.time.LocalDate
 
+/**
+ * Pantalla principal de la aplicación que aloja la navegación inferior y las diferentes
+ * secciones de la app.
+ *
+ * @param onSignOut Callback para cerrar la sesión del usuario.
+ * @param onNavigateToAccount Callback para navegar a la pantalla de la cuenta del usuario.
+ * @param onNavigateToPremium Callback para navegar a la pantalla de suscripción premium.
+ * @param onNavigateToSettings Callback para navegar a la pantalla de ajustes.
+ * @param onNotificationClick Callback para manejar el clic en una notificación.
+ * @param onNavigateToSOS Callback para navegar a la pantalla de emergencia/SOS.
+ * @param onNavigateToDiaryEntry Callback para navegar a una entrada específica del diario.
+ * @param onNavigateToAnalytics Callback para navegar a la pantalla de analíticas.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
