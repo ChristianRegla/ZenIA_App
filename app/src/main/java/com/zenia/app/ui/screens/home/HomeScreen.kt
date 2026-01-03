@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,6 +24,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.patrykandpatrick.vico.compose.axis.horizontal.bottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.startAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
@@ -36,10 +40,11 @@ import com.zenia.app.R
 import com.zenia.app.model.ActividadComunidad
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.components.HomeTopBar
+import com.zenia.app.ui.components.MoodPatternsCard
 import com.zenia.app.ui.theme.RobotoFlex
-import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaTeal
 import com.zenia.app.ui.theme.ZeniaWhite
+import com.zenia.app.util.AnalysisUtils
 import com.zenia.app.util.ChartUtils
 import java.time.LocalDate
 
@@ -82,7 +87,11 @@ fun HomeScreen(
     onSettingsClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onResetState: () -> Unit,
-    onNavigateToSOS: () -> Unit
+    onNavigateToSOS: () -> Unit,
+    currentStreak: Int,
+    topBooster: AnalysisUtils.Insight?,
+    topDrainer: AnalysisUtils.Insight?,
+    onNavigateToAnalytics: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -114,90 +123,111 @@ fun HomeScreen(
                 )
             }
         },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(paddingValues)
-                .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
         ) {
-            // 1. SALUDO
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Hola, $userName 👋",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontFamily = RobotoFlex,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "¿Cómo te sientes hoy?",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            LazyColumn(
+                modifier = Modifier
+                    .widthIn(max = 600.dp)
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
 
-            // 2. TARJETA DE "HOY" (Call to Action)
-            item {
-                TodayEntryCard(
-                    hasEntry = hasEntryToday,
-                    onClick = { onNavigateToDiaryEntry(LocalDate.now()) }
-                )
-            }
-
-            // 3. GRÁFICA DE EMOCIONES
-            item {
-                Text(
-                    text = "Tu balance emocional",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                // Verificamos si hay entradas válidas (con estado de ánimo)
-                // Esto asegura que la gráfica no se intente pintar vacía
-                val hayDatosGraficables = remember(registrosDiario) {
-                    registrosDiario.any { !it.estadoAnimo.isNullOrBlank() }
-                }
-
-                if (hayDatosGraficables) {
-                    EmotionChartCard(chartProducer)
-                } else {
-                    EmptyChartCard(onClick = { onNavigateToDiaryEntry(LocalDate.now()) })
-                }
-            }
-
-            // 4. COMUNIDAD (Carrusel)
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                // 1. SALUDO
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Comunidad Zen",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        text = "Hola, $userName 👋",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontFamily = RobotoFlex,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
-                    TextButton(onClick = { /* Ver más */ }) {
-                        Text("Ver todo")
+                    Text(
+                        text = "¿Cómo te sientes hoy?",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                // 2. TARJETA DE "HOY"
+                item {
+                    TodayEntryCard(
+                        hasEntry = hasEntryToday,
+                        streak = currentStreak,
+                        onClick = { onNavigateToDiaryEntry(LocalDate.now()) }
+                    )
+                }
+
+                // 3. GRÁFICA DE EMOCIONES
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Tu balance emocional",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        TextButton(onClick = onNavigateToAnalytics) {
+                            Text("Ver análisis")
+                        }
+                    }
+
+                    val hayDatosGraficables = remember(registrosDiario) {
+                        registrosDiario.any { !it.estadoAnimo.isNullOrBlank() }
+                    }
+
+                    if (hayDatosGraficables) {
+                        EmotionChartCard(chartProducer)
+                    } else {
+                        EmptyChartCard(onClick = { onNavigateToDiaryEntry(LocalDate.now()) })
                     }
                 }
 
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(bottom = 24.dp) // Espacio al final
-                ) {
-                    // Si no hay datos, mostramos placehoders
-                    if (communityActivities.isEmpty()) {
-                        items(3) { CommunityCardPlaceholder() }
-                    } else {
-                        items(communityActivities) { actividad ->
-                            CommunityCard(actividad)
+                item {
+                    MoodPatternsCard(
+                        topBooster = topBooster,
+                        topDrainer = topDrainer
+                    )
+                }
+
+                // 4. COMUNIDAD
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Comunidad Zen",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        TextButton(onClick = { /* Ver más */ }) {
+                            Text("Ver todo")
+                        }
+                    }
+
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(bottom = 24.dp)
+                    ) {
+                        if (communityActivities.isEmpty()) {
+                            items(3) { CommunityCardPlaceholder() }
+                        } else {
+                            items(communityActivities) { actividad ->
+                                CommunityCard(actividad)
+                            }
                         }
                     }
                 }
@@ -207,7 +237,13 @@ fun HomeScreen(
 }
 
 @Composable
-fun TodayEntryCard(hasEntry: Boolean, onClick: () -> Unit) {
+fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.fire_animation))
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+        iterations = LottieConstants.IterateForever
+    )
+
     Card(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
@@ -217,19 +253,19 @@ fun TodayEntryCard(hasEntry: Boolean, onClick: () -> Unit) {
         modifier = Modifier.fillMaxWidth().height(100.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxSize().padding(20.dp),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = if (hasEntry) "Registro completado" else "Registrar mi día",
+                    text = if (hasEntry) "¡Racha activa!" else "Registrar mi día",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = if (hasEntry) ZeniaTeal else Color.White
                 )
                 Text(
-                    text = if (hasEntry) "¡Buen trabajo manteniendo tu racha!" else "Tómate un momento para ti.",
+                    text = if (streak > 0) "¡Llevas $streak días seguidos! 🔥" else "Inicia tu racha hoy.",
                     style = MaterialTheme.typography.bodySmall,
                     color = if (hasEntry) ZeniaTeal.copy(alpha = 0.8f) else Color.White.copy(alpha = 0.8f)
                 )
@@ -237,16 +273,27 @@ fun TodayEntryCard(hasEntry: Boolean, onClick: () -> Unit) {
 
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(56.dp)
                     .clip(CircleShape)
-                    .background(if (hasEntry) ZeniaTeal else Color.White.copy(alpha = 0.2f)),
+                    .background(
+                        if (hasEntry) ZeniaTeal.copy(alpha = 0.2f)
+                        else Color.White.copy(alpha = 0.2f)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = if (hasEntry) Icons.Default.Check else Icons.Default.Add,
-                    contentDescription = null,
-                    tint = if (hasEntry) Color.White else Color.White
-                )
+                if (hasEntry || streak > 0) {
+                    LottieAnimation(
+                        composition = composition,
+                        progress = { progress },
+                        modifier = Modifier.size(40.dp)
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                }
             }
         }
     }
@@ -261,7 +308,6 @@ fun EmotionChartCard(chartProducer: com.patrykandpatrick.vico.core.entry.ChartEn
         modifier = Modifier.fillMaxWidth().height(250.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Configuración visual de la línea
             val lineSpec = remember {
                 LineChart.LineSpec(
                     lineColor = ZeniaTeal.toArgb(),

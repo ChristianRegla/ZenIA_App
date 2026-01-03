@@ -19,6 +19,9 @@ object Destinations {
     const val PREMIUM_ROUTE = "premium"
     const val DIARY_ROUTE = "diary"
     const val DIARY_ENTRY_ROUTE = "diary_entry/{date}"
+    const val RELAX_ROUTE = "relax"
+    const val RECURSOS_ROUTE = "recursos"
+    const val ANALYTICS_ROUTE = "analytics"
 
     fun createDiaryEntryRoute(date: LocalDate) = "diary_entry/${date}"
 }

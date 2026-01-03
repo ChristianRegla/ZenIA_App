@@ -1,4 +1,4 @@
-package com.zenia.app.ui.screens.recursos
+package com.zenia.app.ui.screens.relax
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -7,15 +7,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
 
 @Composable
-fun RecursosRoute(
-    onNavigateToDetail: (Int) -> Unit,
+fun RelaxRoute(
+    onNavigateToPlayer: (Int) -> Unit,
     onNavigateToPremium: () -> Unit
 ) {
-    val settingsViewModel: SettingsViewModel = hiltViewModel()
-    val isPremium by settingsViewModel.isUserPremium.collectAsState()
+    val viewModel: SettingsViewModel = hiltViewModel()
+    val isPremium by viewModel.isUserPremium.collectAsState()
 
-    RecursosScreen(
-        onNavigateToDetail = onNavigateToDetail,
+    RelaxScreen(
+        onNavigateToPlayer = onNavigateToPlayer,
         onNavigateToPremium = onNavigateToPremium,
         isUserPremium = isPremium
     )

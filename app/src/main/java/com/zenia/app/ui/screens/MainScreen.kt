@@ -18,10 +18,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.zenia.app.ui.components.ZeniaBottomBar
 import com.zenia.app.ui.navigation.BottomNavItem
+import com.zenia.app.ui.navigation.Destinations
 import com.zenia.app.ui.screens.diary.DiarioRoute
 import com.zenia.app.ui.screens.home.HomeRoute
 import com.zenia.app.ui.screens.recursos.RecursosRoute
-import com.zenia.app.ui.screens.relax.RelajacionScreen
+import com.zenia.app.ui.screens.relax.RelaxRoute
+import com.zenia.app.ui.screens.relax.RelaxScreen
 import com.zenia.app.ui.screens.zenia.ZeniaBotRoute
 import com.zenia.app.ui.theme.ZenIATheme
 import java.time.LocalDate
@@ -31,10 +33,12 @@ import java.time.LocalDate
 fun MainScreen(
     onSignOut: () -> Unit,
     onNavigateToAccount: () -> Unit,
+    onNavigateToPremium: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNotificationClick: () -> Unit,
     onNavigateToSOS: () -> Unit,
-    onNavigateToDiaryEntry: (LocalDate) -> Unit
+    onNavigateToDiaryEntry: (LocalDate) -> Unit,
+    onNavigateToAnalytics: () -> Unit
 ) {
     val bottomNavController = rememberNavController()
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
@@ -75,12 +79,19 @@ fun MainScreen(
                             onNavigateToSettings = onNavigateToSettings,
                             onNotificationClick = onNotificationClick,
                             onNavigateToSOS = onNavigateToSOS,
-                            onNavigateToDiaryEntry = onNavigateToDiaryEntry
+                            onNavigateToDiaryEntry = onNavigateToDiaryEntry,
+                            onNavigateToAnalytics = onNavigateToAnalytics
                         )
                     }
 
                     composable(BottomNavItem.Relajacion.route) {
-                        RelajacionScreen()
+                        RelaxRoute(
+                            onNavigateToPlayer = { exerciseId ->
+                                // TODO: Aquí navegarías al reproductor cuando lo tengas
+                                // navController.navigate("player/$exerciseId")
+                            },
+                            onNavigateToPremium = onNavigateToPremium
+                        )
                     }
 
                     composable(BottomNavItem.Zenia.route) {
@@ -94,7 +105,13 @@ fun MainScreen(
                     }
 
                     composable(BottomNavItem.Recursos.route) {
-                        RecursosRoute()
+                        RecursosRoute(
+                            onNavigateToDetail = { recursoId ->
+                                // TODO: Navegar al detalle del artículo/recurso
+                                // navController.navigate("recurso_detail/$recursoId")
+                            },
+                            onNavigateToPremium = onNavigateToPremium
+                        )
                     }
                 }
             }

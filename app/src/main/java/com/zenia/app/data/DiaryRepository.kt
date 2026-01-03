@@ -62,6 +62,37 @@ class DiaryRepository @Inject constructor(
             replay = 1
         )
 
+    fun getEntriesFromDate(minDate: String): Flow<List<DiarioEntrada>> = callbackFlow {
+        var firestoreListener: ListenerRegistration? = null
+
+        val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            val currentUserId = firebaseAuth.currentUser?.uid
+            firestoreListener?.remove()
+
+            if (currentUserId.isNullOrBlank()) {
+                trySend(emptyList())
+            } else {
+                firestoreListener = db.collection(FirestoreCollections.USERS).document(currentUserId)
+                    .collection(FirestoreCollections.DIARY)
+                    .whereGreaterThanOrEqualTo("fecha", minDate)
+                    .addSnapshotListener { snapshot, e ->
+                        if (e != null) {
+                            trySend(emptyList())
+                            return@addSnapshotListener
+                        }
+                        val entradas = snapshot?.toObjects(DiarioEntrada::class.java) ?: emptyList()
+                        trySend(entradas)
+                    }
+            }
+        }
+
+        auth.addAuthStateListener(authListener)
+        awaitClose {
+            auth.removeAuthStateListener(authListener)
+            firestoreListener?.remove()
+        }
+    }
+
     fun getDiaryEntriesStream(): Flow<List<DiarioEntrada>> = diaryEntries
 
     suspend fun saveDiaryEntry(entry: DiarioEntrada) {
@@ -129,6 +160,24 @@ class DiaryRepository @Inject constructor(
             .collection(FirestoreCollections.WELNESS_LOGS)
             .add(registro)
             .await()
+    }
+
+    /**
+     * Obtiene todas las entradas ordenadas por fecha para generar reportes PDF.
+     * Es una función suspendida de una sola ejecución (no Flow).
+     */
+    suspend fun getAllEntriesOnce(): List<DiarioEntrada> {
+        return try {
+            val snapshot = db.collection(FirestoreCollections.USERS).document(userId)
+                .collection(FirestoreCollections.DIARY)
+                .orderBy("fecha", Query.Direction.DESCENDING) // Del más reciente al más antiguo
+                .get()
+                .await()
+
+            snapshot.toObjects(DiarioEntrada::class.java)
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 
     /**

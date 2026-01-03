@@ -63,10 +63,12 @@ class MainActivity : AppCompatActivity() {
             fadeOut.start()
         }
 
+        val pendingDeepLink = intent?.data
+
         enableEdgeToEdge()
         setContent {
             ZenIATheme {
-                AppNavigation()
+                AppNavigation(pendingDeepLink = pendingDeepLink)
             }
         }
     }

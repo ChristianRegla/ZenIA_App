@@ -1,5 +1,9 @@
 package com.zenia.app.util
 
+import android.content.Context
+import com.zenia.app.R
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import java.text.Normalizer
 
 object ProfanityFilter {
@@ -20,42 +24,19 @@ object ProfanityFilter {
         val detected: Set<String>
     )
 
-    private val blockedWords = listOf(
+    private val blockedWords = HashSet<BadWord>()
+
+    private val hardcodedDefaults = listOf(
         BadWord("puto", Severity.HIGH),
         BadWord("puta", Severity.HIGH),
-        BadWord("mierda", Severity.LOW),
-        BadWord("verga", Severity.MEDIUM),
-        BadWord("pendejo", Severity.HIGH),
-        BadWord("cabron", Severity.MEDIUM),
-        BadWord("estupido", Severity.LOW),
-        BadWord("idiota", Severity.LOW),
-        BadWord("imbecil", Severity.LOW),
-        BadWord("zorra", Severity.MEDIUM),
-        BadWord("culo", Severity.LOW),
-        BadWord("maricon", Severity.HIGH),
-        BadWord("malparido", Severity.HIGH),
-
-        BadWord("fuck", Severity.MEDIUM),
-        BadWord("shit", Severity.LOW),
-        BadWord("bitch", Severity.MEDIUM),
-        BadWord("asshole", Severity.MEDIUM),
-        BadWord("dick", Severity.MEDIUM),
-        BadWord("pussy", Severity.MEDIUM),
-        BadWord("bastard", Severity.MEDIUM),
-        BadWord("whore", Severity.MEDIUM),
-        BadWord("cunt", Severity.HIGH),
-        BadWord("faggot", Severity.HIGH),
-        BadWord("nigger", Severity.HIGH),
-        BadWord("slut", Severity.MEDIUM)
     )
 
+    init {
+        blockedWords.addAll(hardcodedDefaults)
+    }
+
     private val leetMap = mapOf(
-        '0' to 'o',
-        '1' to 'i',
-        '3' to 'e',
-        '4' to 'a',
-        '5' to 's',
-        '7' to 't'
+        '0' to 'o', '1' to 'i', '3' to 'e', '4' to 'a', '5' to 's', '7' to 't', '@' to 'a'
     )
 
     private val attackPatterns = listOf(
@@ -63,6 +44,45 @@ object ProfanityFilter {
     )
 
     private const val BLOCK_THRESHOLD = 5
+
+    fun loadFromCsv(context: Context) {
+        val files = listOf(R.raw.profanity_en)
+
+        files.forEach { resId ->
+            try {
+                val inputStream = context.resources.openRawResource(resId)
+                val reader = BufferedReader(InputStreamReader(inputStream))
+
+                reader.readLine()
+
+                reader.forEachLine { line ->
+                    try {
+                        val tokens = line.split(",")
+
+                        if (tokens.isNotEmpty()) {
+                            val word = tokens[0].trim()
+                            val severityDesc = tokens.lastOrNull()?.trim() ?: "Mild"
+
+                            val severity = when (severityDesc) {
+                                "Severe" -> Severity.HIGH
+                                "Strong" -> Severity.MEDIUM
+                                "Mild" -> Severity.LOW
+                                else -> Severity.LOW
+                            }
+
+                            if (word.isNotBlank()) {
+                                blockedWords.add(BadWord(normalize(word), severity))
+                            }
+                        }
+                    } catch (e: Exception) {
+                    }
+                }
+                reader.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     fun hasProfanity(input: String): Boolean {
         return analyze(input).score >= BLOCK_THRESHOLD

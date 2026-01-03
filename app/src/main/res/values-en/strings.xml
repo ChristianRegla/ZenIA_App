@@ -239,4 +239,28 @@
     <string name="sos_btn_calm_exercises">Calm exercises</string>
     <string name="sos_close_desc">Close SOS screen</string>
 
+    <string name="shortcut_new_entry_short">New Entry</string>
+    <string name="shortcut_new_entry_long">Write in Diary</string>
+    <string name="shortcut_sos_short">Get Help</string>
+    <string name="shortcut_sos_long">Helpline</string>
+
+    <string-array name="diary_prompts">
+        <item>What was the best part of your day today?</item>
+        <item>Was there anything that caused you stress? How did you handle it?</item>
+        <item>Write down 3 things you are grateful for today.</item>
+        <item>What would you do differently if you could repeat the day?</item>
+        <item>How would you describe your energy level today?</item>
+        <item>Did someone make you smile? Who and why?</item>
+        <item>What did you learn today?</item>
+        <item>Write some words of encouragement to yourself:</item>
+        <item>What do you need most right now?</item>
+        <item>If your day had a movie title, what would it be?</item>
+    </string-array>
+
+    <string name="feedback_happy">So glad to hear! Cherish this moment.</string>
+    <string name="feedback_good">Great! Keep up that energy.</string>
+    <string name="feedback_neutral">Entry saved. Everything counts.</string>
+    <string name="feedback_sad">Thanks for sharing. One step at a time.</string>
+    <string name="feedback_awful">We\'re here for you. Remember to use the SOS button if needed.</string>
+
 </resources>

@@ -1,8 +1,10 @@
 package com.zenia.app.viewmodel
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.AuthRepository
@@ -17,12 +19,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import androidx.core.net.toUri
+import com.zenia.app.data.DiaryRepository
+import com.zenia.app.util.PdfGenerator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val billingRepository: BillingRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val diaryRepository: DiaryRepository
 ) : ViewModel() {
 
     val isUserPremium = billingRepository.isPremium
@@ -90,6 +98,43 @@ class SettingsViewModel @Inject constructor(
                     authRepository.updateProfile(uid, nickname, avatarIndex)
                 } catch (e: Exception) {
                     e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    fun exportarDatos(context: Context, includeLogo: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // Notificar inicio (Opcional, requiere cambiar al Main Thread para Toast)
+                // withContext(Dispatchers.Main) { Toast.makeText(context, "Generando PDF...", Toast.LENGTH_SHORT).show() }
+
+                val entries = diaryRepository.getAllEntriesOnce()
+                val user = authRepository.getUsuarioFlow().firstOrNull()?.apodo ?: "Usuario ZenIA"
+
+                val pdfUri = PdfGenerator.generateDiaryPdf(context, entries, user, includeLogo)
+
+                if (pdfUri != null) {
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "application/pdf"
+                        putExtra(Intent.EXTRA_STREAM, pdfUri)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+
+                    val chooser = Intent.createChooser(shareIntent, "Tu reporte de ZenIA")
+                    chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    context.startActivity(chooser)
+                } else {
+                    // Si retorna null
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Error al generar el archivo PDF", Toast.LENGTH_LONG).show()
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // MOSTRAR ERROR AL USUARIO
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
         }
