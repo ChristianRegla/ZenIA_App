@@ -29,6 +29,14 @@ data class AnalyticsUiState(
     val isLoading: Boolean = false
 )
 
+private data class ProcessedAnalytics(
+    val averageMood: Float,
+    val totalEntries: Int,
+    val moodDistribution: Map<String, Int>,
+    val topActivities: List<AnalysisUtils.Insight>,
+    val chartEntries: List<ChartEntry>
+)
+
 @HiltViewModel
 class AnalyticsViewModel @Inject constructor(
     private val diaryRepository: DiaryRepository,
@@ -66,18 +74,28 @@ class AnalyticsViewModel @Inject constructor(
             val startDate = LocalDate.now().minusDays(range.days.toLong()).toString()
 
             diaryRepository.getEntriesFromDate(startDate).collect { entries ->
-                processEntries(entries)
+                if (entries.isEmpty()) {
+                    _uiState.update { AnalyticsUiState(isLoading = false) }
+                    lineChartProducer.setEntries(emptyList<ChartEntry>())
+                    return@collect
+                }
+
+                val processedData = processEntries(entries)
+                lineChartProducer.setEntries(processedData.chartEntries)
+                _uiState.update {
+                    it.copy(
+                        averageMood = processedData.averageMood,
+                        totalEntries = processedData.totalEntries,
+                        moodDistribution = processedData.moodDistribution,
+                        topActivities = processedData.topActivities,
+                        isLoading = false
+                    )
+                }
             }
         }
     }
 
-    private fun processEntries(entries: List<DiarioEntrada>) {
-        if (entries.isEmpty()) {
-            _uiState.update { AnalyticsUiState(isLoading = false) }
-            lineChartProducer.setEntries(emptyList<ChartEntry>())
-            return
-        }
-
+    private fun processEntries(entries: List<DiarioEntrada>): ProcessedAnalytics {
         val validMoodEntries = entries.filter { !it.estadoAnimo.isNullOrBlank() }
         val moodValues = validMoodEntries.map { ChartUtils.mapMoodToValue(it.estadoAnimo) }
         val average = if (moodValues.isNotEmpty()) moodValues.average().toFloat() else 0f
@@ -85,12 +103,12 @@ class AnalyticsViewModel @Inject constructor(
         val distribution = validMoodEntries
             .groupingBy {
                 when (ChartUtils.mapMoodToValue(it.estadoAnimo).toInt()) {
-                    5 -> "Excelente"
-                    4 -> "Bueno"
-                    3 -> "Normal"
-                    2 -> "Malo"
-                    1 -> "Terrible"
-                    else -> "Otro"
+                    5 -> MOOD_EXCELENTE
+                    4 -> MOOD_BUENO
+                    3 -> MOOD_NORMAL
+                    2 -> MOOD_MALO
+                    1 -> MOOD_TERRIBLE
+                    else -> MOOD_OTRO
                 }
             }
             .eachCount()
@@ -106,19 +124,24 @@ class AnalyticsViewModel @Inject constructor(
             }
             .sortedBy { it.x }
 
-        lineChartProducer.setEntries(chartEntries)
-
         val insightsPair = AnalysisUtils.analyzePatterns(entries)
         val insightsList = listOfNotNull(insightsPair.first, insightsPair.second)
 
-        _uiState.update {
-            it.copy(
-                averageMood = average,
-                totalEntries = entries.size,
-                moodDistribution = distribution,
-                topActivities = insightsList,
-                isLoading = false
-            )
-        }
+        return ProcessedAnalytics(
+            averageMood = average,
+            totalEntries = entries.size,
+            moodDistribution = distribution,
+            topActivities = insightsList,
+            chartEntries = chartEntries
+        )
+    }
+
+    companion object {
+        private const val MOOD_EXCELENTE = "Excelente"
+        private const val MOOD_BUENO = "Bueno"
+        private const val MOOD_NORMAL = "Normal"
+        private const val MOOD_MALO = "Malo"
+        private const val MOOD_TERRIBLE = "Terrible"
+        private const val MOOD_OTRO = "Otro"
     }
 }
