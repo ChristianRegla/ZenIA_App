@@ -22,6 +22,7 @@ import androidx.navigation.navArgument
 import com.zenia.app.ui.screens.MainScreen
 import com.zenia.app.ui.screens.account.AccountRoute
 import com.zenia.app.ui.screens.analytics.AnalyticsRoute
+import com.zenia.app.ui.screens.analytics.AnalyticsViewModel
 import com.zenia.app.ui.screens.auth.AuthRoute
 import com.zenia.app.ui.screens.lock.LockRoute
 import com.zenia.app.ui.screens.auth.AuthViewModel
@@ -309,10 +310,11 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
             popEnterTransition = { popSlideIn() },
             popExitTransition = { popSlideOut() }
         ) {
+            val analyticsViewModel: AnalyticsViewModel = hiltViewModel()
             AnalyticsRoute(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) },
-                isPremium = true
+                viewModel = analyticsViewModel
             )
         }
     }

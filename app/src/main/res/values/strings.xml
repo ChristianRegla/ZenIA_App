@@ -253,4 +253,10 @@
         <item>Si tu día tuviera un título de película, ¿cuál sería?</item>
     </string-array>
 
+    <string name="feedback_happy">¡Qué alegría! Nos encanta verte así.</string>
+    <string name="feedback_good">¡Excelente! Sigue con esa energía.</string>
+    <string name="feedback_neutral">Registro guardado. Todo cuenta.</string>
+    <string name="feedback_sad">Gracias por desahogarte. Un paso a la vez.</string>
+    <string name="feedback_awful">Lo sentimos. Recuerda usar el botón SOS si lo necesitas.</string>
+
 </resources>

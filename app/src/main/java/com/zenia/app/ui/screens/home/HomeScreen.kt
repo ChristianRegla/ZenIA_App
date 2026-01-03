@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -43,7 +42,6 @@ import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.components.HomeTopBar
 import com.zenia.app.ui.components.MoodPatternsCard
 import com.zenia.app.ui.theme.RobotoFlex
-import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaTeal
 import com.zenia.app.ui.theme.ZeniaWhite
 import com.zenia.app.util.AnalysisUtils

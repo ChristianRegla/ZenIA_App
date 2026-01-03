@@ -257,4 +257,10 @@
         <item>If your day had a movie title, what would it be?</item>
     </string-array>
 
+    <string name="feedback_happy">So glad to hear! Cherish this moment.</string>
+    <string name="feedback_good">Great! Keep up that energy.</string>
+    <string name="feedback_neutral">Entry saved. Everything counts.</string>
+    <string name="feedback_sad">Thanks for sharing. One step at a time.</string>
+    <string name="feedback_awful">We\'re here for you. Remember to use the SOS button if needed.</string>
+
 </resources>
