@@ -9,6 +9,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -44,6 +45,7 @@ import java.time.LocalDate
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
+    startTab: String? = null,
     onSignOut: () -> Unit,
     onNavigateToAccount: () -> Unit,
     onNavigateToPremium: () -> Unit,
@@ -58,6 +60,16 @@ fun MainScreen(
     val currentRoute = navBackStackEntry?.destination?.route
 
     val isChatScreen = currentRoute == BottomNavItem.Zenia.route
+
+    LaunchedEffect(startTab) {
+        if (startTab != null && startTab != BottomNavItem.Inicio.route) {
+            bottomNavController.navigate(startTab) {
+                popUpTo(BottomNavItem.Inicio.route) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
 
     ZenIATheme {
         Scaffold(

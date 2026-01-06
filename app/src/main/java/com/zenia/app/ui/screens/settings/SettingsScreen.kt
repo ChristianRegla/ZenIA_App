@@ -70,7 +70,6 @@ import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZenIATheme
-import com.zenia.app.ui.theme.ZeniaInputLabel
 import com.zenia.app.ui.theme.ZeniaSlateGrey
 import com.zenia.app.ui.theme.ZeniaTeal
 import com.zenia.app.util.ProfanityFilter
@@ -251,7 +250,6 @@ fun ProfileHeader(
                     .background(Color.LightGray.copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
             ) {
-                // Si el índice es válido en nuestra lista, mostramos la imagen
                 if (avatarIndex in availableAvatars.indices) {
                     Image(
                         painter = painterResource(id = availableAvatars[avatarIndex]),

@@ -50,6 +50,9 @@ private val ColorCalm = Color(0xFFFF9800)
 
 @Composable
 fun HelplineScreen(
+    onNavigateToChat: () -> Unit,
+    onNavigateToContacts: () -> Unit,
+    onNavigateToExercises: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
     ZenIATheme {
@@ -78,7 +81,6 @@ fun HelplineScreen(
                 ) {
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Título Principal
                     Text(
                         text = stringResource(R.string.sos_header),
                         style = MaterialTheme.typography.headlineSmall,
@@ -90,7 +92,6 @@ fun HelplineScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Cuerpo de texto con negritas (stringResource procesa el HTML <b>)
                     Text(
                         text = stringResource(R.string.sos_body_html),
                         style = MaterialTheme.typography.bodyLarge,
@@ -102,13 +103,12 @@ fun HelplineScreen(
 
                     Spacer(modifier = Modifier.height(40.dp))
 
-                    // Lista de Botones
                     Column(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         SosButton(
-                            icon = Icons.Default.Favorite, // Icono de corazón para línea de vida
+                            icon = Icons.Default.Favorite,
                             text = stringResource(R.string.sos_btn_lifeline),
                             accentColor = ColorLifeline,
                             onClick = { /* Acción: Llamar línea de vida */ }
@@ -125,14 +125,14 @@ fun HelplineScreen(
                             icon = Icons.Default.ChatBubble, // Icono de chat
                             text = stringResource(R.string.sos_btn_support_chat),
                             accentColor = ColorChat,
-                            onClick = { /* Acción: Ir al chat de apoyo */ }
+                            onClick = onNavigateToChat
                         )
 
                         SosButton(
-                            icon = Icons.Default.SelfImprovement, // Icono de meditación/calma
+                            icon = Icons.Default.SelfImprovement,
                             text = stringResource(R.string.sos_btn_calm_exercises),
                             accentColor = ColorCalm,
-                            onClick = { /* Acción: Ir a ejercicios */ }
+                            onClick = onNavigateToExercises
                         )
                     }
 
@@ -199,6 +199,11 @@ private fun SosButton(
 @Composable
 fun SosScreenPreview() {
     ZenIATheme {
-        HelplineScreen(onNavigateBack = {})
+        HelplineScreen(
+            onNavigateToChat = {},
+            onNavigateToContacts = {},
+            onNavigateToExercises = {},
+            onNavigateBack = {}
+        )
     }
 }

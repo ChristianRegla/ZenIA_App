@@ -29,6 +29,7 @@ import com.zenia.app.ui.screens.notifications.NotificationsRoute
 import com.zenia.app.ui.screens.recursos.RecursosRoute
 import com.zenia.app.ui.screens.relax.RelaxRoute
 import com.zenia.app.ui.screens.sos.HelplineRoute
+import com.zenia.app.ui.screens.zenia.ZeniaBotRoute
 import com.zenia.app.viewmodel.MainViewModel
 import kotlinx.coroutines.delay
 import java.time.LocalDate
@@ -75,13 +76,22 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
         settingsGraph(navController, mainViewModel)
 
         composable(
-            route = Destinations.HOME_ROUTE,
+            route = "${Destinations.HOME_ROUTE}?tab={tab}",
+            arguments = listOf(
+                navArgument("tab") {
+                    defaultValue = Destinations.HOME_ROUTE
+                    nullable = true
+                }
+            ),
             enterTransition = { slideIn() },
             exitTransition = { slideOut() },
             popEnterTransition = { popSlideIn() },
             popExitTransition = { popSlideOut() }
-            ) {
+            ) { backStackEntry ->
+            val tab = backStackEntry.arguments?.getString("tab") ?: Destinations.HOME_ROUTE
+
             MainScreen(
+                startTab = tab,
                 onSignOut = {
                     mainViewModel.signOut()
                     navController.navigate(Destinations.AUTH_ROUTE) {
@@ -102,6 +112,23 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
 
         composable(Destinations.SOS) {
             HelplineRoute(
+                onNavigateToChat = {
+                    navController.navigate(Destinations.homeWithTab(BottomNavItem.Zenia.route)) {
+                        popUpTo(Destinations.SOS) { inclusive = true }
+                    }
+                },
+                onNavigateToContacts = { },
+                onNavigateToExercises = {
+                    navController.navigate(Destinations.homeWithTab(BottomNavItem.Relajacion.route)) {
+                        popUpTo(Destinations.SOS) { inclusive = true }
+                    }
+                },
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Destinations.CHAT_ROUTE) {
+            ZeniaBotRoute(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
