@@ -11,7 +11,6 @@ import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.BillingRepository
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.UserPreferencesRepository
-import com.zenia.app.model.SubscriptionType
 import com.zenia.app.model.Usuario
 import com.zenia.app.util.PdfGenerator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +19,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,8 +32,7 @@ class SettingsViewModel @Inject constructor(
     private val diaryRepository: DiaryRepository
 ) : ViewModel() {
 
-    val isUserPremium: StateFlow<Boolean> = authRepository.getUsuarioFlow()
-        .map { it?.suscripcion == SubscriptionType.PREMIUM }
+    val isUserPremium: StateFlow<Boolean> = authRepository.isPremium
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val billingConnectionState = billingRepository.billingConnectionState

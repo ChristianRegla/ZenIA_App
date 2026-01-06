@@ -2,7 +2,6 @@ package com.zenia.app.ui.screens.home
 
 import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.entryOf
@@ -11,7 +10,6 @@ import com.zenia.app.data.ContentRepository
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.HealthConnectRepository
 import com.zenia.app.model.DiarioEntrada
-import com.zenia.app.model.SubscriptionType
 import com.zenia.app.util.AnalysisUtils
 import com.zenia.app.util.ChartUtils
 import com.zenia.app.util.UiText
@@ -42,9 +40,8 @@ sealed interface HomeUiState {
  * Se encarga de gestionar el estado de la UI, obtener los registros de bienestar,
  * manejar la lógica de Health Connect (permisos y lectura) y el estado de suscripción del usuario.
  *
- * @param repositorio El repositorio para interactuar con Firestore (registros, datos de usuario).
+ * @param contentRepository El repositorio para interactuar con Firestore (registros, datos de usuario).
  * @param healthConnectRepository Repositorio para interactuar con la API de Health Connect. Es nulable si el SDK no está disponible.
- * @param application La instancia de la aplicación para acceder a recursos (strings).
  */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -85,8 +82,7 @@ class HomeViewModel @Inject constructor(
      * Expone un boolean que indica si el usuario actual tiene una suscripción "premium".
      * Se actualiza en tiempo real observando el documento del usuario en Firestore.
      */
-    val esPremium: StateFlow<Boolean> = authRepository.getUsuarioFlow()
-        .map { it?.suscripcion == SubscriptionType.PREMIUM }
+    val esPremium: StateFlow<Boolean> = authRepository.isPremium
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     /**

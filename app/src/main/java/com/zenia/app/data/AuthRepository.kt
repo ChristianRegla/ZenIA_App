@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -80,6 +81,8 @@ class AuthRepository @Inject constructor(
                             }
                             if (snapshot != null && snapshot.exists()) {
                                 trySend(snapshot.toObject(Usuario::class.java))
+                            } else {
+                                trySend(null)
                             }
                         }
                     awaitClose { registration.remove() }
@@ -90,6 +93,18 @@ class AuthRepository @Inject constructor(
             scope = repositoryScope,
             started = SharingStarted.WhileSubscribed(5000), // Mantiene la conexión 5s después de perder suscriptores
             replay = 1 // Retiene el último valor para nuevos suscriptores inmediatos
+        )
+
+    /**
+     * Flujo compartido que expone si el usuario es premium o no.
+     * Se deriva de [_sharedUserFlow] para mantener una única fuente de verdad.
+     */
+    val isPremium: Flow<Boolean> = _sharedUserFlow
+        .map { it?.suscripcion == SubscriptionType.PREMIUM }
+        .shareIn(
+            scope = repositoryScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            replay = 1
         )
 
     /**

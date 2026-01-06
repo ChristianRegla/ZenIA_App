@@ -1,10 +1,25 @@
 package com.zenia.app.ui.screens.settings
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
@@ -17,7 +32,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -61,6 +88,7 @@ fun SettingsScreen(
     name: String?,
     email: String?,
     avatarIndex: Int,
+    isPremium: Boolean,
     onUpdateProfile: (String, Int) -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateBack: () -> Unit,
@@ -113,19 +141,27 @@ fun SettingsScreen(
                     // --- BOTÓN PREMIUM ---
                     Button(
                         onClick = onNavigateToPremium,
-                        colors = ButtonDefaults.buttonColors(
+                        colors = if (isPremium) ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFD946EF)) else ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFD946EF)
                         ),
                         shape = RoundedCornerShape(50),
+                        border = if (isPremium) BorderStroke(1.dp, Color(0xFFD946EF)) else null,
                         modifier = Modifier
                             .fillMaxWidth(0.8f)
                             .height(48.dp)
                     ) {
+                        if (isPremium) {
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
                         Text(
-                            text = stringResource(R.string.settings_btn_premium),
+                            text = if (isPremium) "Plan Premium Activo" else stringResource(R.string.settings_btn_premium),
                             fontFamily = RobotoFlex,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
                         )
                     }
 
@@ -475,6 +511,7 @@ fun SettingsPhonePreview() {
             name = null,
             email = "john.doe@example.com",
             avatarIndex = -1,
+            isPremium = false,
             onUpdateProfile = { _, _ -> },
             {}, {}, {}, {}, {}, {}, {},
             onSignOut = {}

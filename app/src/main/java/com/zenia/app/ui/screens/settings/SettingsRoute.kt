@@ -19,11 +19,13 @@ fun SettingsRoute(
     onSignOut: () -> Unit
 ) {
     val currentUser by settingsViewModel.currentUser.collectAsState(initial = null)
+    val isPremium by settingsViewModel.isUserPremium.collectAsState()
 
     SettingsScreen(
         name = currentUser?.apodo,
         email = currentUser?.email ?: "",
         avatarIndex = currentUser?.avatarIndex ?: 0,
+        isPremium = isPremium,
         onUpdateProfile = { newName, newAvatarIdx ->
             settingsViewModel.updateProfile(newName, newAvatarIdx)
         },

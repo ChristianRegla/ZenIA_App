@@ -17,7 +17,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZeniaTeal
@@ -27,13 +26,11 @@ import com.zenia.app.viewmodel.SettingsViewModel
 @Composable
 fun PremiumScreen(
     onNavigateBack: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel()
+    isPremium: Boolean,
+    viewModel: SettingsViewModel
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
-
-    // Escuchamos el estado real
-    val isPremium by viewModel.isUserPremium.collectAsState()
 
     Scaffold(
         topBar = {

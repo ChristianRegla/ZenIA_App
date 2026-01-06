@@ -26,10 +26,6 @@ class BillingRepository @Inject constructor(
     private val _billingConnectionState = MutableStateFlow(false)
     val billingConnectionState = _billingConnectionState.asStateFlow()
 
-    // ELIMINADO: El estado "isPremium" ahora se obtiene de AuthRepository como única fuente.
-    // private val _isPremium = MutableStateFlow(false)
-    // val isPremium = _isPremium.asStateFlow()
-
     private val TEST_PRODUCT_ID = "android.test.purchased"
 
     private val pendingPurchasesParams = PendingPurchasesParams.newBuilder()
