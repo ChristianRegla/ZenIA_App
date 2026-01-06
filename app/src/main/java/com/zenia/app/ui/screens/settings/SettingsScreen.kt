@@ -61,6 +61,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -127,7 +128,7 @@ fun SettingsScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     ProfileHeader(
                         nickname = name,
@@ -168,29 +169,34 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Column(
-                        modifier = Modifier.fillMaxWidth() // Ocupa todo el ancho del padre (600dp)
+                        modifier = Modifier.fillMaxWidth()
                     ) {
+                        SettingsDivider()
                         SettingsItem(
                             iconRes = R.drawable.ic_settings,
                             text = stringResource(R.string.settings_item_settings),
+                            textColor = ZeniaSlateGrey,
                             onClick = onNavigateToMoreSettings
                         )
                         SettingsDivider()
                         SettingsItem(
                             iconRes = R.drawable.ic_help_center,
                             text = stringResource(R.string.settings_item_help_center),
+                            textColor = ZeniaSlateGrey,
                             onClick = onNavigateToHelp
                         )
                         SettingsDivider()
                         SettingsItem(
                             iconRes = R.drawable.ic_donations,
                             text = stringResource(R.string.settings_item_donations),
+                            textColor = ZeniaSlateGrey,
                             onClick = onNavigateToDonations
                         )
                         SettingsDivider()
                         SettingsItem(
                             iconRes = R.drawable.ic_privacy_policy,
                             text = stringResource(R.string.settings_item_privacy),
+                            textColor = ZeniaSlateGrey,
                             onClick = onNavigateToPrivacy
                         )
                         SettingsDivider()
@@ -201,9 +207,10 @@ fun SettingsScreen(
                             showArrow = false,
                             onClick = onSignOut
                         )
+                        SettingsDivider()
                     }
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
@@ -472,7 +479,7 @@ private fun SettingsItem(
         Icon(
             painter = painterResource(id = iconRes),
             contentDescription = null,
-            tint = ZeniaSlateGrey,
+            tint = Color.Black,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -482,15 +489,16 @@ private fun SettingsItem(
             fontSize = 16.sp,
             color = textColor,
             fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center,
             modifier = Modifier.weight(1f)
         )
-        if (showArrow) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = ZeniaInputLabel
-            )
-        }
+
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = if (showArrow) ZeniaSlateGrey else Color.Transparent,
+            modifier = Modifier.size(24.dp)
+        )
     }
 }
 
@@ -499,7 +507,7 @@ private fun SettingsDivider() {
     HorizontalDivider(
         modifier = Modifier.padding(horizontal = 24.dp),
         thickness = 0.5.dp,
-        color = Color.LightGray.copy(alpha = 0.5f)
+        color = ZeniaSlateGrey
     )
 }
 

@@ -26,15 +26,16 @@ class BillingRepository @Inject constructor(
     private val _billingConnectionState = MutableStateFlow(false)
     val billingConnectionState = _billingConnectionState.asStateFlow()
 
-    private val TEST_PRODUCT_ID = "android.test.purchased"
-
-    private val pendingPurchasesParams = PendingPurchasesParams.newBuilder()
-        .enableOneTimeProducts()
-        .build()
+    // --- IDs DE PRODUCTO ---
+    // IMPORTANTE: Estos IDs deben coincidir EXACTAMENTE con los IDs creados en la Google Play Console.
+    companion object {
+        const val PREMIUM_SUB_ID = "premium_annual" // ID de la suscripción
+        const val DONATION_PRODUCT_ID = "donation_basic" // ID de la donación (ejemplo)
+    }
 
     private val billingClient = BillingClient.newBuilder(context)
         .setListener(this)
-        .enablePendingPurchases(pendingPurchasesParams)
+        .enablePendingPurchases() // Habilitar compras pendientes es la práctica recomendada.
         .build()
 
     init {
@@ -42,6 +43,9 @@ class BillingRepository @Inject constructor(
     }
 
     private fun startConnection() {
+        if (billingClient.isReady) {
+            return
+        }
         billingClient.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(billingResult: BillingResult) {
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
@@ -49,21 +53,27 @@ class BillingRepository @Inject constructor(
                     _billingConnectionState.value = true
                     // Al conectar, verificamos compras para actualizar el estado en Firestore si es necesario.
                     checkSubscriptionStatus()
+                } else {
+                    Log.e("BillingRepo", "Error al conectar con Billing: ${billingResult.debugMessage}")
+                    _billingConnectionState.value = false
                 }
             }
 
             override fun onBillingServiceDisconnected() {
                 Log.d("BillingRepo", "Desconectado. Reintentando...")
                 _billingConnectionState.value = false
-                startConnection()
+                startConnection() // Reintentar conexión
             }
         })
     }
 
     /**
-     * Consulta las compras existentes para asegurar que el estado en Firestore esté actualizado.
+     * Consulta las compras de suscripciones existentes para asegurar que el estado en Firestore esté actualizado.
+     * También procesa compras no reconocidas que pudieron quedar pendientes (ej. si la app cerró).
      */
-    private fun checkSubscriptionStatus() {
+    fun checkSubscriptionStatus() {
+        if (!billingClient.isReady) return
+
         val queryPurchasesParams = QueryPurchasesParams.newBuilder()
             .setProductType(BillingClient.ProductType.SUBS)
             .build()
@@ -71,10 +81,15 @@ class BillingRepository @Inject constructor(
         billingClient.queryPurchasesAsync(queryPurchasesParams) { billingResult, purchases ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 val hasActiveSubscription = purchases.any { it.purchaseState == Purchase.PurchaseState.PURCHASED }
-                // Actualiza Firestore. La UI reaccionará al Flow de AuthRepository.
                 repositoryScope.launch {
                     authRepository.updateUserSubscription(hasActiveSubscription)
                 }
+                // Procesar también las compras que necesitan ser reconocidas.
+                purchases.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED && !it.isAcknowledged }
+                    .forEach { handlePurchase(it) }
+
+            } else {
+                 Log.e("BillingRepo", "Error al consultar suscripciones: ${billingResult.debugMessage}")
             }
         }
     }
@@ -85,13 +100,13 @@ class BillingRepository @Inject constructor(
             return
         }
 
+        val productId = if (isSubscription) PREMIUM_SUB_ID else DONATION_PRODUCT_ID
+        val productType = if (isSubscription) BillingClient.ProductType.SUBS else BillingClient.ProductType.INAPP
+
         val productList = listOf(
             QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(TEST_PRODUCT_ID)
-                .setProductType(
-                    if (isSubscription) BillingClient.ProductType.SUBS
-                    else BillingClient.ProductType.INAPP
-                )
+                .setProductId(productId)
+                .setProductType(productType)
                 .build()
         )
 
@@ -102,30 +117,30 @@ class BillingRepository @Inject constructor(
         }
 
         if (productDetailsResult.billingResult.responseCode == BillingClient.BillingResponseCode.OK &&
-            productDetailsResult.productDetailsList != null
+            !productDetailsResult.productDetailsList.isNullOrEmpty()
         ) {
-            val productDetails = productDetailsResult.productDetailsList!!.firstOrNull()
+            val productDetails = productDetailsResult.productDetailsList!!.first()
 
-            if (productDetails != null) {
-                val productDetailsParamsList = listOf(
-                    BillingFlowParams.ProductDetailsParams.newBuilder()
-                        .setProductDetails(productDetails)
-                        .apply {
-                            if (isSubscription) {
-                                productDetails.subscriptionOfferDetails?.firstOrNull()?.offerToken?.let {
-                                    token -> setOfferToken(token)
-                                }
-                            }
-                        }
-                        .build()
-                )
+            val offerToken = if (isSubscription) {
+                productDetails.subscriptionOfferDetails?.firstOrNull()?.offerToken
+            } else null
 
-                val billingFlowParams = BillingFlowParams.newBuilder()
-                    .setProductDetailsParamsList(productDetailsParamsList)
+            val productDetailsParamsList = listOf(
+                BillingFlowParams.ProductDetailsParams.newBuilder()
+                    .setProductDetails(productDetails)
+                    .apply {
+                        offerToken?.let { setOfferToken(it) }
+                    }
                     .build()
+            )
 
-                billingClient.launchBillingFlow(activity, billingFlowParams)
-            }
+            val billingFlowParams = BillingFlowParams.newBuilder()
+                .setProductDetailsParamsList(productDetailsParamsList)
+                .build()
+
+            billingClient.launchBillingFlow(activity, billingFlowParams)
+        } else {
+            Log.e("BillingRepo", "Producto no encontrado o error: ${productDetailsResult.billingResult.debugMessage}")
         }
     }
 
@@ -137,20 +152,24 @@ class BillingRepository @Inject constructor(
         } else if (billingResult.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
             Log.d("BillingRepo", "El usuario canceló la compra.")
         } else {
-            Log.e("BillingRepo", "Error en compra: ${billingResult.debugMessage}")
+            Log.e("BillingRepo", "Error en la compra: ${billingResult.debugMessage}")
         }
     }
 
     private fun handlePurchase(purchase: Purchase) {
         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-            // Para fines de prueba, consumimos todo para poder comprar de nuevo.
-            // En producción, distinguirías entre suscripción y donación.
-            consumePurchase(purchase)
-
-            // **MEJORA CLAVE**: Actualizamos Firestore, nuestra fuente de verdad.
-            repositoryScope.launch {
-                authRepository.updateUserSubscription(true)
+            // Distinguir entre suscripción y donación por el ID del producto
+            if (purchase.products.contains(PREMIUM_SUB_ID)) {
+                // Es una suscripción. Debe ser reconocida.
+                if (!purchase.isAcknowledged) {
+                    acknowledgePurchase(purchase)
+                }
+            } else if (purchase.products.contains(DONATION_PRODUCT_ID)) {
+                // Es una donación (producto de un solo uso). Debe ser consumida.
+                consumePurchase(purchase)
             }
+        } else if (purchase.purchaseState == Purchase.PurchaseState.PENDING) {
+            Log.d("BillingRepo", "La compra está pendiente. Se procesará cuando se complete.")
         }
     }
 
@@ -161,12 +180,13 @@ class BillingRepository @Inject constructor(
 
         billingClient.consumeAsync(consumeParams) { billingResult, _ ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                Log.d("BillingRepo", "¡Producto consumido (Donación/Prueba)!")
+                Log.d("BillingRepo", "¡Donación consumida con éxito!")
+            } else {
+                Log.e("BillingRepo", "Error al consumir donación: ${billingResult.debugMessage}")
             }
         }
     }
 
-    // acknowledgePurchase se mantiene por si se usa para suscripciones reales en el futuro
     private fun acknowledgePurchase(purchase: Purchase) {
         if (!purchase.isAcknowledged) {
             val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
@@ -179,6 +199,8 @@ class BillingRepository @Inject constructor(
                     repositoryScope.launch {
                         authRepository.updateUserSubscription(true)
                     }
+                } else {
+                    Log.e("BillingRepo", "Error al reconocer suscripción: ${billingResult.debugMessage}")
                 }
             }
         }
