@@ -8,6 +8,7 @@ import com.zenia.app.ui.screens.account.AccountRoute
 import com.zenia.app.ui.screens.auth.AuthViewModel
 import com.zenia.app.ui.screens.premium.PremiumRoute
 import com.zenia.app.ui.screens.settings.DonationsRoute
+import com.zenia.app.ui.screens.settings.HealthSyncRoute
 import com.zenia.app.ui.screens.settings.HelpCenterRoute
 import com.zenia.app.ui.screens.settings.MoreSettingsRoute
 import com.zenia.app.ui.screens.settings.PrivacyRoute
@@ -28,6 +29,7 @@ fun NavGraphBuilder.settingsGraph(navController: NavController, mainViewModel: M
             settingsViewModel = settingsVM,
             onNavigateBack = { navController.popBackStack() },
             onNavigateToProfile = { navController.safeNavigate(Destinations.ACCOUNT_ROUTE) },
+            onNavigateToHealthSync = { navController.safeNavigate(Destinations.HEALTH_SYNC_ROUTE) },
             onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) },
             onNavigateToMoreSettings = { navController.safeNavigate(Destinations.MORE_SETTINGS_ROUTE) },
             onNavigateToHelp = { navController.safeNavigate(Destinations.HELP_CENTER_ROUTE) },
@@ -62,6 +64,18 @@ fun NavGraphBuilder.settingsGraph(navController: NavController, mainViewModel: M
         popExitTransition = { popSlideOut() }
     ) {
         PremiumRoute(
+            onNavigateBack = { navController.popBackStack() }
+        )
+    }
+
+    composable(
+        route = Destinations.HEALTH_SYNC_ROUTE,
+        enterTransition = { slideIn() },
+        exitTransition = { slideOut() },
+        popEnterTransition = { popSlideIn() },
+        popExitTransition = { popSlideOut() }
+    ) {
+        HealthSyncRoute(
             onNavigateBack = { navController.popBackStack() }
         )
     }

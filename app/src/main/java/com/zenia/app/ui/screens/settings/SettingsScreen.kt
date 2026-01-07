@@ -94,6 +94,7 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToMoreSettings: () -> Unit,
     onNavigateToPremium: () -> Unit,
+    onNavigateToHealthSync: () -> Unit,
     onNavigateToHelp: () -> Unit,
     onNavigateToDonations: () -> Unit,
     onNavigateToPrivacy: () -> Unit,
@@ -176,6 +177,19 @@ fun SettingsScreen(
                             text = stringResource(R.string.settings_item_settings),
                             textColor = ZeniaSlateGrey,
                             onClick = onNavigateToMoreSettings
+                        )
+                        SettingsDivider()
+                        SettingsItem(
+                            iconRes = R.drawable.ic_settings,
+                            text = "Sincronización y Salud",
+                            textColor = ZeniaSlateGrey,
+                            onClick = {
+                                if (isPremium) {
+                                    onNavigateToHealthSync()
+                                } else {
+                                    onNavigateToPremium()
+                                }
+                            }
                         )
                         SettingsDivider()
                         SettingsItem(
@@ -519,7 +533,7 @@ fun SettingsPhonePreview() {
             avatarIndex = -1,
             isPremium = false,
             onUpdateProfile = { _, _ -> },
-            {}, {}, {}, {}, {}, {}, {},
+            {}, {}, {}, {}, {}, {}, {}, {},
             onSignOut = {}
         )
     }

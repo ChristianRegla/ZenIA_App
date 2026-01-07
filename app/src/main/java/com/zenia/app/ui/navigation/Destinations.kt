@@ -6,7 +6,7 @@ object Destinations {
     const val AUTH_ROUTE = "auth"
     const val MAIN_ROUTE = "main_screen"
 
-    const val HOME_ROUTE = "home_tab"      // Cambiémosle el nombre para no confundir con MAIN
+    const val HOME_ROUTE = "home_tab"
     const val DIARY_ROUTE = "diary_tab"
     const val ZENIA_ROUTE = "zenia_tab"
     const val RELAX_ROUTE = "relax_tab"
@@ -24,6 +24,7 @@ object Destinations {
     const val PRIVACY_POLICY_ROUTE = "privacy_policy"
     const val NOTIFICATIONS_ROUTE = "notifications"
     const val PREMIUM_ROUTE = "premium"
+    const val HEALTH_SYNC_ROUTE = "health_sync"
     const val DIARY_ENTRY_ROUTE = "diary_entry/{date}"
     const val ANALYTICS_ROUTE = "analytics"
     const val CHAT_ROUTE = "chat"
