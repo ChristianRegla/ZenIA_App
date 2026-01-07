@@ -66,15 +66,14 @@ fun NotificationsScreen(
     onDeleteNotification: (String) -> Unit,
     onMarkAsRead: (ZeniaNotification) -> Unit,
     onNotificationClick: (String) -> Unit,
-    onGenerateTest: () -> Unit // Solo para debug
+    onGenerateTest: () -> Unit
 ) {
-    // Estado local para el switch de "Permitir notificaciones"
     var notificationsEnabled by remember { mutableStateOf(true) }
 
     Scaffold(
         topBar = {
             ZeniaTopBar(
-                title = stringResource(R.string.notifications_title), // Asegúrate de tener este string
+                title = stringResource(R.string.notifications_title),
                 onNavigateBack = onNavigateBack,
                 actions = {
                     IconButton(onClick = onGenerateTest) {
@@ -88,9 +87,8 @@ fun NotificationsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.surfaceVariant) // Fondo grisáceo
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
-            // --- HEADER: Switch de Activación ---
             NotificationControlHeader(
                 isEnabled = notificationsEnabled,
                 onToggle = { notificationsEnabled = it }
@@ -108,7 +106,7 @@ fun NotificationsScreen(
                 ) {
                     items(
                         items = notifications,
-                        key = { it.id } // Importante para la animación de borrado
+                        key = { it.id }
                     ) { notification ->
                         NotificationItem(
                             notification = notification,
@@ -179,7 +177,7 @@ fun NotificationItem(
                 containerColor = if (notification.isRead)
                     MaterialTheme.colorScheme.surface
                 else
-                    MaterialTheme.colorScheme.surfaceBright // Más brillante si no está leída
+                    MaterialTheme.colorScheme.surfaceBright
             ),
             elevation = CardDefaults.cardElevation(
                 defaultElevation = if (notification.isRead) 0.dp else 2.dp
@@ -314,7 +312,6 @@ fun EmptyStateNotifications() {
     }
 }
 
-// Helper simple para la fecha
 fun formatTimestamp(timestamp: Long): String {
     val sdf = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
     return sdf.format(Date(timestamp))

@@ -180,7 +180,7 @@ fun SettingsScreen(
                         )
                         SettingsDivider()
                         SettingsItem(
-                            iconRes = R.drawable.ic_settings,
+                            iconRes = R.drawable.ic_watch_outlined,
                             text = "Sincronización y Salud",
                             textColor = ZeniaSlateGrey,
                             onClick = {

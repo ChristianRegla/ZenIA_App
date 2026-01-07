@@ -273,4 +273,33 @@
     <string name="home_no_chart_data">Sin datos aún. ¡Registra tu primer día!</string>
     <string name="home_community_participants">%1$d participantes</string>
 
+    <string name="premium_title_active">¡Eres Zenia Premium!</string>
+    <string name="premium_title_inactive">Pásate a Premium</string>
+    <string name="premium_subtitle">Lleva tu bienestar mental al siguiente nivel con herramientas exclusivas.</string>
+
+    <string name="benefit_analysis">Análisis ilimitados de diario</string>
+    <string name="benefit_sync">Sincronización con Smartwatch</string>
+    <string name="benefit_calm">Ejercicios de calma exclusivos</string>
+    <string name="benefit_chat">Chat con IA sin límites</string>
+
+    <string name="choose_plan">Elige tu plan ideal</string>
+
+    <string name="plan_annual">Anual</string>
+    <string name="plan_annual_subtitle">Equivale a $62.50 / mes</string>
+    <string name="plan_annual_badge">AHORRA 17% - 2 MESES GRATIS</string>
+
+    <string name="plan_monthly">Mensual</string>
+    <string name="plan_monthly_subtitle">Facturación mensual</string>
+
+    <string name="period_year">/año</string>
+    <string name="period_month">/mes</string>
+
+    <string name="subscribe_annual_btn">Suscribirse por $750.00 / año</string>
+    <string name="subscribe_monthly_btn">Suscribirse por $75.00 / mes</string>
+    <string name="cancel_anytime">Cancela cuando quieras en Google Play</string>
+
+    <string name="subs_active_title">Suscripción Activa</string>
+    <string name="subs_active_thanks">Gracias por apoyar el desarrollo de ZenIA.</string>
+    <string name="subs_manage_btn">Gestionar Suscripción</string>
+
 </resources>

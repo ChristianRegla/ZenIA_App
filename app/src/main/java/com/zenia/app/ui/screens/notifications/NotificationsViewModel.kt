@@ -41,7 +41,7 @@ class NotificationsViewModel @Inject constructor(
             val dummy = ZeniaNotification(
                 title = "Bienvenido a ZenIA",
                 body = "Recuerda registrar tu estado de ánimo hoy. La consistencia es clave.",
-                route = Destinations.DIARY_ROUTE,
+                route = Destinations.homeWithTab(Destinations.DIARY_ROUTE),
                 type = "info"
             )
             repository.createDummyNotification(dummy)

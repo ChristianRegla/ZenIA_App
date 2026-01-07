@@ -100,7 +100,6 @@
     <string name="forgot_password_button_resend">Resend Email</string>
     <string name="forgot_password_button_timer">Resend in %1$ds</string>
     <string name="forgot_password_spam_warning">Important: If you cannot find the email in your inbox, please check your Spam or Junk folder.</string>
-    <string name="nav_back_desc">Back</string>
 
     <string name="settings_title">Menu</string>
     <string name="settings_profile_picture_desc">Profile picture</string>
@@ -276,5 +275,36 @@
     <string name="home_start_streak">Start your streak today.</string>
     <string name="home_no_chart_data">No data yet. Log your first day!</string>
     <string name="home_community_participants">%1$d participants</string>
+
+    <string name="premium_title_active">You are Zenia Premium!</string>
+    <string name="premium_title_inactive">Upgrade to Premium</string>
+    <string name="premium_subtitle">Take your mental wellness to the next level with exclusive tools.</string>
+
+    <string name="benefit_analysis">Unlimited diary analysis</string>
+    <string name="benefit_sync">Smartwatch sync (Health Connect)</string>
+    <string name="benefit_calm">Exclusive calm exercises</string>
+    <string name="benefit_chat">Unlimited AI Chat</string>
+
+    <string name="choose_plan">Choose your ideal plan</string>
+
+    <string name="plan_annual">Annual</string>
+    <string name="plan_annual_subtitle">Equivalent to $62.50 / month</string>
+    <string name="plan_annual_badge">SAVE 17% - 2 MONTHS FREE</string>
+
+    <string name="plan_monthly">Monthly</string>
+    <string name="plan_monthly_subtitle">Billed monthly</string>
+
+    <string name="period_year">/year</string>
+    <string name="period_month">/mo</string>
+
+    <string name="subscribe_annual_btn">Subscribe for $750.00 / year</string>
+    <string name="subscribe_monthly_btn">Subscribe for $75.00 / mo</string>
+    <string name="cancel_anytime">Cancel anytime on Google Play</string>
+
+    <string name="subs_active_title">Active Subscription</string>
+    <string name="subs_active_thanks">Thank you for supporting ZenIA development.</string>
+    <string name="subs_manage_btn">Manage Subscription</string>
+
+    <string name="nav_back_desc">Go back</string>
 
 </resources>
