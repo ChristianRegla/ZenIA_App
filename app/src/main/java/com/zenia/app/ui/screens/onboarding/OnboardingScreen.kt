@@ -1,5 +1,11 @@
 package com.zenia.app.ui.screens.onboarding
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -11,17 +17,21 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.lerp
 import com.zenia.app.R
 import com.zenia.app.ui.theme.*
+import kotlin.math.absoluteValue
 
 data class OnboardingPage(
     val title: String,
@@ -94,8 +104,34 @@ fun OnboardingScreen(
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.weight(1f)
-            ) { position ->
-                OnboardingPageContent(page = pages[position])
+            ) { pageIndex ->
+                val pageOffset = (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
+
+                val scale = lerp(
+                    start = 0.85f,
+                    stop = 1f,
+                    fraction = 1f - pageOffset.absoluteValue.coerceIn(0f, 1f)
+                )
+
+                val alpha = lerp(
+                    start = 0.5f,
+                    stop = 1f,
+                    fraction = 1f - pageOffset.absoluteValue.coerceIn(0f, 1f)
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            this.alpha = alpha
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    OnboardingPageContent(page = pages[pageIndex])
+                }
+
             }
 
             Column(
@@ -110,37 +146,62 @@ fun OnboardingScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     repeat(pages.size) { iteration ->
-                        val color = if (pagerState.currentPage == iteration) ZeniaTeal else ZeniaLightGrey
-                        val width = if (pagerState.currentPage == iteration) 24.dp else 10.dp
+                        val isSelected = pagerState.currentPage == iteration
+
+                        val width by animateFloatAsState(
+                            targetValue = if (isSelected) 32f else 10f,
+                            animationSpec = tween(300),
+                            label = "dotWidth"
+                        )
+                        val color = if (isSelected) pages[iteration].color else ZeniaSlateGrey
                         Box(
                             modifier = Modifier
                                 .padding(4.dp)
                                 .clip(RoundedCornerShape(50))
                                 .background(color)
                                 .height(10.dp)
-                                .width(width)
+                                .width(width.dp)
                         )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Box(modifier = Modifier.fillMaxWidth().height(60.dp), contentAlignment = Alignment.Center) {
-                    if (pagerState.currentPage == pages.size - 1) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = pagerState.currentPage != pages.size - 1,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        Text(
+                            text = "Desliza para continuar",
+                            color = ZeniaSlateGrey,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.alpha(0.7f)
+                        )
+                    }
+
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = pagerState.currentPage == pages.size - 1,
+                        enter = scaleIn() + fadeIn(),
+                        exit = scaleOut() + fadeOut()
+                    ) {
                         Button(
                             onClick = onFinish,
-                            modifier = Modifier.fillMaxWidth().height(50.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(12.dp),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
                         ) {
                             Text("Comenzar Ahora", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                         }
-                    } else {
-                        Text(
-                            text = "Desliza para continuar",
-                            color = Color.LightGray,
-                            style = MaterialTheme.typography.bodySmall
-                        )
                     }
                 }
             }
