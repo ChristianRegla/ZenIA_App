@@ -35,7 +35,7 @@ class AuthRepository @Inject constructor(
     private val db: FirebaseFirestore
 ) {
 
-    // Scope para mantener vivos los Flows compartidos (shareIn) mientras la app viva.
+    // Scope para mantener vivos los Flows compartidos mientras la app viva.
     private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /**
@@ -91,8 +91,8 @@ class AuthRepository @Inject constructor(
         }
         .shareIn(
             scope = repositoryScope,
-            started = SharingStarted.WhileSubscribed(5000), // Mantiene la conexión 5s después de perder suscriptores
-            replay = 1 // Retiene el último valor para nuevos suscriptores inmediatos
+            started = SharingStarted.WhileSubscribed(5000),
+            replay = 1
         )
 
     /**
@@ -128,7 +128,6 @@ class AuthRepository @Inject constructor(
             val datosActualizados = mapOf(
                 "email" to (email ?: "")
             )
-            // SetOptions.merge() evita sobrescribir campos existentes (como 'apodo' o 'avatar')
             userRef.set(datosActualizados, SetOptions.merge()).await()
         }
     }
@@ -156,17 +155,6 @@ class AuthRepository @Inject constructor(
 
     /**
      * Elimina permanentemente los datos del usuario de Firestore.
-     *
-     * IMPORTANTE: La implementación original que borraba desde el cliente ha sido eliminada
-     * por ser peligrosa y no escalable. Un borrado masivo desde el cliente puede fallar
-     * y dejar datos inconsistentes o crashear la app por exceso de memoria.
-     *
-     * SOLUCIÓN CORRECTA: Utilizar una Cloud Function en Firebase que se active
-     * al eliminar un usuario de Firebase Auth y borre sus subcolecciones de forma segura
-     * en el backend.
-     * @see https://firebase.google.com/products/extensions/firebase-delete-user-data
-     *
-     * @param userId El ID del usuario a eliminar (actualmente no se usa).
      */
     suspend fun deleteUserData(userId: String) {
         // Esta función ahora solo registra una advertencia. La lógica real debe estar en el backend.
@@ -175,8 +163,6 @@ class AuthRepository @Inject constructor(
             "La eliminación de datos de Firestore ($userId) debe ser manejada por una Cloud Function. " +
             "La implementación del lado del cliente ha sido deshabilitada para evitar la pérdida de datos o crashes."
         )
-        // La eliminación de la cuenta de Auth (auth.currentUser.delete()) se maneja por separado
-        // en el ViewModel, ya que es una operación distinta.
     }
 
     /**

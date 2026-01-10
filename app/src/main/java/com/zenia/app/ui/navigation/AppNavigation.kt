@@ -73,6 +73,7 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
         startDestination = startDestination!!
     ) {
         authGraph(navController)
+
         settingsGraph(navController, mainViewModel)
 
         composable(

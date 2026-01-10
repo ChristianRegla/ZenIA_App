@@ -31,16 +31,16 @@ class DiaryRepository @Inject constructor(
      */
     private inline fun <reified T> getUserSubcollectionFlow(
         subcollection: String,
-        crossinline queryBuilder: (Query) -> Query = { it } // Por defecto, no modifica la query
+        crossinline queryBuilder: (Query) -> Query = { it }
     ): Flow<List<T>> = callbackFlow {
         var firestoreListener: ListenerRegistration? = null
 
         val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
             val currentUserId = firebaseAuth.currentUser?.uid
-            firestoreListener?.remove() // Cancela la escucha anterior si la hay
+            firestoreListener?.remove()
 
             if (currentUserId.isNullOrBlank()) {
-                trySend(emptyList()) // Emite lista vacía si no hay usuario
+                trySend(emptyList())
             } else {
                 val baseQuery = db.collection(FirestoreCollections.USERS)
                     .document(currentUserId)

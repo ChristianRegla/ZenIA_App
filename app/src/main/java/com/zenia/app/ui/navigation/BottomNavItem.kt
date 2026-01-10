@@ -2,7 +2,11 @@ package com.zenia.app.ui.navigation
 
 import com.zenia.app.R
 
-sealed class BottomNavItem(val route: String, val titleRes: Int, val iconRes: Int) {
+sealed class BottomNavItem(
+    val route: String,
+    val titleRes: Int,
+    val iconRes: Int
+) {
     object Inicio : BottomNavItem(
         Destinations.HOME_ROUTE,
         titleRes = R.string.nav_home,

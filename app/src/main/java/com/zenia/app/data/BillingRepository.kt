@@ -26,16 +26,14 @@ class BillingRepository @Inject constructor(
     private val _billingConnectionState = MutableStateFlow(false)
     val billingConnectionState = _billingConnectionState.asStateFlow()
 
-    // --- IDs DE PRODUCTO ---
-    // IMPORTANTE: Estos IDs deben coincidir EXACTAMENTE con los IDs creados en la Google Play Console.
     companion object {
-        const val PREMIUM_SUB_ID = "premium_annual" // ID de la suscripción
-        const val DONATION_PRODUCT_ID = "donation_basic" // ID de la donación (ejemplo)
+        const val PREMIUM_SUB_ID = "premium_annual"
+        const val DONATION_PRODUCT_ID = "donation_basic"
     }
 
     private val billingClient = BillingClient.newBuilder(context)
         .setListener(this)
-        .enablePendingPurchases() // Habilitar compras pendientes es la práctica recomendada.
+        .enablePendingPurchases()
         .build()
 
     init {
@@ -51,7 +49,6 @@ class BillingRepository @Inject constructor(
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                     Log.d("BillingRepo", "Conectado a Google Play Billing")
                     _billingConnectionState.value = true
-                    // Al conectar, verificamos compras para actualizar el estado en Firestore si es necesario.
                     checkSubscriptionStatus()
                 } else {
                     Log.e("BillingRepo", "Error al conectar con Billing: ${billingResult.debugMessage}")
@@ -62,7 +59,7 @@ class BillingRepository @Inject constructor(
             override fun onBillingServiceDisconnected() {
                 Log.d("BillingRepo", "Desconectado. Reintentando...")
                 _billingConnectionState.value = false
-                startConnection() // Reintentar conexión
+                startConnection()
             }
         })
     }
@@ -158,14 +155,11 @@ class BillingRepository @Inject constructor(
 
     private fun handlePurchase(purchase: Purchase) {
         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-            // Distinguir entre suscripción y donación por el ID del producto
             if (purchase.products.contains(PREMIUM_SUB_ID)) {
-                // Es una suscripción. Debe ser reconocida.
                 if (!purchase.isAcknowledged) {
                     acknowledgePurchase(purchase)
                 }
             } else if (purchase.products.contains(DONATION_PRODUCT_ID)) {
-                // Es una donación (producto de un solo uso). Debe ser consumida.
                 consumePurchase(purchase)
             }
         } else if (purchase.purchaseState == Purchase.PurchaseState.PENDING) {
