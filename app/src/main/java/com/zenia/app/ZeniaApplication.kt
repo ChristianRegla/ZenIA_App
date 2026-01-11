@@ -13,7 +13,7 @@ class ZeniaApplication : Application() {
         super.onCreate()
 
         CoroutineScope(Dispatchers.IO).launch {
-            ProfanityFilter.loadFromCsv(this@ZeniaApplication)
+            ProfanityFilter.loadFromCsv(applicationContext)
         }
     }
 }

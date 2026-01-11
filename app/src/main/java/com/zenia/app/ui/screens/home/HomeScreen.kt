@@ -121,7 +121,8 @@ fun HomeScreen(
     currentStreak: Int,
     topBooster: AnalysisUtils.Insight?,
     topDrainer: AnalysisUtils.Insight?,
-    onNavigateToAnalytics: () -> Unit
+    onNavigateToAnalytics: () -> Unit,
+    onNavigateToCommunity: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -243,7 +244,7 @@ fun HomeScreen(
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
-                        TextButton(onClick = { /* Ver más */ }) {
+                        TextButton(onClick = onNavigateToCommunity) {
                             Text(stringResource(R.string.home_view_all))
                         }
                     }

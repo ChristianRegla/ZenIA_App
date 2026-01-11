@@ -22,6 +22,7 @@ import androidx.navigation.navArgument
 import com.zenia.app.ui.screens.MainScreen
 import com.zenia.app.ui.screens.analytics.AnalyticsRoute
 import com.zenia.app.ui.screens.analytics.AnalyticsViewModel
+import com.zenia.app.ui.screens.community.CommunityRoute
 import com.zenia.app.ui.screens.diary.DiarioRoute
 import com.zenia.app.ui.screens.diary.DiaryEntryScreen
 import com.zenia.app.ui.screens.lock.LockRoute
@@ -107,7 +108,8 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
                     navController.safeNavigate(Destinations.createDiaryEntryRoute(date))
                 },
                 onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) },
-                onNavigateToAnalytics = { navController.safeNavigate(Destinations.ANALYTICS_ROUTE) }
+                onNavigateToAnalytics = { navController.safeNavigate(Destinations.ANALYTICS_ROUTE) },
+                onNavigateToCommunity = { navController.safeNavigate(Destinations.COMMUNITY_ROUTE) }
             )
         }
 
@@ -208,6 +210,18 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) },
                 viewModel = analyticsViewModel
+            )
+        }
+
+        composable(
+            route = Destinations.COMMUNITY_ROUTE,
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
+        ) {
+            CommunityRoute(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

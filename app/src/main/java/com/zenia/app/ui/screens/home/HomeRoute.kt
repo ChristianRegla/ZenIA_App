@@ -29,7 +29,8 @@ fun HomeRoute(
     onNavigateToSOS: () -> Unit,
     onSignOut: () -> Unit,
     onNavigateToDiaryEntry: (LocalDate) -> Unit,
-    onNavigateToAnalytics: () -> Unit
+    onNavigateToAnalytics: () -> Unit,
+    onNavigateToCommunity: () -> Unit
 ) {
     val homeViewModel: HomeViewModel = hiltViewModel()
     val context = LocalContext.current
@@ -115,6 +116,7 @@ fun HomeRoute(
         currentStreak = currentStreak,
         topBooster = moodInsights.first,
         topDrainer = moodInsights.second,
-        onNavigateToAnalytics = onNavigateToAnalytics
+        onNavigateToAnalytics = onNavigateToAnalytics,
+        onNavigateToCommunity = onNavigateToCommunity
     )
 }

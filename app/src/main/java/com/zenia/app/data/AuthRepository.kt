@@ -108,6 +108,25 @@ class AuthRepository @Inject constructor(
         )
 
     /**
+     * Obtiene el documento del usuario actual una sola vez (Snapshot).
+     * Útil para operaciones puntuales como "Crear Post" donde necesitamos los datos actuales.
+     */
+    suspend fun getCurrentUserSnapshot(): Usuario? {
+        val uid = currentUserId ?: return null
+        return try {
+            val snapshot = db.collection(FirestoreCollections.USERS)
+                .document(uid)
+                .get()
+                .await()
+
+            snapshot.toObject(Usuario::class.java)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    /**
      * Crea o actualiza el documento del usuario en Firestore tras el inicio de sesión.
      *
      * @param userId El UID del usuario.
