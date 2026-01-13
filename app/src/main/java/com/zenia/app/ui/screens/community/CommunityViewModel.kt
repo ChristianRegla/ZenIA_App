@@ -7,6 +7,7 @@ import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.CommunityRepository
 import com.zenia.app.model.CommunityPost
 import com.zenia.app.model.SubscriptionType
+import com.zenia.app.util.ProfanityFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,14 +18,16 @@ import javax.inject.Inject
 @HiltViewModel
 class CommunityViewModel @Inject constructor(
     private val communityRepository: CommunityRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val profanityFilter: ProfanityFilter
 ) : ViewModel() {
 
     data class UiState(
         val posts: List<CommunityPost> = emptyList(),
         val isLoading: Boolean = false,
         val error: String? = null,
-        val isPostLoading: Boolean = false
+        val isPostLoading: Boolean = false,
+        val postCreationError: String? = null
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -45,8 +48,6 @@ class CommunityViewModel @Inject constructor(
                 _uiState.update { it.copy(isLoading = true, posts = emptyList(), error = null) }
                 lastVisibleDocument = null
                 isLastPage = false
-            } else {
-
             }
 
             try {
@@ -69,11 +70,24 @@ class CommunityViewModel @Inject constructor(
         }
     }
 
+    fun validateContent(content: String) {
+        if (profanityFilter.hasProfanity(content)) {
+            _uiState.update { it.copy(postCreationError = "El contenido no cumple con las normas de la comunidad.") }
+        } else {
+            _uiState.update { it.copy(postCreationError = null) }
+        }
+    }
+
     fun createPost(content: String) {
         if (content.isBlank()) return
 
+        if (profanityFilter.hasProfanity(content)) {
+            _uiState.update { it.copy(postCreationError = "Se han detectado palabras inapropiadas. Por favor revisa tu mensaje.") }
+            return
+        }
+
         viewModelScope.launch {
-            _uiState.update { it.copy(isPostLoading = true) }
+            _uiState.update { it.copy(isPostLoading = true, postCreationError = null) }
 
             val currentUser = authRepository.getCurrentUserSnapshot()
 
@@ -93,18 +107,39 @@ class CommunityViewModel @Inject constructor(
                     loadPosts(reset = true)
                     _uiState.update { it.copy(isPostLoading = false) }
                 } else {
-                    _uiState.update { it.copy(isPostLoading = false, error = result.exceptionOrNull()?.message) }
+                    _uiState.update { it.copy(isPostLoading = false, postCreationError = result.exceptionOrNull()?.message) }
                 }
             } else {
-                _uiState.update { it.copy(isPostLoading = false, error = "No se pudo obtener información del usuario.") }
+                _uiState.update { it.copy(isPostLoading = false, postCreationError = "No se pudo identificar al usuario.") }
             }
         }
     }
 
+    fun clearPostError() {
+        _uiState.update { it.copy(postCreationError = null) }
+    }
+
     fun onLikeClick(post: CommunityPost) {
+        val userId = authRepository.currentUserId ?: return
+
+        val newIsLiked = !post.isLikedByCurrentUser
+        val newCount = if (newIsLiked) post.likesCount + 1 else post.likesCount - 1
+
+        _uiState.update { state ->
+            val updatedPosts = state.posts.map {
+                if (it.id == post.id) {
+                    it.copy(isLikedByCurrentUser = newIsLiked, likesCount = newCount)
+                } else it
+            }
+            state.copy(posts = updatedPosts)
+        }
+
         viewModelScope.launch {
-            val userId = authRepository.currentUserId ?: return@launch
-            communityRepository.toggleLike(post.id, userId, isLiking = true)
+            val result = communityRepository.toggleLike(post.id, userId)
+
+            if (result.isFailure) {
+                // Revertir optimistic update...
+            }
         }
     }
 }

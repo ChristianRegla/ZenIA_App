@@ -1,5 +1,10 @@
 package com.zenia.app.ui.screens.community
 
+import android.R.attr.scaleX
+import android.R.attr.scaleY
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -9,15 +14,20 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -36,7 +46,6 @@ val AVATAR_LIST = listOf(
     R.drawable.avatar_5
 )
 
-// --- CommunityScreen (Stateless) ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommunityScreen(
@@ -108,6 +117,16 @@ fun CommunityPostItem(
     post: CommunityPost,
     onLikeClick: () -> Unit
 ) {
+
+    val scale by animateFloatAsState(
+        targetValue = if (post.isLikedByCurrentUser) 1.2f else 1.0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "heartScale"
+    )
+
     Card(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -116,7 +135,6 @@ fun CommunityPostItem(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // AVATAR CON BORDE PREMIUM
                 UserAvatar(
                     avatarIndex = post.authorAvatarIndex,
                     isPremium = post.authorIsPremium,
@@ -161,15 +179,21 @@ fun CommunityPostItem(
             ) {
                 IconButton(onClick = onLikeClick) {
                     Icon(
-                        Icons.Default.FavoriteBorder,
+                        imageVector = if (post.isLikedByCurrentUser) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Like",
-                        tint = ZeniaSlateGrey
+                        tint = if (post.isLikedByCurrentUser) Color(0xFFFF5252) else ZeniaSlateGrey,
+                        modifier = Modifier.graphicsLayer {
+                            scaleX = if (post.isLikedByCurrentUser) scale else 1f
+                            scaleY = if (post.isLikedByCurrentUser) scale else 1f
+                        }
                     )
                 }
+
                 Text(
                     text = "${post.likesCount}",
                     style = MaterialTheme.typography.labelMedium,
-                    color = ZeniaSlateGrey
+                    color = if (post.isLikedByCurrentUser) Color(0xFFFF5252) else ZeniaSlateGrey,
+                    fontWeight = if (post.isLikedByCurrentUser) FontWeight.Bold else FontWeight.Normal
                 )
             }
         }
@@ -182,25 +206,23 @@ fun UserAvatar(
     isPremium: Boolean,
     size: androidx.compose.ui.unit.Dp
 ) {
-    // Resolver el recurso drawable seguro
     val avatarRes = if (avatarIndex in AVATAR_LIST.indices) {
         AVATAR_LIST[avatarIndex]
     } else {
         R.drawable.avatar_1 // Fallback
     }
 
-    // Definir el borde según si es premium
     val modifier = if (isPremium) {
         Modifier
             .size(size)
             .clip(CircleShape)
             .border(
-                width = 3.dp, // Grosor del borde premium
+                width = 3.dp,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFFFFD700), // Oro
-                        ZeniaPremiumPurple, // Morado
-                        Color(0xFFFF8C00)  // Naranja
+                        Color(0xFFFFD700),
+                        ZeniaPremiumPurple,
+                        Color(0xFFFF8C00) 
                     )
                 ),
                 shape = CircleShape
@@ -209,7 +231,6 @@ fun UserAvatar(
         Modifier
             .size(size)
             .clip(CircleShape)
-        // Borde normal o sin borde
     }
 
     Image(
@@ -225,35 +246,85 @@ fun UserAvatar(
 fun CreatePostDialog(
     onDismiss: () -> Unit,
     onSend: (String) -> Unit,
-    isLoading: Boolean
+    onValidate: (String) -> Unit,
+    isLoading: Boolean,
+    errorMessage: String?,
+    onSuccess: () -> Unit
 ) {
     var text by remember { mutableStateOf("") }
+    var hasSubmitted by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isLoading, errorMessage) {
+        if (hasSubmitted && !isLoading && errorMessage == null) {
+            onSuccess()
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Crear publicación") },
-        text = {
-            OutlinedTextField(
-                value = text,
-                onValueChange = { if (it.length <= 500) text = it },
-                placeholder = { Text("Comparte algo positivo...") },
-                modifier = Modifier.fillMaxWidth().height(150.dp),
-                maxLines = 5,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = ZeniaTeal,
-                    cursorColor = ZeniaTeal
-                )
+        title = {
+            Text(
+                "Nueva publicación",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
             )
+        },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = {
+                        if (it.length <= 500) {
+                            text = it
+                            onValidate(it)
+                        }
+                    },
+                    placeholder = { Text("Comparte algo positivo con la comunidad...") },
+                    modifier = Modifier.fillMaxWidth().height(150.dp),
+                    maxLines = 6,
+                    isError = errorMessage != null,
+                    supportingText = {
+                        if (errorMessage != null) {
+                            Text(
+                                text = errorMessage,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        } else {
+                            Text(
+                                text = "${text.length}/500",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = ZeniaSlateGrey
+                            )
+                        }
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = ZeniaTeal,
+                        cursorColor = ZeniaTeal,
+                        errorBorderColor = MaterialTheme.colorScheme.error,
+                        errorCursorColor = MaterialTheme.colorScheme.error
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
         },
         confirmButton = {
             Button(
-                onClick = { onSend(text) },
-                enabled = text.isNotBlank() && !isLoading,
-                colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal)
+                onClick = {
+                    hasSubmitted = true
+                    onSend(text)
+                },
+                enabled = text.isNotBlank() && !isLoading && errorMessage == null, // Deshabilitar si hay error visible
+                colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal),
+                shape = RoundedCornerShape(8.dp)
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(modifier = Modifier.size(16.dp), color = Color.White)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Publicando...")
                 } else {
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text("Publicar")
                 }
             }
@@ -262,6 +333,9 @@ fun CreatePostDialog(
             TextButton(onClick = onDismiss) {
                 Text("Cancelar", color = ZeniaSlateGrey)
             }
-        }
+        },
+        containerColor = Color.White,
+        tonalElevation = 0.dp,
+        shape = RoundedCornerShape(24.dp)
     )
 }

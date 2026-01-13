@@ -1,6 +1,7 @@
 package com.zenia.app.ui.screens.community
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,14 +18,26 @@ fun CommunityRoute(
 
     var showCreateDialog by remember { mutableStateOf(false) }
 
+    LaunchedEffect(showCreateDialog) {
+        if (showCreateDialog) viewModel.clearPostError()
+    }
+
+    LaunchedEffect(uiState.isPostLoading, uiState.postCreationError) {
+        if (!uiState.isPostLoading && uiState.postCreationError == null && showCreateDialog) {
+
+        }
+    }
+
     if (showCreateDialog) {
         CreatePostDialog(
             onDismiss = { showCreateDialog = false },
             onSend = { content ->
                 viewModel.createPost(content)
-                showCreateDialog = false
             },
-            isLoading = uiState.isPostLoading
+            onValidate = { viewModel.validateContent(it) },
+            isLoading = uiState.isPostLoading,
+            errorMessage = uiState.postCreationError,
+            onSuccess = { showCreateDialog = false }
         )
     }
 

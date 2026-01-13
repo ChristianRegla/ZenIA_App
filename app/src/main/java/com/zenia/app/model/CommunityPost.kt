@@ -1,5 +1,6 @@
 package com.zenia.app.model
 
+import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
 
@@ -18,5 +19,8 @@ data class CommunityPost(
     val commentsCount: Int = 0,
 
     @ServerTimestamp
-    val timestamp: Date? = null
+    val timestamp: Date? = null,
+
+    @get:Exclude
+    var isLikedByCurrentUser: Boolean = false
 )

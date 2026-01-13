@@ -68,18 +68,31 @@ class CommunityRepository @Inject constructor(
         }
     }
 
-    suspend fun toggleLike(postId: String, userId: String, isLiking: Boolean) {
+    suspend fun toggleLike(
+        postId: String,
+        userId: String
+    ): Result<Boolean> {
         val postRef = postsCollection.document(postId)
         val likeRef = postRef.collection("likes").document(userId)
 
-        firestore.runTransaction { transaction ->
-            if (isLiking) {
-                transaction.set(likeRef, mapOf("timestamp" to FieldValue.serverTimestamp()))
-                transaction.update(postRef, "likesCount", FieldValue.increment(1))
-            } else {
-                transaction.delete(likeRef)
-                transaction.update(postRef, "likesCount", FieldValue.increment(-1))
-            }
-        }.await()
+        return try {
+            val isLikedNow = firestore.runTransaction { transaction ->
+                val snapshot = transaction.get(likeRef)
+
+                if (snapshot.exists()) {
+                    transaction.delete(likeRef)
+                    transaction.update(postRef, "likesCount", FieldValue.increment(-1))
+                    false
+                } else {
+                    transaction.set(likeRef, mapOf("timestamp" to FieldValue.serverTimestamp()))
+                    transaction.update(postRef, "likesCount", FieldValue.increment(1))
+                    true
+                }
+            }.await()
+
+            Result.success(isLikedNow)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }
