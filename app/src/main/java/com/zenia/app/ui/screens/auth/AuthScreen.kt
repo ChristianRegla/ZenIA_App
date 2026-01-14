@@ -234,7 +234,6 @@ private fun AuthContent(
                             }
                     )
                 } else {
-                    // Campos del Formulario
                     TextField(
                         value = state.email,
                         onValueChange = actions.onEmailChange,
@@ -508,7 +507,7 @@ private fun TermsAndConditionsCheckbox(
                 )
             )
             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White, textDecoration = TextDecoration.Underline)) {
-                append(termsText) // "Términos de Uso"
+                append(termsText)
             }
             pop()
 
@@ -572,6 +571,25 @@ fun AuthScreenPreview_Login() {
 fun AuthScreenPreview_Register() {
     val state = AuthScreenState(
         uiState = AuthUiState.Idle,
+        isRegisterMode = true,
+        email = "test@email.com",
+        password = "password123",
+        confirmPassword = "password123",
+        snackbarHostState = SnackbarHostState(),
+        termsAccepted = true
+    )
+    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {}, {}, {}, {})
+
+    ZenIATheme {
+        AuthScreen(state = state, actions = actions)
+    }
+}
+
+@Preview(name = "Modo Cargando", showBackground = true)
+@Composable
+fun AuthScreenPreview_Loading() {
+    val state = AuthScreenState(
+        uiState = AuthUiState.Loading,
         isRegisterMode = true,
         email = "test@email.com",
         password = "password123",

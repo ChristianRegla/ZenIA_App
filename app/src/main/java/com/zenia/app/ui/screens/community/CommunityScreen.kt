@@ -1,7 +1,5 @@
 package com.zenia.app.ui.screens.community
 
-import android.R.attr.scaleX
-import android.R.attr.scaleY
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -18,7 +16,6 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
@@ -32,7 +29,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.zenia.app.R
 import com.zenia.app.model.CommunityPost
 import com.zenia.app.ui.components.ZeniaTopBar
@@ -150,7 +146,6 @@ fun CommunityPostItem(
                         fontWeight = FontWeight.Bold,
                         color = ZeniaDark
                     )
-                    // Si es premium, podrías poner una pequeña insignia extra si quieres
                     if (post.authorIsPremium) {
                         Text(
                             text = "Premium Member",
@@ -171,7 +166,7 @@ fun CommunityPostItem(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Divider(color = ZeniaLightGrey.copy(alpha = 0.5f))
+            HorizontalDivider(color = ZeniaLightGrey.copy(alpha = 0.5f))
 
             Row(
                 modifier = Modifier.padding(top = 8.dp),
@@ -222,7 +217,7 @@ fun UserAvatar(
                     colors = listOf(
                         Color(0xFFFFD700),
                         ZeniaPremiumPurple,
-                        Color(0xFFFF8C00) 
+                        Color(0xFFFF8C00)
                     )
                 ),
                 shape = CircleShape
@@ -314,7 +309,7 @@ fun CreatePostDialog(
                     hasSubmitted = true
                     onSend(text)
                 },
-                enabled = text.isNotBlank() && !isLoading && errorMessage == null, // Deshabilitar si hay error visible
+                enabled = text.isNotBlank() && !isLoading && errorMessage == null,
                 colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal),
                 shape = RoundedCornerShape(8.dp)
             ) {
