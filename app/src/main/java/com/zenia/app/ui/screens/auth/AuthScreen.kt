@@ -128,13 +128,10 @@ private fun AuthContent(
     contentAlignment: Alignment
 ) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
-
     val isLoading = state.uiState == AuthUiState.Loading
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(bottom = bottomPadding),
+        modifier = Modifier.fillMaxSize().padding(bottom = bottomPadding),
         contentAlignment = contentAlignment
     ) {
         Column(
@@ -147,16 +144,13 @@ private fun AuthContent(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             ConstraintLayout(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .then(if (isPortraitPhone) Modifier.heightIn(min = minHeight) else Modifier)
+                modifier = Modifier.fillMaxWidth().then(if (isPortraitPhone) Modifier.heightIn(min = minHeight) else Modifier)
             ) {
-                val (
-                    appName, emailField, passwordField, confirmPasswordField,
+                val (appName, emailField, passwordField, confirmPasswordField,
                     forgotPassword, loginButton, divider, googleButton,
-                    toggleModeText, termsCheckbox
-                ) = createRefs()
+                    toggleModeText, termsCheckbox) = createRefs()
 
+                // TÍTULO
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(fontFamily = Lobster)) { append("Zen") }
@@ -173,71 +167,54 @@ private fun AuthContent(
                     }
                 )
 
-                TextField(
+                // CAMPO EMAIL
+                AuthTextField(
                     value = state.email,
                     onValueChange = actions.onEmailChange,
+                    label = stringResource(R.string.email),
                     enabled = !isLoading,
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = Nunito),
-                    label = { Text(stringResource(R.string.email), fontFamily = Nunito) },
-                    shape = RoundedCornerShape(15.dp),
-                    colors = authInputColors(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .constrainAs(emailField) {
-                            bottom.linkTo(passwordField.top, margin = 16.dp)
-                            centerHorizontallyTo(parent)
-                        }
+                    modifier = Modifier.constrainAs(emailField) {
+                        bottom.linkTo(passwordField.top, margin = 16.dp)
+                        centerHorizontallyTo(parent)
+                    }
                 )
 
-                TextField(
+                AuthTextField(
                     value = state.password,
                     onValueChange = actions.onPasswordChange,
+                    label = stringResource(R.string.password),
                     enabled = !isLoading,
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = Nunito),
-                    label = { Text(stringResource(R.string.password), fontFamily = Nunito) },
-                    shape = RoundedCornerShape(15.dp),
-                    colors = authInputColors(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .constrainAs(passwordField) {
-                            if (state.isRegisterMode) bottom.linkTo(confirmPasswordField.top, margin = 16.dp)
-                            else bottom.linkTo(forgotPassword.top)
-                            centerHorizontallyTo(parent)
-                        },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                         IconButton(onClick = { passwordVisible = !passwordVisible }, enabled = !isLoading) {
-                            Icon(imageVector = image, contentDescription = "Toggle visibility")
+                            Icon(imageVector = image, contentDescription = null)
                         }
                     },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
                         imeAction = if (state.isRegisterMode) ImeAction.Next else ImeAction.Done
                     ),
-                    singleLine = true
+                    modifier = Modifier.constrainAs(passwordField) {
+                        if (state.isRegisterMode) bottom.linkTo(confirmPasswordField.top, margin = 16.dp)
+                        else bottom.linkTo(forgotPassword.top)
+                        centerHorizontallyTo(parent)
+                    }
                 )
 
                 if (state.isRegisterMode) {
-                    TextField(
+                    AuthTextField(
                         value = state.confirmPassword,
                         onValueChange = actions.onConfirmPasswordChange,
+                        label = stringResource(R.string.confirmPassword),
                         enabled = !isLoading,
-                        textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = Nunito),
-                        label = { Text(stringResource(R.string.confirmPassword), fontFamily = Nunito) },
-                        shape = RoundedCornerShape(15.dp),
-                        colors = authInputColors(),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .constrainAs(confirmPasswordField) {
-                                bottom.linkTo(termsCheckbox.top, margin = 10.dp)
-                                centerHorizontallyTo(parent)
-                            },
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        singleLine = true
+                        modifier = Modifier.constrainAs(confirmPasswordField) {
+                            bottom.linkTo(termsCheckbox.top, margin = 10.dp)
+                            centerHorizontallyTo(parent)
+                        }
                     )
 
                     TermsAndConditionsCheckbox(
@@ -270,29 +247,15 @@ private fun AuthContent(
                     }
                 }
 
-                Button(
+                AuthButton(
+                    text = if (state.isRegisterMode) stringResource(R.string.register) else stringResource(R.string.login),
                     onClick = actions.onLoginOrRegisterClick,
                     enabled = !isLoading,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        disabledContainerColor = MaterialTheme.colorScheme.primary
-                    ),
-                    shape = RoundedCornerShape(50.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .constrainAs(loginButton) {
-                            bottom.linkTo(divider.top, margin = 16.dp)
-                            centerHorizontallyTo(parent)
-                        }
-                ) {
-                    Text(
-                        text = if (state.isRegisterMode) stringResource(R.string.register) else stringResource(R.string.login),
-                        color = Color.White,
-                        fontFamily = Nunito,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                    modifier = Modifier.constrainAs(loginButton) {
+                        bottom.linkTo(divider.top, margin = 16.dp)
+                        centerHorizontallyTo(parent)
+                    }
+                )
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -312,45 +275,26 @@ private fun AuthContent(
                     HorizontalDivider(modifier = Modifier.weight(1f), thickness = 1.dp, color = Color.White.copy(alpha = 0.5f))
                 }
 
-                Button(
+                AuthButton(
+                    text = stringResource(R.string.googleLogin),
                     onClick = actions.onGoogleSignInClick,
                     enabled = !isLoading,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(id = R.color.google),
-                        disabledContainerColor = colorResource(id = R.color.google)
-                    ),
-                    shape = RoundedCornerShape(50.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .constrainAs(googleButton) {
-                            bottom.linkTo(toggleModeText.top, margin = 16.dp)
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                        }
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.image_continuar_google_group),
-                        contentDescription = stringResource(R.string.googleLogin),
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = stringResource(R.string.googleLogin),
-                        color = Color.Black,
-                        fontFamily = Nunito,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                    containerColor = colorResource(id = R.color.google),
+                    textColor = Color.Black,
+                    icon = painterResource(id = R.drawable.image_continuar_google_group),
+                    modifier = Modifier.constrainAs(googleButton) {
+                        bottom.linkTo(toggleModeText.top, margin = 16.dp)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    }
+                )
 
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(fontFamily = Nunito)) {
                             val text1 = if (state.isRegisterMode) stringResource(R.string.accountAlready) else stringResource(R.string.noAccount)
                             val text2 = if (state.isRegisterMode) stringResource(R.string.login) else stringResource(R.string.register)
-                            append(text1)
-                            append(" ")
+                            append("$text1 ")
                             withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline, fontWeight = FontWeight.Bold)) {
                                 append(text2)
                             }
@@ -372,23 +316,6 @@ private fun AuthContent(
         }
     }
 }
-
-@Composable
-private fun authInputColors() = OutlinedTextFieldDefaults.colors(
-    focusedTextColor = Color.Black,
-    unfocusedTextColor = Color.Black,
-    disabledTextColor = Color.DarkGray,
-    focusedContainerColor = ZeniaInputBackground,
-    unfocusedContainerColor = ZeniaInputBackground,
-    disabledContainerColor = ZeniaInputBackground.copy(alpha = 0.9f),
-    focusedBorderColor = Color.Transparent,
-    unfocusedBorderColor = Color.Transparent,
-    disabledBorderColor = Color.Transparent,
-    focusedLabelColor = ZeniaInputLabel,
-    unfocusedLabelColor = ZeniaInputLabel,
-    disabledLabelColor = ZeniaInputLabel.copy(alpha = 0.7f),
-    cursorColor = Color.Black
-)
 
 @Composable
 private fun TermsAndConditionsCheckbox(
