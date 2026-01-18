@@ -1,7 +1,10 @@
 package com.zenia.app.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -60,8 +63,23 @@ fun MainScreen(
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val isChatScreen = currentRoute == BottomNavItem.Zenia.route
+    val bottomBarRoutes = listOf(
+        Destinations.HOME_ROUTE,
+        Destinations.RELAX_ROUTE,
+        Destinations.DIARY_ROUTE,
+        Destinations.RECURSOS_ROUTE,
+    )
 
+    val showBottomBar = currentRoute in bottomBarRoutes
+
+    val items = listOf(
+        BottomNavItem.Inicio,
+        BottomNavItem.Relajacion,
+        BottomNavItem.Zenia,
+        BottomNavItem.Diario,
+        BottomNavItem.Recursos
+    )
+    
     LaunchedEffect(startTab) {
         if (startTab != null && startTab != BottomNavItem.Inicio.route) {
             bottomNavController.navigate(startTab) {
@@ -75,8 +93,12 @@ fun MainScreen(
     ZenIATheme {
         Scaffold(
             bottomBar = {
-                if (!isChatScreen) {
-                    ZeniaBottomBar(navController = bottomNavController)
+                AnimatedVisibility(
+                    visible = showBottomBar,
+                    enter = slideInVertically(initialOffsetY = { it }),
+                    exit = slideOutVertically(targetOffsetY = { it })
+                ) {
+                    ZeniaBottomBar(navController = bottomNavController, items = items)
                 }
             },
             containerColor = MaterialTheme.colorScheme.surfaceVariant
