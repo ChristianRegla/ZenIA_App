@@ -43,7 +43,6 @@ fun ZeniaBottomBar(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            // Padding para que flote
             .padding(horizontal = 16.dp, vertical = 16.dp)
             .navigationBarsPadding(),
         contentAlignment = Alignment.BottomCenter
@@ -57,7 +56,7 @@ fun ZeniaBottomBar(
                     shape = RoundedCornerShape(24.dp),
                     spotColor = Color.Black.copy(alpha = 0.25f)
                 ),
-            color = ZeniaTeal, // CAMBIO: Color base de la barra
+            color = ZeniaTeal,
             shape = RoundedCornerShape(24.dp)
         ) {
             Row(
@@ -110,11 +109,10 @@ fun ZeniaNavItem(
         targetValue = if (isSelected)
             Color.White
         else
-            Color.White.copy(alpha = 0.5f), // No seleccionado: Blanco translúcido (subí a 50% para legibilidad, ajusta a 0.3f si prefieres)
+            Color.White.copy(alpha = 0.5f),
         label = "contentColor"
     )
 
-    // Animación de Fondo (Indicador/Hover)
     val backgroundColor by animateColorAsState(
         targetValue = if (isSelected)
             Color.White.copy(alpha = 0.2f)
