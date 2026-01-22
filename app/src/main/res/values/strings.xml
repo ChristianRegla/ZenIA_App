@@ -301,5 +301,6 @@
     <string name="subs_active_title">Suscripción Activa</string>
     <string name="subs_active_thanks">Gracias por apoyar el desarrollo de ZenIA.</string>
     <string name="subs_manage_btn">Gestionar Suscripción</string>
+    <string name="settings_item_account">Cuenta</string>
 
 </resources>

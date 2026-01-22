@@ -11,9 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
@@ -27,7 +25,6 @@ import com.zenia.app.ui.screens.diary.DiarioRoute
 import com.zenia.app.ui.screens.home.HomeRoute
 import com.zenia.app.ui.screens.recursos.RecursosRoute
 import com.zenia.app.ui.screens.relax.RelaxRoute
-import com.zenia.app.ui.screens.relax.RelaxScreen
 import com.zenia.app.ui.screens.zenia.ZeniaBotRoute
 import com.zenia.app.ui.theme.ZenIATheme
 import java.time.LocalDate
@@ -35,15 +32,6 @@ import java.time.LocalDate
 /**
  * Pantalla principal de la aplicación que aloja la navegación inferior y las diferentes
  * secciones de la app.
- *
- * @param onSignOut Callback para cerrar la sesión del usuario.
- * @param onNavigateToAccount Callback para navegar a la pantalla de la cuenta del usuario.
- * @param onNavigateToPremium Callback para navegar a la pantalla de suscripción premium.
- * @param onNavigateToSettings Callback para navegar a la pantalla de ajustes.
- * @param onNotificationClick Callback para manejar el clic en una notificación.
- * @param onNavigateToSOS Callback para navegar a la pantalla de emergencia/SOS.
- * @param onNavigateToDiaryEntry Callback para navegar a una entrada específica del diario.
- * @param onNavigateToAnalytics Callback para navegar a la pantalla de analíticas.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +51,9 @@ fun MainScreen(
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    // Estado para saber si en la pantalla de diario estamos en una fecha, para ocultar la barra inferior pues
+    var isDiaryEntryActive by remember { mutableStateOf(false) }
+
     val bottomBarRoutes = listOf(
         Destinations.HOME_ROUTE,
         Destinations.RELAX_ROUTE,
@@ -70,7 +61,14 @@ fun MainScreen(
         Destinations.RECURSOS_ROUTE,
     )
 
-    val showBottomBar = currentRoute in bottomBarRoutes
+    // La barra se muestra si la ruta es de las principales y pues lo del diario de arriba
+    val showBottomBar = (currentRoute in bottomBarRoutes) && !isDiaryEntryActive
+
+    LaunchedEffect(currentRoute) {
+        if (currentRoute != Destinations.DIARY_ROUTE) {
+            isDiaryEntryActive = false
+        }
+    }
 
     val items = listOf(
         BottomNavItem.Inicio,
@@ -107,7 +105,7 @@ fun MainScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(
-                        bottom = innerPadding.calculateBottomPadding(),
+                        bottom = if (showBottomBar) innerPadding.calculateBottomPadding() else 0.dp,
                         top = 0.dp
                     )
             ) {
@@ -123,7 +121,7 @@ fun MainScreen(
                         HomeRoute(
                             onSignOut = onSignOut,
                             onNavigateToAccount = onNavigateToAccount,
-                            onNavigateToPremium = { /* TODO */ },
+                            onNavigateToPremium = onNavigateToPremium,
                             onNavigateToSettings = onNavigateToSettings,
                             onNotificationClick = onNotificationClick,
                             onNavigateToSOS = onNavigateToSOS,
@@ -135,10 +133,7 @@ fun MainScreen(
 
                     composable(BottomNavItem.Relajacion.route) {
                         RelaxRoute(
-                            onNavigateToPlayer = { exerciseId ->
-                                // TODO: Aquí navegarías al reproductor cuando lo tengas
-                                // navController.navigate("player/$exerciseId")
-                            },
+                            onNavigateToPlayer = { /* TODO */ },
                             onNavigateToPremium = onNavigateToPremium
                         )
                     }
@@ -150,15 +145,16 @@ fun MainScreen(
                     }
 
                     composable(BottomNavItem.Diario.route) {
-                        DiarioRoute()
+                        DiarioRoute(
+                            onToggleBottomBar = { isVisible ->
+                                isDiaryEntryActive = !isVisible
+                            }
+                        )
                     }
 
                     composable(BottomNavItem.Recursos.route) {
                         RecursosRoute(
-                            onNavigateToDetail = { recursoId ->
-                                // TODO: Navegar al detalle del artículo/recurso
-                                // navController.navigate("recurso_detail/$recursoId")
-                            },
+                            onNavigateToDetail = { /* TODO */ },
                             onNavigateToPremium = onNavigateToPremium
                         )
                     }

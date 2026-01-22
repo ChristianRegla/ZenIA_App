@@ -307,4 +307,6 @@
 
     <string name="nav_back_desc">Go back</string>
 
+    <string name="settings_item_account">Account</string>
+
 </resources>

@@ -193,6 +193,13 @@ fun SettingsScreen(
                         )
                         SettingsDivider()
                         SettingsItem(
+                            iconRes = R.drawable.ic_account,
+                            text = stringResource(R.string.settings_item_account),
+                            textColor = ZeniaSlateGrey,
+                            onClick = onNavigateToProfile
+                        )
+                        SettingsDivider()
+                        SettingsItem(
                             iconRes = R.drawable.ic_help_center,
                             text = stringResource(R.string.settings_item_help_center),
                             textColor = ZeniaSlateGrey,

@@ -29,6 +29,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.zenia.app.R
 import com.zenia.app.ui.theme.*
 import kotlin.math.absoluteValue
@@ -36,7 +41,8 @@ import kotlin.math.absoluteValue
 data class OnboardingPage(
     val title: String,
     val description: String,
-    val iconRes: Int,
+    val iconRes: Int? = null,
+    val lottieRes: Int? = null,
     val color: Color
 )
 
@@ -55,20 +61,26 @@ fun OnboardingScreen(
         OnboardingPage(
             title = "Diario Emocional",
             description = "Registra cómo te sientes cada día. Identifica patrones y comprende mejor tus emociones.",
-            iconRes = R.drawable.ic_journal,
+            lottieRes = R.raw.notepad,
             color = ZeniaDeepTeal
         ),
         OnboardingPage(
             title = "Chat con IA",
             description = "Habla con ZenIA en cualquier momento. Un asistente inteligente diseñado para apoyarte.",
-            iconRes = R.drawable.ic_chat,
+            lottieRes = R.raw.chatbot_animation,
             color = ZeniaDream
         ),
         OnboardingPage(
             title = "Calma y Recursos",
             description = "Accede a ejercicios de respiración y recursos profesionales cuando más lo necesites.",
-            iconRes = R.drawable.ic_relax,
+            lottieRes = R.raw.breathe,
             color = ZeniaExercise
+        ),
+        OnboardingPage(
+            title = "Seguridad Biométrica",
+            description = "Protege tu privacidad. Accede a tu espacio seguro usando tu huella o reconocimiento facial.",
+            lottieRes = R.raw.biometrics,
+            color = ZeniaDark
         )
     )
 
@@ -240,12 +252,27 @@ fun OnboardingPageContent(page: OnboardingPage) {
                     .padding(40.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    painter = painterResource(id = page.iconRes),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    tint = page.color
-                )
+                if (page.lottieRes != null) {
+                    // Configuración de Lottie
+                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(page.lottieRes))
+                    val progress by animateLottieCompositionAsState(
+                        composition = composition,
+                        iterations = LottieConstants.IterateForever
+                    )
+
+                    LottieAnimation(
+                        composition = composition,
+                        progress = { progress },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else if (page.iconRes != null) {
+                    Icon(
+                        painter = painterResource(id = page.iconRes),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        tint = page.color
+                    )
+                }
             }
         }
 

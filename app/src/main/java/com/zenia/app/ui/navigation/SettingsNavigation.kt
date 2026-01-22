@@ -116,7 +116,13 @@ fun NavGraphBuilder.settingsGraph(navController: NavController, mainViewModel: M
         )
     }
 
-    composable(Destinations.ACCOUNT_ROUTE) {
+    composable(
+        route = Destinations.ACCOUNT_ROUTE,
+        enterTransition = { slideIn() },
+        exitTransition = { slideOut() },
+        popEnterTransition = { popSlideIn() },
+        popExitTransition = { popSlideOut() }
+    ) {
         val authViewModel: AuthViewModel = hiltViewModel()
         AccountRoute(
             authViewModel = authViewModel,

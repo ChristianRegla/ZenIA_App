@@ -37,7 +37,7 @@ import java.time.LocalDate
 
 /**
  * Composable principal que gestiona la navegación de toda la aplicación.
- * Utiliza un [NavHost] para definir todas las rutas (pantallas) posibles.
+ * Básicamente el mero mero de la navegación, de aquí se divide el resto.
  */
 @Composable
 fun AppNavigation(pendingDeepLink: Uri? = null) {
@@ -239,11 +239,6 @@ fun AnimatedContentTransitionScope<*>.popSlideIn() =
 fun AnimatedContentTransitionScope<*>.popSlideOut() =
     slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
 
-/**
- * FUNCIÓN DE EXTENSIÓN PARA EVITAR DOBLE CLIC / NAVEGACIÓN MÚLTIPLE
- * Solo navega si la pantalla actual está en estado RESUMED (Activa y lista).
- * Si ya se inició otra navegación, el estado cambia y esto evita el segundo clic.
- */
 fun androidx.navigation.NavController.safeNavigate(route: String) {
     val lifecycle = this.currentBackStackEntry?.lifecycle
     if (lifecycle != null && lifecycle.currentState == Lifecycle.State.RESUMED) {
