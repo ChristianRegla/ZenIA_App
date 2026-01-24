@@ -9,6 +9,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -117,6 +118,62 @@ class DiaryRepository @Inject constructor(
             emptyList()
         }
     }
+
+    /**
+     * Calcula la racha actual de forma eficiente.
+     * Descarga todas las fechas ordenadas, pero no el contenido pesado.
+     */
+    suspend fun calculateCurrentStreak(userId: String): Int {
+        return try {
+            val snapshot = db.collection(FirestoreCollections.USERS)
+                .document(userId)
+                .collection(FirestoreCollections.DIARY)
+                .orderBy("fecha", Query.Direction.DESCENDING)
+                .get()
+                .await()
+
+            if (snapshot.isEmpty) return 0
+
+            val dates = snapshot.documents.mapNotNull { doc ->
+                val dateStr = doc.getString("fecha")
+                try {
+                    if (dateStr != null) LocalDate.parse(dateStr) else null
+                } catch (e: Exception) {
+                    null
+                }
+            }.distinct()
+
+            if (dates.isEmpty()) return 0
+
+            var streak = 0
+            val today = LocalDate.now()
+            val yesterday = today.minusDays(1)
+
+            val lastEntryDate = dates.first()
+            if (!lastEntryDate.isEqual(today) && !lastEntryDate.isEqual(yesterday)) {
+                return 0
+            }
+
+            var checkDate = if (dates.contains(today)) today else yesterday
+
+            for (date in dates) {
+                if (date.isEqual(checkDate)) {
+                    streak++
+                    checkDate = checkDate.minusDays(1)
+                } else if (date.isAfter(checkDate)) {
+                    continue
+                } else {
+                    break
+                }
+            }
+
+            streak
+        } catch (e: Exception) {
+            e.printStackTrace()
+            0
+        }
+    }
+
 
     fun getCurrentUserId(): String? {
         return auth.currentUser?.uid

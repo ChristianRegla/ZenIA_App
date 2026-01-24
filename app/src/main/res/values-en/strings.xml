@@ -309,4 +309,35 @@
 
     <string name="settings_item_account">Account</string>
 
+    <!-- Onboarding -->
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_swipe_hint">Swipe to continue</string>
+    <string name="onboarding_start">Get started</string>
+
+    <!-- Onboarding pages -->
+    <string name="onboarding_title_welcome">Welcome to ZenIA</string>
+    <string name="onboarding_desc_welcome">
+        Your safe space for emotional well-being. A companion that listens and understands you.
+    </string>
+
+    <string name="onboarding_title_diary">Emotional journal</string>
+    <string name="onboarding_desc_diary">
+        Track how you feel every day. Identify patterns and better understand your emotions.
+    </string>
+
+    <string name="onboarding_title_chat">AI chat</string>
+    <string name="onboarding_desc_chat">
+        Talk to ZenIA anytime. An intelligent assistant designed to support you.
+    </string>
+
+    <string name="onboarding_title_resources">Calm &amp; resources</string>
+    <string name="onboarding_desc_resources">
+        Access breathing exercises and professional resources whenever you need them.
+    </string>
+
+    <string name="onboarding_title_biometrics">Biometric security</string>
+    <string name="onboarding_desc_biometrics">
+        Protect your privacy. Access your safe space using fingerprint or facial recognition.
+    </string>
+
 </resources>

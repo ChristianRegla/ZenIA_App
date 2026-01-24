@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,32 +54,32 @@ fun OnboardingScreen(
 ) {
     val pages = listOf(
         OnboardingPage(
-            title = "Bienvenido a ZenIA",
-            description = "Tu espacio seguro para el bienestar emocional. Un compañero que te escucha y te entiende.",
+            title = stringResource(R.string.onboarding_title_welcome),
+            description = stringResource(R.string.onboarding_desc_welcome),
             iconRes = R.drawable.ic_nube_feli,
             color = ZeniaTeal
         ),
         OnboardingPage(
-            title = "Diario Emocional",
-            description = "Registra cómo te sientes cada día. Identifica patrones y comprende mejor tus emociones.",
+            title = stringResource(R.string.onboarding_title_diary),
+            description = stringResource(R.string.onboarding_desc_diary),
             lottieRes = R.raw.notepad,
             color = ZeniaDeepTeal
         ),
         OnboardingPage(
-            title = "Chat con IA",
-            description = "Habla con ZenIA en cualquier momento. Un asistente inteligente diseñado para apoyarte.",
+            title = stringResource(R.string.onboarding_title_chat),
+            description = stringResource(R.string.onboarding_desc_chat),
             lottieRes = R.raw.chatbot_animation,
             color = ZeniaDream
         ),
         OnboardingPage(
-            title = "Calma y Recursos",
-            description = "Accede a ejercicios de respiración y recursos profesionales cuando más lo necesites.",
+            title = stringResource(R.string.onboarding_title_resources),
+            description = stringResource(R.string.onboarding_desc_resources),
             lottieRes = R.raw.breathe,
             color = ZeniaExercise
         ),
         OnboardingPage(
-            title = "Seguridad Biométrica",
-            description = "Protege tu privacidad. Accede a tu espacio seguro usando tu huella o reconocimiento facial.",
+            title = stringResource(R.string.onboarding_title_biometrics),
+            description = stringResource(R.string.onboarding_desc_biometrics),
             lottieRes = R.raw.biometrics,
             color = ZeniaDark
         )
@@ -103,7 +104,7 @@ fun OnboardingScreen(
                 if (pagerState.currentPage < pages.size - 1) {
                     TextButton(onClick = onFinish) {
                         Text(
-                            text = "Saltar",
+                            text = stringResource(R.string.onboarding_skip),
                             color = ZeniaSlateGrey,
                             style = MaterialTheme.typography.labelLarge
                         )
@@ -191,7 +192,7 @@ fun OnboardingScreen(
                         exit = fadeOut()
                     ) {
                         Text(
-                            text = "Desliza para continuar",
+                            text = stringResource(R.string.onboarding_swipe_hint),
                             color = ZeniaSlateGrey,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.alpha(0.7f)
@@ -212,7 +213,11 @@ fun OnboardingScreen(
                             shape = RoundedCornerShape(12.dp),
                             elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
                         ) {
-                            Text("Comenzar Ahora", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                text = stringResource(R.string.onboarding_start),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }

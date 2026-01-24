@@ -14,35 +14,18 @@ import com.zenia.app.util.AnalysisUtils
 import com.zenia.app.util.ChartUtils
 import com.zenia.app.util.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
-/**
- * Define los posibles estados de la UI para la pantalla principal,
- * específicamente para operaciones asíncronas como guardar un registro.
- */
 sealed interface HomeUiState {
     object Idle : HomeUiState
     object Loading : HomeUiState
     object Success : HomeUiState
     data class Error(val message: UiText) : HomeUiState
 }
-/**
- * ViewModel para la [HomeScreen].
- * Se encarga de gestionar el estado de la UI, obtener los registros de bienestar,
- * manejar la lógica de Health Connect (permisos y lectura) y el estado de suscripción del usuario.
- *
- * @param contentRepository El repositorio para interactuar con Firestore (registros, datos de usuario).
- * @param healthConnectRepository Repositorio para interactuar con la API de Health Connect. Es nulable si el SDK no está disponible.
- */
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val authRepository: AuthRepository,
@@ -51,12 +34,20 @@ class HomeViewModel @Inject constructor(
     private val healthConnectRepository: HealthConnectRepository?,
 ) : ViewModel() {
 
+    // --- ESTADO DE USUARIO ---
     val userName = authRepository.getUsuarioFlow()
         .map { it?.apodo ?: "Usuario" }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Cargando...")
 
+    val esPremium: StateFlow<Boolean> = authRepository.isPremium
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+
+    // --- DIARIO Y GRÁFICAS (Últimos 7 días) ---
     private val sevenDaysAgo = LocalDate.now().minusDays(7).toString()
 
+    // Solo cargamos los últimos 7 días para la gráfica y el estado de "hoy"
+    // Esto es muy ligero
     val registrosDiario = diaryRepository.getEntriesFromDate(sevenDaysAgo)
         .onEach { entradas -> processChartData(entradas) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -66,95 +57,72 @@ class HomeViewModel @Inject constructor(
         lista.any { it.fecha == todayStr }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    // --- GRÁFICA DE EMOCIONES ---
-    // Productor de datos para Vico
     val chartProducer = ChartEntryModelProducer()
 
-    // Estado derivado: Actividades de comunidad (Mock o Repo)
-    val communityActivities = contentRepository.getActividadesComunidad()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-    /**
-     * StateFlow interno para el estado de la UI (Cargando, Éxito, Error) al guardar un registro.
-     */
-    private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Idle)
-    val uiState = _uiState.asStateFlow()
-    /**
-     * Expone un boolean que indica si el usuario actual tiene una suscripción "premium".
-     * Se actualiza en tiempo real observando el documento del usuario en Firestore.
-     */
-    val esPremium: StateFlow<Boolean> = authRepository.isPremium
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    /**
-     * StateFlow interno para rastrear si se tienen los permisos de Health Connect.
-     */
-    private val _hasHealthPermissions = MutableStateFlow(false)
-    /**
-     * Expone si la app tiene (o no) los permisos necesarios de Health Connect.
-     */
-    val hasHealthPermissions: StateFlow<Boolean> = _hasHealthPermissions.asStateFlow()
-    // Exponemos el estado completo del SDK.
-    val healthConnectStatus: Int
-        get() = healthConnectRepository?.getAvailabilityStatus() ?: HealthConnectClient.SDK_UNAVAILABLE
-    // Helper para saber si podemos intentar operaciones (solo si está instalado Y disponible)
-    val isHealthConnectFullyAvailable: Boolean
-        get() = healthConnectStatus == HealthConnectClient.SDK_AVAILABLE
-    /**
-     * Indica si el SDK de Health Connect está disponible en el dispositivo.
-     * Se basa en si [healthConnectRepository] pudo ser inicializado.
-     */
-    val isHealthConnectAvailable: Boolean = healthConnectRepository != null
-    /**
-     * Expone el conjunto de permisos de Health Connect que la app requiere (ej. leer ritmo cardíaco).
-     */
-    val healthConnectPermissions: Set<String>
-        get() = healthConnectRepository?.permissions ?: emptySet()
-    /**
-     * Expone el 'contrato' de ActivityResult que la UI debe usar para solicitar
-     * los permisos de Health Connect.
-     */
-    val permissionRequestContract
-        get() = healthConnectRepository?.getPermissionRequestContract()
-
-    val healthConnectAvailability = healthConnectRepository?.getAvailabilityStatus()
-        ?: HealthConnectClient.SDK_UNAVAILABLE
-
-    val currentStreak: StateFlow<Int> = diaryRepository.getEntriesFromDate(
-        LocalDate.now().minusDays(30).toString()
-    ).map { entries ->
-        calculateStreak(entries)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
-
+    // Para los Insights (Patrones), necesitamos un poco más de contexto (ej. 30 días)
+    // Pero lo hacemos en un Flow separado para no afectar la carga inicial de la UI
     val moodInsights = diaryRepository.getEntriesFromDate(
         LocalDate.now().minusDays(30).toString()
     ).map { entries ->
         AnalysisUtils.analyzePatterns(entries)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Pair(null, null))
 
-    /**
-     * Bloque de inicialización.
-     * Comprueba los permisos de Health Connect en cuanto se crea el ViewModel.
-     */
+    // RACHA: Usamos un MutableStateFlow que actualizamos manualmente con la función eficiente del Repo
+    private val _currentStreak = MutableStateFlow(0)
+    val currentStreak = _currentStreak.asStateFlow()
+
+
+    // --- COMUNIDAD ---
+    val communityActivities = contentRepository.getActividadesComunidad()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+
+    // --- UI STATE GENERAL ---
+    private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Idle)
+    val uiState = _uiState.asStateFlow()
+
+
+    // --- HEALTH CONNECT ---
+    private val _hasHealthPermissions = MutableStateFlow(false)
+    val hasHealthPermissions: StateFlow<Boolean> = _hasHealthPermissions.asStateFlow()
+
+    val healthConnectStatus: Int
+        get() = healthConnectRepository?.getAvailabilityStatus() ?: HealthConnectClient.SDK_UNAVAILABLE
+
+    val isHealthConnectFullyAvailable: Boolean
+        get() = healthConnectStatus == HealthConnectClient.SDK_AVAILABLE
+
+    val isHealthConnectAvailable: Boolean = healthConnectRepository != null
+
+    val healthConnectPermissions: Set<String>
+        get() = healthConnectRepository?.permissions ?: emptySet()
+
+    val permissionRequestContract
+        get() = healthConnectRepository?.getPermissionRequestContract()
+
+
     init {
         checkHealthPermissions()
+        loadStreak()
     }
 
-    private fun calculateStreak(entries: List<DiarioEntrada>): Int {
-        if (entries.isEmpty()) return 0
-
-        val recordedDates = entries.map { it.fecha }.toSet()
-        var streak = 0
-        var checkDate = LocalDate.now()
-
-        if (!recordedDates.contains(checkDate.toString())) {
-            checkDate = checkDate.minusDays(1)
+    /**
+     * Carga la racha usando la función eficiente del repositorio.
+     * Esto evita descargar todo el contenido de meses pasados.
+     */
+    private fun loadStreak() {
+        viewModelScope.launch {
+            val userId = authRepository.currentUserId
+            if (userId != null) {
+                try {
+                    val streak = diaryRepository.calculateCurrentStreak(userId)
+                    _currentStreak.value = streak
+                } catch (e: Exception) {
+                    // Fallback silencioso o log
+                    _currentStreak.value = 0
+                }
+            }
         }
-
-        while (recordedDates.contains(checkDate.toString())) {
-            streak++
-            checkDate = checkDate.minusDays(1)
-        }
-        return streak
     }
 
     private fun processChartData(registros: List<DiarioEntrada>) {
@@ -181,13 +149,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    suspend fun checkPermissions(): Boolean {
-        return healthConnectRepository?.hasPermissions() ?: false
-    }
-    /**
-     * Comprueba si la app tiene actualmente los permisos de Health Connect
-     * y actualiza el [hasHealthPermissions] StateFlow.
-     */
     fun checkHealthPermissions() {
         if (!isHealthConnectFullyAvailable || healthConnectRepository == null) {
             _hasHealthPermissions.value = false
@@ -198,10 +159,10 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Resetea el estado de la UI a [HomeUiState.Idle].
-     * Útil para ocultar un Snackbar de error o éxito después de un tiempo.
-     */
+    suspend fun checkPermissions(): Boolean {
+        return healthConnectRepository?.hasPermissions() ?: false
+    }
+
     fun resetState() {
         _uiState.value = HomeUiState.Idle
     }

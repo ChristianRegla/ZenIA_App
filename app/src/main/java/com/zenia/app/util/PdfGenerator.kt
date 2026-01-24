@@ -43,7 +43,6 @@ object PdfGenerator {
             val logoBitmap = getBitmapFromDrawable(context, R.mipmap.ic_launcher)
 
             if (logoBitmap != null) {
-                // Redimensionamos a 50x50 de forma segura
                 val scaledLogo = logoBitmap.scale(50, 50, false)
                 canvas.drawBitmap(scaledLogo, startX, 40f, paint)
             }
