@@ -1,5 +1,7 @@
 package com.zenia.app.ui.screens.onboarding
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -13,15 +15,18 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -30,13 +35,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
+import com.airbnb.lottie.compose.*
 import com.zenia.app.R
 import com.zenia.app.ui.theme.*
+import com.zenia.app.util.LightStatusIconsEffect
 import kotlin.math.absoluteValue
 
 data class OnboardingPage(
@@ -50,67 +52,95 @@ data class OnboardingPage(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(
+    currentLanguage: String,
+    pages: List<OnboardingPage>,
+    onLanguageChange: (String) -> Unit,
     onFinish: () -> Unit
 ) {
-    val pages = listOf(
-        OnboardingPage(
-            title = stringResource(R.string.onboarding_title_welcome),
-            description = stringResource(R.string.onboarding_desc_welcome),
-            iconRes = R.drawable.ic_nube_feli,
-            color = ZeniaTeal
-        ),
-        OnboardingPage(
-            title = stringResource(R.string.onboarding_title_diary),
-            description = stringResource(R.string.onboarding_desc_diary),
-            lottieRes = R.raw.notepad,
-            color = ZeniaDeepTeal
-        ),
-        OnboardingPage(
-            title = stringResource(R.string.onboarding_title_chat),
-            description = stringResource(R.string.onboarding_desc_chat),
-            lottieRes = R.raw.chatbot_animation,
-            color = ZeniaDream
-        ),
-        OnboardingPage(
-            title = stringResource(R.string.onboarding_title_resources),
-            description = stringResource(R.string.onboarding_desc_resources),
-            lottieRes = R.raw.breathe,
-            color = ZeniaExercise
-        ),
-        OnboardingPage(
-            title = stringResource(R.string.onboarding_title_biometrics),
-            description = stringResource(R.string.onboarding_desc_biometrics),
-            lottieRes = R.raw.biometrics,
-            color = ZeniaDark
-        )
-    )
+    LightStatusIconsEffect()
 
     val pagerState = rememberPagerState(pageCount = { pages.size })
 
-    Scaffold(
-        containerColor = Color.White
-    ) { padding ->
+    val backgroundColor by animateColorAsState(
+        targetValue = pages[pagerState.currentPage].color.copy(alpha = 0.08f),
+        animationSpec = tween(600),
+        label = "backgroundColor"
+    )
+
+    val primaryTextColor = Color.White
+    val secondaryTextColor = Color.White.copy(alpha = 0.85f)
+    val hintTextColor = Color.White.copy(alpha = 0.6f)
+
+    var languageMenuExpanded by remember { mutableStateOf(false) }
+
+    Scaffold(containerColor = backgroundColor) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.End
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                if (pagerState.currentPage < pages.size - 1) {
-                    TextButton(onClick = onFinish) {
+                Box {
+                    TextButton(
+                        onClick = { languageMenuExpanded = true },
+                        contentPadding = PaddingValues(horizontal = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Language,
+                            contentDescription = "Language",
+                            tint = hintTextColor,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = stringResource(R.string.onboarding_skip),
-                            color = ZeniaSlateGrey,
-                            style = MaterialTheme.typography.labelLarge
+                            text = currentLanguage.uppercase(),
+                            color = hintTextColor,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold
                         )
                     }
-                } else {
-                    Spacer(modifier = Modifier.height(48.dp))
+
+                    DropdownMenu(
+                        expanded = languageMenuExpanded,
+                        onDismissRequest = { languageMenuExpanded = false },
+                        modifier = Modifier.background(Color.White)
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Español") },
+                            onClick = {
+                                languageMenuExpanded = false
+                                onLanguageChange("es")
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("English") },
+                            onClick = {
+                                languageMenuExpanded = false
+                                onLanguageChange("en")
+                            }
+                        )
+                    }
+                }
+
+                Box {
+                    if (pagerState.currentPage < pages.lastIndex) {
+                        TextButton(onClick = onFinish) {
+                            Text(
+                                text = stringResource(R.string.onboarding_skip),
+                                color = hintTextColor,
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.size(48.dp, 40.dp))
+                    }
                 }
             }
 
@@ -118,7 +148,8 @@ fun OnboardingScreen(
                 state = pagerState,
                 modifier = Modifier.weight(1f)
             ) { pageIndex ->
-                val pageOffset = (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
+                val pageOffset =
+                    (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
 
                 val scale = lerp(
                     start = 0.85f,
@@ -142,9 +173,12 @@ fun OnboardingScreen(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    OnboardingPageContent(page = pages[pageIndex])
+                    OnboardingPageContent(
+                        page = pages[pageIndex],
+                        titleColor = primaryTextColor,
+                        descriptionColor = secondaryTextColor
+                    )
                 }
-
             }
 
             Column(
@@ -153,27 +187,29 @@ fun OnboardingScreen(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
                 Row(
                     modifier = Modifier.height(50.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    repeat(pages.size) { iteration ->
-                        val isSelected = pagerState.currentPage == iteration
-
+                    repeat(pages.size) { index ->
+                        val selected = pagerState.currentPage == index
                         val width by animateFloatAsState(
-                            targetValue = if (isSelected) 32f else 10f,
+                            targetValue = if (selected) 32f else 10f,
                             animationSpec = tween(300),
                             label = "dotWidth"
                         )
-                        val color = if (isSelected) pages[iteration].color else ZeniaSlateGrey
+
                         Box(
                             modifier = Modifier
                                 .padding(4.dp)
-                                .clip(RoundedCornerShape(50))
-                                .background(color)
                                 .height(10.dp)
                                 .width(width.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(
+                                    if (selected) pages[index].color else hintTextColor
+                                )
                         )
                     }
                 }
@@ -187,36 +223,35 @@ fun OnboardingScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     androidx.compose.animation.AnimatedVisibility(
-                        visible = pagerState.currentPage != pages.size - 1,
+                        visible = pagerState.currentPage != pages.lastIndex,
                         enter = fadeIn(),
                         exit = fadeOut()
                     ) {
                         Text(
                             text = stringResource(R.string.onboarding_swipe_hint),
-                            color = ZeniaSlateGrey,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.alpha(0.7f)
+                            color = hintTextColor,
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
 
                     androidx.compose.animation.AnimatedVisibility(
-                        visible = pagerState.currentPage == pages.size - 1,
+                        visible = pagerState.currentPage == pages.lastIndex,
                         enter = scaleIn() + fadeIn(),
                         exit = scaleOut() + fadeOut()
                     ) {
                         Button(
                             onClick = onFinish,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal),
-                            shape = RoundedCornerShape(12.dp),
-                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = pages.last().color
+                            ),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Text(
                                 text = stringResource(R.string.onboarding_start),
                                 fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
                             )
                         }
                     }
@@ -227,7 +262,11 @@ fun OnboardingScreen(
 }
 
 @Composable
-fun OnboardingPageContent(page: OnboardingPage) {
+fun OnboardingPageContent(
+    page: OnboardingPage,
+    titleColor: Color,
+    descriptionColor: Color
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -235,6 +274,7 @@ fun OnboardingPageContent(page: OnboardingPage) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+
         Box(
             modifier = Modifier
                 .size(280.dp)
@@ -258,8 +298,9 @@ fun OnboardingPageContent(page: OnboardingPage) {
                 contentAlignment = Alignment.Center
             ) {
                 if (page.lottieRes != null) {
-                    // Configuración de Lottie
-                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(page.lottieRes))
+                    val composition by rememberLottieComposition(
+                        LottieCompositionSpec.RawRes(page.lottieRes)
+                    )
                     val progress by animateLottieCompositionAsState(
                         composition = composition,
                         iterations = LottieConstants.IterateForever
@@ -267,15 +308,14 @@ fun OnboardingPageContent(page: OnboardingPage) {
 
                     LottieAnimation(
                         composition = composition,
-                        progress = { progress },
-                        modifier = Modifier.fillMaxSize()
+                        progress = { progress }
                     )
                 } else if (page.iconRes != null) {
                     Icon(
-                        painter = painterResource(id = page.iconRes),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        tint = page.color
+                        painter = painterResource(page.iconRes),
+                        contentDescription = page.title,
+                        tint = page.color,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }
@@ -286,7 +326,7 @@ fun OnboardingPageContent(page: OnboardingPage) {
         Text(
             text = page.title,
             style = MaterialTheme.typography.headlineMedium,
-            color = ZeniaDark,
+            color = titleColor,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
@@ -296,7 +336,7 @@ fun OnboardingPageContent(page: OnboardingPage) {
         Text(
             text = page.description,
             style = MaterialTheme.typography.bodyLarge,
-            color = ZeniaSlateGrey,
+            color = descriptionColor,
             textAlign = TextAlign.Center,
             lineHeight = 24.sp
         )
@@ -306,5 +346,13 @@ fun OnboardingPageContent(page: OnboardingPage) {
 @Preview(showBackground = true)
 @Composable
 fun OnboardingPreview() {
-    OnboardingScreen(onFinish = {})
+    val dummyPages = listOf(
+        OnboardingPage("Título", "Descripción", iconRes = R.drawable.ic_nube_feli, color = ZeniaFeelings)
+    )
+    OnboardingScreen(
+        currentLanguage = "es",
+        pages = dummyPages,
+        onLanguageChange = {},
+        onFinish = {}
+    )
 }

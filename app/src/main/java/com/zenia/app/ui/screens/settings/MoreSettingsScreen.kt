@@ -82,12 +82,10 @@ fun MoreSettingsScreen(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.Start
             ) {
-                // --- SECCIÓN SEGURIDAD ---
                 SettingsSectionTitle(text = stringResource(R.string.biometric_title))
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Switch Biometría Principal (Diseño Tarjeta)
                 SettingsCard {
                     SettingsSwitchRow(
                         label = stringResource(R.string.account_biometrics_label),
@@ -96,7 +94,6 @@ fun MoreSettingsScreen(
                     )
                 }
 
-                // Switch Biometría Débil
                 if (isBiometricEnabled) {
                     Spacer(modifier = Modifier.height(12.dp))
                     SettingsCard {
