@@ -1,5 +1,6 @@
 package com.zenia.app.ui.screens.onboarding
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -39,8 +40,8 @@ import com.zenia.app.util.LightStatusIconsEffect
 import kotlin.math.absoluteValue
 
 data class OnboardingPage(
-    val title: String,
-    val description: String,
+    @StringRes val titleRes: Int,
+    @StringRes val descriptionRes: Int,
     val iconRes: Int? = null,
     val lottieRes: Int? = null,
     val color: Color
@@ -310,7 +311,7 @@ fun OnboardingPageContent(
                 } else if (page.iconRes != null) {
                     Icon(
                         painter = painterResource(page.iconRes),
-                        contentDescription = page.title,
+                        contentDescription = stringResource(page.titleRes),
                         tint = page.color,
                         modifier = Modifier.fillMaxSize()
                     )
@@ -321,7 +322,7 @@ fun OnboardingPageContent(
         Spacer(modifier = Modifier.height(40.dp))
 
         Text(
-            text = page.title,
+            text = stringResource(page.titleRes),
             style = MaterialTheme.typography.headlineMedium,
             color = titleColor,
             fontWeight = FontWeight.Bold,
@@ -331,25 +332,11 @@ fun OnboardingPageContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = page.description,
+            text = stringResource(page.descriptionRes),
             style = MaterialTheme.typography.bodyLarge,
             color = descriptionColor,
             textAlign = TextAlign.Center,
             lineHeight = 24.sp
         )
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun OnboardingPreview() {
-    val dummyPages = listOf(
-        OnboardingPage("Título", "Descripción", iconRes = R.drawable.ic_nube_feli, color = ZeniaFeelings)
-    )
-    OnboardingScreen(
-        currentLanguage = "es",
-        pages = dummyPages,
-        onLanguageChange = {},
-        onFinish = {}
-    )
 }

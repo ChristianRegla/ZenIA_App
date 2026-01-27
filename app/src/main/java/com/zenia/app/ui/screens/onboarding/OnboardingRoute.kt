@@ -32,32 +32,32 @@ fun OnboardingRoute(
 
     val pages = listOf(
         OnboardingPage(
-            title = stringResource(R.string.onboarding_title_welcome),
-            description = stringResource(R.string.onboarding_desc_welcome),
+            titleRes = R.string.onboarding_title_welcome,
+            descriptionRes = R.string.onboarding_desc_welcome,
             iconRes = R.drawable.ic_nube_feli,
             color = ZeniaFeelings
         ),
         OnboardingPage(
-            title = stringResource(R.string.onboarding_title_diary),
-            description = stringResource(R.string.onboarding_desc_diary),
+            titleRes = R.string.onboarding_title_diary,
+            descriptionRes = R.string.onboarding_desc_diary,
             lottieRes = R.raw.notepad,
             color = ZeniaPremiumBackground
         ),
         OnboardingPage(
-            title = stringResource(R.string.onboarding_title_chat),
-            description = stringResource(R.string.onboarding_desc_chat),
+            titleRes = R.string.onboarding_title_chat,
+            descriptionRes = R.string.onboarding_desc_chat,
             lottieRes = R.raw.chatbot_animation,
             color = ZeniaPremiumPurple
         ),
         OnboardingPage(
-            title = stringResource(R.string.onboarding_title_resources),
-            description = stringResource(R.string.onboarding_desc_resources),
+            titleRes = R.string.onboarding_title_resources,
+            descriptionRes = R.string.onboarding_desc_resources,
             lottieRes = R.raw.breathe,
             color = ZeniaExercise
         ),
         OnboardingPage(
-            title = stringResource(R.string.onboarding_title_biometrics),
-            description = stringResource(R.string.onboarding_desc_biometrics),
+            titleRes = R.string.onboarding_title_biometrics,
+            descriptionRes = R.string.onboarding_desc_biometrics,
             lottieRes = R.raw.biometrics,
             color = Color(0xFF69E56E)
         )
