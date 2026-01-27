@@ -1,23 +1,40 @@
 package com.zenia.app.ui.screens.settings
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.runtime.*
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.zenia.app.ui.screens.home.HomeViewModel
 
 @Composable
 fun HealthSyncRoute(
-    viewModel: HomeViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    viewModel: HealthSyncViewModel = hiltViewModel(),
 ) {
+    val hasPermissions by viewModel.hasPermissions.collectAsState()
+    val heartRate by viewModel.heartRate.collectAsState()
+    val sleep by viewModel.sleepHours.collectAsState()
+    val stress by viewModel.stress.collectAsState()
 
-    val permissions by viewModel.hasHealthPermissions.collectAsState()
+    val healthRepo = viewModel.healthRepo
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = healthRepo.permissionContract()
+    ) { grantedPermissions ->
+        val granted = grantedPermissions.containsAll(healthRepo.permissions)
+        viewModel.onPermissionsResult(granted)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.refreshPermissions()
+    }
 
     HealthSyncScreen(
-        hasPermissions = permissions,
-        healthConnectStatus = "AVAILABLE",
-        onConnectClick = { viewModel.checkHealthPermissions() },
+        hasPermissions = hasPermissions,
+        heartRate = heartRate,
+        sleepHours = sleep,
+        stress = stress,
+        onConnectClick = {
+            permissionLauncher.launch(healthRepo.permissions)
+        },
         onNavigateBack = onNavigateBack
     )
 }

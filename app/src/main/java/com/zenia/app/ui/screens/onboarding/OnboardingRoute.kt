@@ -12,7 +12,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.zenia.app.R
 import com.zenia.app.ui.theme.ZeniaExercise
 import com.zenia.app.ui.theme.ZeniaFeelings
-import com.zenia.app.ui.theme.ZeniaInputLabel
 import com.zenia.app.ui.theme.ZeniaPremiumBackground
 import com.zenia.app.ui.theme.ZeniaPremiumPurple
 import java.util.Locale

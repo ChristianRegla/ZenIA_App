@@ -24,7 +24,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.*
@@ -32,11 +31,13 @@ import com.zenia.app.ui.theme.*
 @Composable
 fun HealthSyncScreen(
     hasPermissions: Boolean,
-    healthConnectStatus: String,
+    heartRate: Int?,
+    sleepHours: Float,
+    stress: String,
     onConnectClick: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    val isConnected = hasPermissions && healthConnectStatus == "AVAILABLE"
+    val connected = hasPermissions
     val scrollState = rememberScrollState()
 
     Scaffold(
@@ -56,19 +57,15 @@ fun HealthSyncScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                ConnectionStatusCard(isConnected = isConnected)
+                ConnectionStatusCard(isConnected = connected)
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            if (isConnected) {
-                Text(
-                    text = "Sincronización activa",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = ZeniaSlateGrey,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                    textAlign = TextAlign.Center
-                )
+            if (connected) {
+                Text("Ritmo cardiaco: ${heartRate ?: "--"} bpm")
+                Text("Sueño: ${"%.1f".format(sleepHours)} hrs")
+                Text("Estrés: $stress")
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -104,8 +101,8 @@ fun HealthSyncScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            val buttonColor = if (isConnected) ZeniaSlateGrey else ZeniaTeal
-            val buttonText = if (isConnected) "Desvincular Dispositivo" else "Conectar con Health Connect"
+            val buttonColor = if (connected) ZeniaSlateGrey else ZeniaTeal
+            val buttonText = if (connected) "Desvincular Dispositivo" else "Conectar con Health Connect"
 
             Button(
                 onClick = onConnectClick,
@@ -120,7 +117,7 @@ fun HealthSyncScreen(
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
             ) {
                 Icon(
-                    imageVector = if (isConnected) Icons.Default.BrokenImage else Icons.Default.Watch,
+                    imageVector = if (connected) Icons.Default.BrokenImage else Icons.Default.Watch,
                     contentDescription = null
                 )
                 Spacer(modifier = Modifier.width(12.dp))
@@ -245,32 +242,6 @@ fun InfoRow(text: String) {
             style = MaterialTheme.typography.bodyMedium,
             color = ZeniaSlateGrey,
             textAlign = TextAlign.Start
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Estado: Desconectado")
-@Composable
-fun HealthSyncScreenDisconnectedPreview() {
-    ZenIATheme {
-        HealthSyncScreen(
-            hasPermissions = false,
-            healthConnectStatus = "AVAILABLE",
-            onConnectClick = {},
-            onNavigateBack = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Estado: Conectado (Premium)")
-@Composable
-fun HealthSyncScreenConnectedPreview() {
-    ZenIATheme {
-        HealthSyncScreen(
-            hasPermissions = true,
-            healthConnectStatus = "AVAILABLE",
-            onConnectClick = {},
-            onNavigateBack = {}
         )
     }
 }

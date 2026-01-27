@@ -81,28 +81,7 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Idle)
     val uiState = _uiState.asStateFlow()
 
-
-    // --- HEALTH CONNECT ---
-    private val _hasHealthPermissions = MutableStateFlow(false)
-    val hasHealthPermissions: StateFlow<Boolean> = _hasHealthPermissions.asStateFlow()
-
-    val healthConnectStatus: Int
-        get() = healthConnectRepository?.getAvailabilityStatus() ?: HealthConnectClient.SDK_UNAVAILABLE
-
-    val isHealthConnectFullyAvailable: Boolean
-        get() = healthConnectStatus == HealthConnectClient.SDK_AVAILABLE
-
-    val isHealthConnectAvailable: Boolean = healthConnectRepository != null
-
-    val healthConnectPermissions: Set<String>
-        get() = healthConnectRepository?.permissions ?: emptySet()
-
-    val permissionRequestContract
-        get() = healthConnectRepository?.getPermissionRequestContract()
-
-
     init {
-        checkHealthPermissions()
         loadStreak()
     }
 
@@ -146,16 +125,6 @@ class HomeViewModel @Inject constructor(
 
         if (entries.isNotEmpty()) {
             chartProducer.setEntries(entries)
-        }
-    }
-
-    fun checkHealthPermissions() {
-        if (!isHealthConnectFullyAvailable || healthConnectRepository == null) {
-            _hasHealthPermissions.value = false
-            return
-        }
-        viewModelScope.launch {
-            _hasHealthPermissions.value = healthConnectRepository.hasPermissions()
         }
     }
 
