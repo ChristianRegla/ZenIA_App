@@ -125,7 +125,7 @@ fun OnboardingScreen(
                                 languageCode = "es",
                                 label = "Español",
                                 flagRes = R.drawable.mexico_flag,
-                                isSelected = currentLanguage == "es",
+                                currentLanguage = currentLanguage,
                                 onClick = {
                                     languageMenuExpanded = false
                                     onLanguageChange("es")
@@ -136,7 +136,7 @@ fun OnboardingScreen(
                                 languageCode = "en",
                                 label = "English",
                                 flagRes = R.drawable.usa_flag,
-                                isSelected = currentLanguage == "en",
+                                currentLanguage = currentLanguage,
                                 onClick = {
                                     languageMenuExpanded = false
                                     onLanguageChange("en")
@@ -376,9 +376,11 @@ fun LanguageDropdownItem(
     languageCode: String,
     label: String,
     flagRes: Int,
-    isSelected: Boolean,
+    currentLanguage: String,
     onClick: () -> Unit
 ) {
+    val isSelected = languageCode == currentLanguage
+
     val bg by animateColorAsState(
         targetValue = if (isSelected)
             MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)

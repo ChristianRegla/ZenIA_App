@@ -32,10 +32,6 @@ import androidx.compose.ui.unit.dp
 import com.zenia.app.R
 import com.zenia.app.ui.theme.ZenIATheme
 
-/**
- * Pantalla "tonta" (Dumb Composable) de bloqueo biométrico.
- * Solo muestra el estado (cargando o error) y ofrece botones para acciones.
- */
 @Composable
 fun LockScreen(
     onUnlockClick: () -> Unit,
