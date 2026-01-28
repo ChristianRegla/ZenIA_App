@@ -304,34 +304,34 @@
     <string name="settings_item_account">Cuenta</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_skip">Skip</string>
-    <string name="onboarding_swipe_hint">Swipe to continue</string>
-    <string name="onboarding_start">Get started</string>
+    <string name="onboarding_skip">Omitir</string>
+    <string name="onboarding_swipe_hint">Desliza para continuar</string>
+    <string name="onboarding_start">Comenzar</string>
 
     <!-- Onboarding pages -->
-    <string name="onboarding_title_welcome">Welcome to ZenIA</string>
+    <string name="onboarding_title_welcome">Bienvenido a ZenIA</string>
     <string name="onboarding_desc_welcome">
-        Your safe space for emotional well-being. A companion that listens and understands you.
+        Tu espacio seguro para el bienestar emocional. Un aliado que te escucha y te comprende.
     </string>
 
-    <string name="onboarding_title_diary">Emotional journal</string>
+    <string name="onboarding_title_diary">Diario emocional</string>
     <string name="onboarding_desc_diary">
-        Track how you feel every day. Identify patterns and better understand your emotions.
+        Registra cómo te sientes cada día. Identifica patrones y comprende mejor tus emociones.
     </string>
 
-    <string name="onboarding_title_chat">AI chat</string>
+    <string name="onboarding_title_chat">Chat con IA</string>
     <string name="onboarding_desc_chat">
-        Talk to ZenIA anytime. An intelligent assistant designed to support you.
+        Habla con ZenIA en cualquier momento. Un asistente inteligente diseñado para apoyarte.
     </string>
 
-    <string name="onboarding_title_resources">Calm &amp; resources</string>
+    <string name="onboarding_title_resources">Calma y recursos</string>
     <string name="onboarding_desc_resources">
-        Access breathing exercises and professional resources whenever you need them.
+        Accede a ejercicios de respiración y recursos profesionales cuando lo necesites.
     </string>
 
-    <string name="onboarding_title_biometrics">Biometric security</string>
+    <string name="onboarding_title_biometrics">Seguridad biométrica</string>
     <string name="onboarding_desc_biometrics">
-        Protect your privacy. Access your safe space using fingerprint or facial recognition.
+        Protege tu privacidad. Accede a tu espacio seguro con huella o reconocimiento facial.
     </string>
 
 </resources>
