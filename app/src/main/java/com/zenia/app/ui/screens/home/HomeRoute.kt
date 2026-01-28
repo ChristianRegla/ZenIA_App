@@ -29,30 +29,15 @@ fun HomeRoute(
     onNavigateToSOS: () -> Unit,
     onSignOut: () -> Unit,
     onNavigateToDiaryEntry: (LocalDate) -> Unit,
-    onNavigateToAnalytics: () -> Unit
+    onNavigateToAnalytics: () -> Unit,
+    onNavigateToCommunity: () -> Unit
 ) {
     val homeViewModel: HomeViewModel = hiltViewModel()
     val context = LocalContext.current
 
-    val dummyContract = object : ActivityResultContract<Set<String>, Set<String>>() {
-        override fun createIntent(context: android.content.Context, input: Set<String>) = Intent()
-        override fun parseResult(resultCode: Int, intent: Intent?) = emptySet<String>()
-    }
-    val realContract = homeViewModel.permissionRequestContract
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = realContract ?: dummyContract,
-        onResult = { grantedPermissions ->
-            if (grantedPermissions.isNotEmpty()) {
-                homeViewModel.checkHealthPermissions()
-            }
-        }
-    )
-
     val uiState by homeViewModel.uiState.collectAsState()
     val registros by homeViewModel.registrosDiario.collectAsState()
     val esPremium by homeViewModel.esPremium.collectAsState()
-    val hasPermission by homeViewModel.hasHealthPermissions.collectAsState()
-    val healthConnectStatus = homeViewModel.healthConnectStatus
     val userName by homeViewModel.userName.collectAsState()
     val hasEntryToday by homeViewModel.hasEntryToday.collectAsState()
     val communityActivities by homeViewModel.communityActivities.collectAsState()
@@ -68,13 +53,8 @@ fun HomeRoute(
         chartProducer = homeViewModel.chartProducer,
         onNavigateToDiaryEntry = onNavigateToDiaryEntry,
         esPremium = esPremium,
-        hasPermission = hasPermission,
-        healthConnectStatus = healthConnectStatus,
         onSignOut = onSignOut,
         onNavigateToAccount = onNavigateToAccount,
-        onConnectSmartwatch = {
-            permissionLauncher.launch(homeViewModel.healthConnectPermissions)
-        },
         onNavigateToPremium = onNavigateToPremium,
         onNavigateToManualPermission = {
             val intent = Intent(HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS)
@@ -115,6 +95,7 @@ fun HomeRoute(
         currentStreak = currentStreak,
         topBooster = moodInsights.first,
         topDrainer = moodInsights.second,
-        onNavigateToAnalytics = onNavigateToAnalytics
+        onNavigateToAnalytics = onNavigateToAnalytics,
+        onNavigateToCommunity = onNavigateToCommunity
     )
 }

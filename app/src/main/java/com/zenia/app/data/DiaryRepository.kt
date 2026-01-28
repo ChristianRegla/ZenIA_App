@@ -5,18 +5,15 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.zenia.app.model.DiarioEntrada
-import com.zenia.app.model.RegistroBienestar
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDate
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class DiaryRepository @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore
@@ -24,9 +21,19 @@ class DiaryRepository @Inject constructor(
     private val userId: String
         get() = auth.currentUser?.uid ?: throw IllegalStateException("Usuario no autenticado")
 
-    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
-    val diaryEntries: Flow<List<DiarioEntrada>> = callbackFlow {
+    /**
+     * Función de ayuda genérica para crear un Flow que escucha una subcolección del usuario.
+     * Se reconecta automáticamente si el usuario cambia (login/logout).
+     *
+     * @param T El tipo de objeto a deserializar desde Firestore.
+     * @param subcollection El nombre de la subcolección (ej. "diario").
+     * @param queryBuilder Un lambda para personalizar la consulta (ej. añadir filtros u ordenación).
+     * @return Un Flow que emite la lista de objetos de la subcolección.
+     */
+    private inline fun <reified T> getUserSubcollectionFlow(
+        subcollection: String,
+        crossinline queryBuilder: (Query) -> Query = { it }
+    ): Flow<List<T>> = callbackFlow {
         var firestoreListener: ListenerRegistration? = null
 
         val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
@@ -36,16 +43,18 @@ class DiaryRepository @Inject constructor(
             if (currentUserId.isNullOrBlank()) {
                 trySend(emptyList())
             } else {
-                firestoreListener = db.collection(FirestoreCollections.USERS).document(currentUserId)
-                    .collection(FirestoreCollections.DIARY)
-                    .addSnapshotListener { snapshot, e ->
-                        if (e != null) {
-                            trySend(emptyList())
-                            return@addSnapshotListener
-                        }
-                        val entradas = snapshot?.toObjects(DiarioEntrada::class.java) ?: emptyList()
-                        trySend(entradas)
+                val baseQuery = db.collection(FirestoreCollections.USERS)
+                    .document(currentUserId)
+                    .collection(subcollection)
+
+                firestoreListener = queryBuilder(baseQuery).addSnapshotListener { snapshot, e ->
+                    if (e != null) {
+                        trySend(emptyList())
+                        return@addSnapshotListener
                     }
+                    val items = snapshot?.toObjects(T::class.java) ?: emptyList()
+                    trySend(items)
+                }
             }
         }
 
@@ -56,44 +65,19 @@ class DiaryRepository @Inject constructor(
         }
     }
 
-        .shareIn(
-            scope = repositoryScope,
-            started = SharingStarted.WhileSubscribed(),
-            replay = 1
-        )
+    /**
+     * Obtiene un flujo de todas las entradas del diario del usuario.
+     */
+    fun getDiaryEntriesStream(): Flow<List<DiarioEntrada>> = getUserSubcollectionFlow(FirestoreCollections.DIARY)
 
-    fun getEntriesFromDate(minDate: String): Flow<List<DiarioEntrada>> = callbackFlow {
-        var firestoreListener: ListenerRegistration? = null
-
-        val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-            val currentUserId = firebaseAuth.currentUser?.uid
-            firestoreListener?.remove()
-
-            if (currentUserId.isNullOrBlank()) {
-                trySend(emptyList())
-            } else {
-                firestoreListener = db.collection(FirestoreCollections.USERS).document(currentUserId)
-                    .collection(FirestoreCollections.DIARY)
-                    .whereGreaterThanOrEqualTo("fecha", minDate)
-                    .addSnapshotListener { snapshot, e ->
-                        if (e != null) {
-                            trySend(emptyList())
-                            return@addSnapshotListener
-                        }
-                        val entradas = snapshot?.toObjects(DiarioEntrada::class.java) ?: emptyList()
-                        trySend(entradas)
-                    }
-            }
-        }
-
-        auth.addAuthStateListener(authListener)
-        awaitClose {
-            auth.removeAuthStateListener(authListener)
-            firestoreListener?.remove()
-        }
+    /**
+     * Obtiene un flujo de entradas del diario a partir de una fecha mínima.
+     *
+     * @param minDate La fecha mínima en formato AAAA-MM-DD.
+     */
+    fun getEntriesFromDate(minDate: String): Flow<List<DiarioEntrada>> = getUserSubcollectionFlow(FirestoreCollections.DIARY) { query ->
+        query.whereGreaterThanOrEqualTo("fecha", minDate)
     }
-
-    fun getDiaryEntriesStream(): Flow<List<DiarioEntrada>> = diaryEntries
 
     suspend fun saveDiaryEntry(entry: DiarioEntrada) {
         db.collection(FirestoreCollections.USERS).document(userId)
@@ -121,56 +105,11 @@ class DiaryRepository @Inject constructor(
         return if (snapshot.exists()) snapshot.toObject(DiarioEntrada::class.java) else null
     }
 
-    fun getRegistrosBienestar(): Flow<List<RegistroBienestar>> = callbackFlow {
-        var firestoreListener: ListenerRegistration? = null
-
-        val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-            val currentUserId = firebaseAuth.currentUser?.uid
-
-            firestoreListener?.remove()
-
-            if (currentUserId.isNullOrBlank()) {
-                trySend(emptyList())
-            } else {
-                firestoreListener = db.collection(FirestoreCollections.USERS).document(currentUserId)
-                    .collection(FirestoreCollections.WELNESS_LOGS)
-                    .orderBy(FirestoreCollections.FIELD_DATE, Query.Direction.ASCENDING)
-                    .limit(30)
-                    .addSnapshotListener { snapshot, e ->
-                        if (e != null) {
-                            trySend(emptyList())
-                            return@addSnapshotListener
-                        }
-                        val registros = snapshot?.toObjects(RegistroBienestar::class.java) ?: emptyList()
-                        trySend(registros)
-                    }
-            }
-        }
-
-        auth.addAuthStateListener(authListener)
-
-        awaitClose {
-            auth.removeAuthStateListener(authListener)
-            firestoreListener?.remove()
-        }
-    }
-
-    suspend fun addRegistroBienestar(registro: RegistroBienestar) {
-        db.collection(FirestoreCollections.USERS).document(userId)
-            .collection(FirestoreCollections.WELNESS_LOGS)
-            .add(registro)
-            .await()
-    }
-
-    /**
-     * Obtiene todas las entradas ordenadas por fecha para generar reportes PDF.
-     * Es una función suspendida de una sola ejecución (no Flow).
-     */
     suspend fun getAllEntriesOnce(): List<DiarioEntrada> {
         return try {
             val snapshot = db.collection(FirestoreCollections.USERS).document(userId)
                 .collection(FirestoreCollections.DIARY)
-                .orderBy("fecha", Query.Direction.DESCENDING) // Del más reciente al más antiguo
+                .orderBy("fecha", Query.Direction.DESCENDING)
                 .get()
                 .await()
 
@@ -181,9 +120,61 @@ class DiaryRepository @Inject constructor(
     }
 
     /**
-     * Devuelve el ID actual de forma segura (nullable) para que el ViewModel
-     * pueda verificar si hay sesión antes de intentar guardar.
+     * Calcula la racha actual de forma eficiente.
+     * Descarga todas las fechas ordenadas, pero no el contenido pesado.
      */
+    suspend fun calculateCurrentStreak(userId: String): Int {
+        return try {
+            val snapshot = db.collection(FirestoreCollections.USERS)
+                .document(userId)
+                .collection(FirestoreCollections.DIARY)
+                .orderBy("fecha", Query.Direction.DESCENDING)
+                .get()
+                .await()
+
+            if (snapshot.isEmpty) return 0
+
+            val dates = snapshot.documents.mapNotNull { doc ->
+                val dateStr = doc.getString("fecha")
+                try {
+                    if (dateStr != null) LocalDate.parse(dateStr) else null
+                } catch (e: Exception) {
+                    null
+                }
+            }.distinct()
+
+            if (dates.isEmpty()) return 0
+
+            var streak = 0
+            val today = LocalDate.now()
+            val yesterday = today.minusDays(1)
+
+            val lastEntryDate = dates.first()
+            if (!lastEntryDate.isEqual(today) && !lastEntryDate.isEqual(yesterday)) {
+                return 0
+            }
+
+            var checkDate = if (dates.contains(today)) today else yesterday
+
+            for (date in dates) {
+                if (date.isEqual(checkDate)) {
+                    streak++
+                    checkDate = checkDate.minusDays(1)
+                } else if (date.isAfter(checkDate)) {
+                    continue
+                } else {
+                    break
+                }
+            }
+
+            streak
+        } catch (e: Exception) {
+            e.printStackTrace()
+            0
+        }
+    }
+
+
     fun getCurrentUserId(): String? {
         return auth.currentUser?.uid
     }

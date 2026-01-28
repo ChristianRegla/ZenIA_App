@@ -1,5 +1,6 @@
 package com.zenia.app.data
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -46,20 +47,20 @@ class ChatRepository @Inject constructor(
             .await()
     }
 
+    /**
+     * IMPORTANTE: La eliminación masiva del historial de chat desde el cliente es insegura.
+     * Ha sido deshabilitada para prevenir crashes por uso excesivo de memoria.
+     *
+     * SOLUCIÓN CORRECTA: Usar una Cloud Function que elimine la subcolección en el backend.
+     * Se puede llamar a esta función desde el cliente con un solo comando.
+     * @see https://firebase.google.com/docs/functions/callable
+     */
     suspend fun deleteChatHistory() {
         val currentUserId = auth.currentUser?.uid ?: return
-        val chatCollection = db.collection(FirestoreCollections.USERS)
-            .document(currentUserId)
-            .collection(FirestoreCollections.CHAT_HISTORY)
-
-        val snapshot = chatCollection.get().await()
-        val batches = snapshot.documents.chunked(500)
-        for (batchDocs in batches) {
-            val batch = db.batch()
-            for (document in batchDocs) {
-                batch.delete(document.reference)
-            }
-            batch.commit().await()
-        }
+        Log.w(
+            "ChatRepository",
+            "La eliminación del historial de chat ($currentUserId) debe ser manejada por una Cloud Function. " +
+            "La implementación del lado del cliente ha sido deshabilitada."
+        )
     }
 }

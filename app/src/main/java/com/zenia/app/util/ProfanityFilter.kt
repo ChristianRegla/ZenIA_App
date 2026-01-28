@@ -2,9 +2,12 @@ package com.zenia.app.util
 
 import android.content.Context
 import com.zenia.app.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.text.Normalizer
+import kotlin.math.abs
 
 object ProfanityFilter {
 
@@ -23,6 +26,9 @@ object ProfanityFilter {
         val score: Int,
         val detected: Set<String>
     )
+
+    private val blockedWordsMap = HashMap<String, BadWord>()
+    private val blockedWordsList = ArrayList<BadWord>()
 
     private val blockedWords = HashSet<BadWord>()
 
@@ -45,39 +51,38 @@ object ProfanityFilter {
 
     private const val BLOCK_THRESHOLD = 5
 
-    fun loadFromCsv(context: Context) {
+    suspend fun loadFromCsv(context: Context) = withContext(Dispatchers.IO) {
+        hardcodedDefaults.forEach {
+            blockedWordsMap[it.word] = it
+            blockedWordsList.add(it)
+        }
+
         val files = listOf(R.raw.profanity_en)
 
         files.forEach { resId ->
             try {
-                val inputStream = context.resources.openRawResource(resId)
-                val reader = BufferedReader(InputStreamReader(inputStream))
-
-                reader.readLine()
-
-                reader.forEachLine { line ->
-                    try {
-                        val tokens = line.split(",")
-
-                        if (tokens.isNotEmpty()) {
-                            val word = tokens[0].trim()
-                            val severityDesc = tokens.lastOrNull()?.trim() ?: "Mild"
-
-                            val severity = when (severityDesc) {
-                                "Severe" -> Severity.HIGH
-                                "Strong" -> Severity.MEDIUM
-                                "Mild" -> Severity.LOW
-                                else -> Severity.LOW
-                            }
-
-                            if (word.isNotBlank()) {
-                                blockedWords.add(BadWord(normalize(word), severity))
+                context.resources.openRawResource(resId).use { inputStream ->
+                    BufferedReader(InputStreamReader(inputStream)).use { reader ->
+                        reader.readLine()
+                        reader.forEachLine { line ->
+                            val tokens = line.split(",")
+                            if (tokens.isNotEmpty()) {
+                                val wordRaw = tokens[0].trim()
+                                if (wordRaw.isNotBlank()) {
+                                    val wordNorm = normalize(wordRaw)
+                                    val severity = when (tokens.lastOrNull()?.trim()) {
+                                        "Severe", "High" -> Severity.HIGH
+                                        "Strong", "Medium" -> Severity.MEDIUM
+                                        else -> Severity.LOW
+                                    }
+                                    val badWord = BadWord(wordNorm, severity)
+                                    blockedWordsMap[wordNorm] = badWord
+                                    blockedWordsList.add(badWord)
+                                }
                             }
                         }
-                    } catch (e: Exception) {
                     }
                 }
-                reader.close()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -92,29 +97,30 @@ object ProfanityFilter {
         if (input.isBlank()) return ProfanityResult(0, emptySet())
 
         val normalized = normalize(input)
-        val words = normalized.split(" ")
-        val compact = normalized.replace(" ", "")
+        val inputWords = normalized.split(" ")
 
         var score = 0
         val detected = mutableSetOf<String>()
 
-        for (bad in blockedWords) {
-
-            if (words.contains(bad.word)) {
+        for (word in inputWords) {
+            blockedWordsMap[word]?.let { bad ->
                 score += bad.severity.weight + 2
                 detected.add(bad.word)
-                continue
+            }
+        }
+
+        for (word in inputWords) {
+            if (detected.contains(word)) continue
+
+            val candidates = blockedWordsList.filter {
+                abs(it.word.length - word.length) <= 1
             }
 
-            if (compact.contains(bad.word)) {
-                score += bad.severity.weight + 1
-                detected.add(bad.word)
-                continue
-            }
-
-            if (words.any { levenshtein(it, bad.word) <= 1 }) {
-                score += bad.severity.weight
-                detected.add(bad.word)
+            for (bad in candidates) {
+                if (levenshtein(word, bad.word) <= 1) {
+                    score += bad.severity.weight
+                    detected.add(bad.word)
+                }
             }
         }
 
@@ -139,7 +145,7 @@ object ProfanityFilter {
     }
 
     private fun levenshtein(a: String, b: String): Int {
-        if (kotlin.math.abs(a.length - b.length) > 1) return 2
+        if (abs(a.length - b.length) > 1) return 2
 
         val dp = Array(a.length + 1) { IntArray(b.length + 1) }
 

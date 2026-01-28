@@ -3,93 +3,77 @@ package com.zenia.app.data
 import android.content.Context
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.health.connect.client.HealthConnectClient
+import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.HeartRateRecord
+import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
-import com.google.firebase.Firebase
-import com.google.firebase.crashlytics.crashlytics
 import com.zenia.app.di.DefaultDispatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
 class HealthConnectRepository @Inject constructor(
     @param:ApplicationContext private val context: Context,
     @param:DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) {
-    private lateinit var healthConnectClient: HealthConnectClient
+    private val client: HealthConnectClient? =
+        if (HealthConnectClient.getSdkStatus(context) == HealthConnectClient.SDK_AVAILABLE)
+            HealthConnectClient.getOrCreate(context)
+        else null
 
-    var isClientAvailable: Boolean = false
-        private set
+    val isAvailable: Boolean get() = client != null
 
-    init {
-        val availability = HealthConnectClient.getSdkStatus(context)
-
-        if (availability == HealthConnectClient.SDK_AVAILABLE) {
-            healthConnectClient = HealthConnectClient.getOrCreate(context)
-            isClientAvailable = true
-        } else {
-            isClientAvailable = false
-        }
-    }
-
-    fun getAvailabilityStatus(): Int {
-        return HealthConnectClient.getSdkStatus(context)
-    }
-
-    val permissions: Set<String> = setOf(
+    val permissions = setOf(
         HealthPermission.getReadPermission(HeartRateRecord::class),
-        HealthPermission.getWritePermission(HeartRateRecord::class)
+        HealthPermission.getReadPermission(SleepSessionRecord::class)
     )
 
-    fun getPermissionRequestContract(): ActivityResultContract<Set<String>, Set<String>> {
-        return androidx.health.connect.client.PermissionController.createRequestPermissionResultContract()
-    }
+    fun permissionContract(): ActivityResultContract<Set<String>, Set<String>> =
+        PermissionController.createRequestPermissionResultContract()
 
     suspend fun hasPermissions(): Boolean {
-        if (!isClientAvailable) return false
-
-        val granted = healthConnectClient.permissionController.getGrantedPermissions()
+        val granted = client?.permissionController?.getGrantedPermissions() ?: emptySet()
         return granted.containsAll(permissions)
     }
 
-    private suspend fun getHeartRateRecordsForLastDay(): List<HeartRateRecord> {
-        if (!isClientAvailable) return emptyList()
-
-        return try {
-            val endTime = Instant.now()
-            val startTime = endTime.minus(1, java.time.temporal.ChronoUnit.DAYS)
-
-            val request = ReadRecordsRequest(
-                recordType = HeartRateRecord::class,
-                timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
+    suspend fun readHeartRateAvg(): Int? = withContext(defaultDispatcher) {
+        val now = Instant.now()
+        val records = client?.readRecords(
+            ReadRecordsRequest(
+                HeartRateRecord::class,
+                TimeRangeFilter.between(now.minus(1, ChronoUnit.DAYS), now)
             )
-            val response = healthConnectClient.readRecords(request)
-            response.records
-        } catch (e: Exception) {
-            Firebase.crashlytics.recordException(e)
-            emptyList()
-        }
+        )?.records ?: return@withContext null
+
+        val samples = records.flatMap { it.samples }
+        if (samples.isEmpty()) null else samples.map { it.beatsPerMinute }.average().toInt()
     }
 
-    suspend fun readDailyHeartRate(): List<HeartRateRecord> {
-        return getHeartRateRecordsForLastDay()
+    suspend fun readSleepHours(): Float = withContext(defaultDispatcher) {
+        val now = Instant.now()
+        val records = client?.readRecords(
+            ReadRecordsRequest(
+                SleepSessionRecord::class,
+                TimeRangeFilter.between(now.minus(1, ChronoUnit.DAYS), now)
+            )
+        )?.records ?: return@withContext 0f
+
+        records.sumOf {
+            ChronoUnit.MINUTES.between(it.startTime, it.endTime)
+        } / 60f
     }
 
-    suspend fun readDailyHeartRateAverage(): Int? = withContext(defaultDispatcher) {
-        val records = getHeartRateRecordsForLastDay()
-
-        if (records.isEmpty()) return@withContext null
-
-        val allSamplesBpm = records.flatMap { record ->
-            record.samples.map { sample -> sample.beatsPerMinute }
+    suspend fun estimateStressLevel(): String {
+        val hr = readHeartRateAvg() ?: return "Desconocido"
+        return when {
+            hr < 65 -> "Bajo"
+            hr < 85 -> "Moderado"
+            else -> "Alto"
         }
-
-        if (allSamplesBpm.isEmpty()) return@withContext null
-
-        return@withContext allSamplesBpm.average().toInt()
     }
 }

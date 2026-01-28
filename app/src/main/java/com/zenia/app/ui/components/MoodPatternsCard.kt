@@ -63,7 +63,7 @@ fun MoodPatternsCard(
                     InsightRow(
                         label = "Te hace sentir increíble:",
                         activity = topBooster.activityName,
-                        iconTint = Color(0xFF4CAF50), // Verde
+                        iconTint = Color(0xFF4CAF50),
                         isPositive = true
                     )
                 }
@@ -72,12 +72,11 @@ fun MoodPatternsCard(
                     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                 }
 
-                // Lo que te baja el ánimo
                 if (topDrainer != null) {
                     InsightRow(
                         label = "Sueles sentirte mal con:",
                         activity = topDrainer.activityName,
-                        iconTint = Color(0xFFEF5350), // Rojo
+                        iconTint = Color(0xFFEF5350),
                         isPositive = false
                     )
                 }

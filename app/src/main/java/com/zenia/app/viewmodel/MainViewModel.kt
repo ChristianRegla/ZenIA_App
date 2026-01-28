@@ -16,19 +16,21 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
     val startDestinationState: StateFlow<String?> = combine(
         authRepository.getUsuarioFlow(),
-        userPreferencesRepository.isBiometricEnabled
-    ) { usuario, isBiometricEnabled ->
+        userPreferencesRepository.isBiometricEnabled,
+        userPreferencesRepository.isOnboardingCompleted
+    ) { usuario, isBiometricEnabled, isOnboardingCompleted ->
 
         val isLoggedIn = usuario != null
 
         when {
-            isLoggedIn && isBiometricEnabled -> Destinations.LOCK_ROUTE
-            isLoggedIn && !isBiometricEnabled -> Destinations.HOME_ROUTE
-            else -> Destinations.AUTH_ROUTE
+            !isOnboardingCompleted -> Destinations.ONBOARDING_ROUTE
+            !isLoggedIn -> Destinations.AUTH_ROUTE
+            isBiometricEnabled -> Destinations.LOCK_ROUTE
+            else -> Destinations.HOME_ROUTE
         }
     }.stateIn(
         scope = viewModelScope,

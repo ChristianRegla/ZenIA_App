@@ -13,4 +13,5 @@ object FirestoreCollections {
     const val FIELD_SCHEDULED_DATE = "fechaProgramada"
     const val FIELD_DATE = "fecha"
     const val NOTIFICATIONS = "notifications"
+    const val POSTS = "comunidad_posts"
 }

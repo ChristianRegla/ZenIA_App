@@ -82,12 +82,10 @@ fun MoreSettingsScreen(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.Start
             ) {
-                // --- SECCIÓN SEGURIDAD ---
                 SettingsSectionTitle(text = stringResource(R.string.biometric_title))
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Switch Biometría Principal (Diseño Tarjeta)
                 SettingsCard {
                     SettingsSwitchRow(
                         label = stringResource(R.string.account_biometrics_label),
@@ -96,7 +94,6 @@ fun MoreSettingsScreen(
                     )
                 }
 
-                // Switch Biometría Débil
                 if (isBiometricEnabled) {
                     Spacer(modifier = Modifier.height(12.dp))
                     SettingsCard {
@@ -135,7 +132,6 @@ fun MoreSettingsScreen(
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
 
-                // Selector de Idioma
                 ModernLanguageSelector(
                     currentLanguage = currentLanguage,
                     onLanguageSelected = onLanguageChange
@@ -164,7 +160,6 @@ fun MoreSettingsScreen(
                             showDivider = true
                         )
 
-                        // Aquí podrías agregar más opciones futuras como "Borrar datos", etc.
                         SettingsItem(
                             icon = Icons.Default.History,
                             title = "Historial de Cambios",
@@ -175,7 +170,6 @@ fun MoreSettingsScreen(
                     }
                 }
 
-                // Espacio extra al final
                 Spacer(modifier = Modifier.height(32.dp))
             }
 
@@ -345,7 +339,6 @@ fun SettingsItem(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Textos
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
@@ -362,7 +355,6 @@ fun SettingsItem(
                 }
             }
 
-            // Flechita o componente final
             if (trailing != null) {
                 trailing()
             } else {
@@ -387,7 +379,7 @@ fun SettingsItem(
 @Composable
 fun ExportPdfDialog(
     onDismiss: () -> Unit,
-    onExport: (Boolean) -> Unit // Boolean = Include Logo
+    onExport: (Boolean) -> Unit
 ) {
     var includeLogo by remember { mutableStateOf(true) }
 

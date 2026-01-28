@@ -47,6 +47,8 @@ billing = "7.1.1"
 
 vico = "1.16.0"
 
+lottie = "6.7.1"
+
 
 [libraries]
 # --- AndroidX Core & Testing ---
@@ -108,6 +110,8 @@ androidx-billing-ktx = { group = "com.android.billingclient", name = "billing-kt
 vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vico" }
 vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
 vico-core = { group = "com.patrykandpatrick.vico", name = "core", version.ref = "vico" }
+
+lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

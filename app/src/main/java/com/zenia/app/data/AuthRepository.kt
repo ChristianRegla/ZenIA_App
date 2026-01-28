@@ -1,8 +1,10 @@
 package com.zenia.app.data
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.zenia.app.model.SubscriptionType
 import com.zenia.app.model.Usuario
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -32,7 +35,7 @@ class AuthRepository @Inject constructor(
     private val db: FirebaseFirestore
 ) {
 
-    // Scope para mantener vivos los Flows compartidos (shareIn) mientras la app viva.
+    // Scope para mantener vivos los Flows compartidos mientras la app viva.
     private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /**
@@ -78,6 +81,8 @@ class AuthRepository @Inject constructor(
                             }
                             if (snapshot != null && snapshot.exists()) {
                                 trySend(snapshot.toObject(Usuario::class.java))
+                            } else {
+                                trySend(null)
                             }
                         }
                     awaitClose { registration.remove() }
@@ -86,9 +91,40 @@ class AuthRepository @Inject constructor(
         }
         .shareIn(
             scope = repositoryScope,
-            started = SharingStarted.WhileSubscribed(5000), // Mantiene la conexión 5s después de perder suscriptores
-            replay = 1 // Retiene el último valor para nuevos suscriptores inmediatos
+            started = SharingStarted.WhileSubscribed(5000),
+            replay = 1
         )
+
+    /**
+     * Flujo compartido que expone si el usuario es premium o no.
+     * Se deriva de [_sharedUserFlow] para mantener una única fuente de verdad.
+     */
+    val isPremium: Flow<Boolean> = _sharedUserFlow
+        .map { it?.suscripcion == SubscriptionType.PREMIUM }
+        .shareIn(
+            scope = repositoryScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            replay = 1
+        )
+
+    /**
+     * Obtiene el documento del usuario actual una sola vez (Snapshot).
+     * Útil para operaciones puntuales como "Crear Post" donde necesitamos los datos actuales.
+     */
+    suspend fun getCurrentUserSnapshot(): Usuario? {
+        val uid = currentUserId ?: return null
+        return try {
+            val snapshot = db.collection(FirestoreCollections.USERS)
+                .document(uid)
+                .get()
+                .await()
+
+            snapshot.toObject(Usuario::class.java)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
 
     /**
      * Crea o actualiza el documento del usuario en Firestore tras el inicio de sesión.
@@ -104,14 +140,13 @@ class AuthRepository @Inject constructor(
             val nuevoUsuario = Usuario(
                 id = userId,
                 email = email ?: "",
-                suscripcion = "free"
+                suscripcion = SubscriptionType.FREE
             )
             userRef.set(nuevoUsuario).await()
         } else {
             val datosActualizados = mapOf(
                 "email" to (email ?: "")
             )
-            // SetOptions.merge() evita sobrescribir campos existentes (como 'apodo' o 'avatar')
             userRef.set(datosActualizados, SetOptions.merge()).await()
         }
     }
@@ -139,34 +174,29 @@ class AuthRepository @Inject constructor(
 
     /**
      * Elimina permanentemente los datos del usuario de Firestore.
-     * Realiza un borrado en cascada (Batch Delete) eliminando primero las subcolecciones
-     * (Bienestar, Chat, Diario) y finalmente el documento del usuario.
-     *
-     * @param userId El ID del usuario a eliminar.
-     * @throws Exception Si ocurre un error durante el proceso de borrado.
      */
     suspend fun deleteUserData(userId: String) {
-        try {
-            val userRef = db.collection(FirestoreCollections.USERS).document(userId)
-            val batch = db.batch()
+        // Esta función ahora solo registra una advertencia. La lógica real debe estar en el backend.
+        Log.w(
+            "AuthRepository",
+            "La eliminación de datos de Firestore ($userId) debe ser manejada por una Cloud Function. " +
+            "La implementación del lado del cliente ha sido deshabilitada para evitar la pérdida de datos o crashes."
+        )
+    }
 
-            val registrosRef = userRef.collection(FirestoreCollections.WELNESS_LOGS)
-            val registrosSnapshot = registrosRef.get().await()
-            for (doc in registrosSnapshot.documents) batch.delete(doc.reference)
-
-            val chatRef = userRef.collection(FirestoreCollections.CHAT_HISTORY)
-            val chatSnapshot = chatRef.get().await()
-            for (doc in chatSnapshot.documents) batch.delete(doc.reference)
-
-            val diaryRef = userRef.collection(FirestoreCollections.DIARY)
-            val diarySnapshot = diaryRef.get().await()
-            for(doc in diarySnapshot.documents) batch.delete(doc.reference)
-
-            batch.delete(userRef)
-            batch.commit().await()
-        } catch (e: Exception) {
-            throw e
-        }
+    /**
+     * Actualiza el estado de la suscripción del usuario en Firestore.
+     * Debería ser llamado desde el BillingRepository tras una compra exitosa.
+     *
+     * @param isPremium El nuevo estado de la suscripción.
+     */
+    suspend fun updateUserSubscription(isPremium: Boolean) {
+        val userId = currentUserId ?: return
+        val newStatus = if (isPremium) SubscriptionType.PREMIUM else SubscriptionType.FREE
+        db.collection(FirestoreCollections.USERS)
+            .document(userId)
+            .update("suscripcion", newStatus)
+            .await()
     }
 
     /**

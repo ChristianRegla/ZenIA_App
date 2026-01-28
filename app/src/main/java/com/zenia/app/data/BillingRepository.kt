@@ -5,33 +5,35 @@ import android.content.Context
 import android.util.Log
 import com.android.billingclient.api.*
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class BillingRepository @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    private val authRepository: AuthRepository // Inyectar AuthRepository
 ) : PurchasesUpdatedListener {
+
+    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _billingConnectionState = MutableStateFlow(false)
     val billingConnectionState = _billingConnectionState.asStateFlow()
 
-    private val _isPremium = MutableStateFlow(false)
-    val isPremium = _isPremium.asStateFlow()
-
-    private val TEST_PRODUCT_ID = "android.test.purchased"
-
-    private val pendingPurchasesParams = PendingPurchasesParams.newBuilder()
-        .enableOneTimeProducts()
-        .build()
+    companion object {
+        const val PREMIUM_SUB_ID = "premium_annual"
+        const val DONATION_PRODUCT_ID = "donation_basic"
+    }
 
     private val billingClient = BillingClient.newBuilder(context)
         .setListener(this)
-        .enablePendingPurchases(pendingPurchasesParams)
+        .enablePendingPurchases()
         .build()
 
     init {
@@ -39,13 +41,18 @@ class BillingRepository @Inject constructor(
     }
 
     private fun startConnection() {
+        if (billingClient.isReady) {
+            return
+        }
         billingClient.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(billingResult: BillingResult) {
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                     Log.d("BillingRepo", "Conectado a Google Play Billing")
                     _billingConnectionState.value = true
-                    // Al conectar, verificamos si ya tiene suscripciones activas
                     checkSubscriptionStatus()
+                } else {
+                    Log.e("BillingRepo", "Error al conectar con Billing: ${billingResult.debugMessage}")
+                    _billingConnectionState.value = false
                 }
             }
 
@@ -58,25 +65,28 @@ class BillingRepository @Inject constructor(
     }
 
     /**
-     * Consulta las compras existentes para restaurar el estado Premium si el usuario
-     * cierra y abre la app.
+     * Consulta las compras de suscripciones existentes para asegurar que el estado en Firestore esté actualizado.
+     * También procesa compras no reconocidas que pudieron quedar pendientes (ej. si la app cerró).
      */
-    private fun checkSubscriptionStatus() {
+    fun checkSubscriptionStatus() {
+        if (!billingClient.isReady) return
+
         val queryPurchasesParams = QueryPurchasesParams.newBuilder()
             .setProductType(BillingClient.ProductType.SUBS)
             .build()
 
         billingClient.queryPurchasesAsync(queryPurchasesParams) { billingResult, purchases ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                // Si hay alguna compra de suscripción válida y no consumida/cancelada
-                val hasActiveSubscription = purchases.any { purchase ->
-                    purchase.purchaseState == Purchase.PurchaseState.PURCHASED
+                val hasActiveSubscription = purchases.any { it.purchaseState == Purchase.PurchaseState.PURCHASED }
+                repositoryScope.launch {
+                    authRepository.updateUserSubscription(hasActiveSubscription)
                 }
-                _isPremium.value = hasActiveSubscription
+                // Procesar también las compras que necesitan ser reconocidas.
+                purchases.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED && !it.isAcknowledged }
+                    .forEach { handlePurchase(it) }
 
-                // Nota para Tesis: Como usamos IDs de prueba que a veces no persisten bien en emuladores,
-                // _isPremium iniciará en false al reiniciar la app.
-                // En una app real, esto restauraría la compra real.
+            } else {
+                 Log.e("BillingRepo", "Error al consultar suscripciones: ${billingResult.debugMessage}")
             }
         }
     }
@@ -87,13 +97,13 @@ class BillingRepository @Inject constructor(
             return
         }
 
+        val productId = if (isSubscription) PREMIUM_SUB_ID else DONATION_PRODUCT_ID
+        val productType = if (isSubscription) BillingClient.ProductType.SUBS else BillingClient.ProductType.INAPP
+
         val productList = listOf(
             QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(TEST_PRODUCT_ID)
-                .setProductType(
-                    if (isSubscription) BillingClient.ProductType.SUBS
-                    else BillingClient.ProductType.INAPP
-                )
+                .setProductId(productId)
+                .setProductType(productType)
                 .build()
         )
 
@@ -104,30 +114,30 @@ class BillingRepository @Inject constructor(
         }
 
         if (productDetailsResult.billingResult.responseCode == BillingClient.BillingResponseCode.OK &&
-            productDetailsResult.productDetailsList != null
+            !productDetailsResult.productDetailsList.isNullOrEmpty()
         ) {
-            val productDetails = productDetailsResult.productDetailsList!!.firstOrNull()
+            val productDetails = productDetailsResult.productDetailsList!!.first()
 
-            if (productDetails != null) {
-                val productDetailsParamsList = listOf(
-                    BillingFlowParams.ProductDetailsParams.newBuilder()
-                        .setProductDetails(productDetails)
-                        .apply {
-                            if (isSubscription) {
-                                productDetails.subscriptionOfferDetails?.firstOrNull()?.offerToken?.let { token ->
-                                    setOfferToken(token)
-                                }
-                            }
-                        }
-                        .build()
-                )
+            val offerToken = if (isSubscription) {
+                productDetails.subscriptionOfferDetails?.firstOrNull()?.offerToken
+            } else null
 
-                val billingFlowParams = BillingFlowParams.newBuilder()
-                    .setProductDetailsParamsList(productDetailsParamsList)
+            val productDetailsParamsList = listOf(
+                BillingFlowParams.ProductDetailsParams.newBuilder()
+                    .setProductDetails(productDetails)
+                    .apply {
+                        offerToken?.let { setOfferToken(it) }
+                    }
                     .build()
+            )
 
-                billingClient.launchBillingFlow(activity, billingFlowParams)
-            }
+            val billingFlowParams = BillingFlowParams.newBuilder()
+                .setProductDetailsParamsList(productDetailsParamsList)
+                .build()
+
+            billingClient.launchBillingFlow(activity, billingFlowParams)
+        } else {
+            Log.e("BillingRepo", "Producto no encontrado o error: ${productDetailsResult.billingResult.debugMessage}")
         }
     }
 
@@ -139,35 +149,21 @@ class BillingRepository @Inject constructor(
         } else if (billingResult.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
             Log.d("BillingRepo", "El usuario canceló la compra.")
         } else {
-            Log.e("BillingRepo", "Error en compra: ${billingResult.debugMessage}")
+            Log.e("BillingRepo", "Error en la compra: ${billingResult.debugMessage}")
         }
     }
 
     private fun handlePurchase(purchase: Purchase) {
         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-
-            // LÓGICA IMPORTANTE: Distinguir Donación vs Suscripción
-            // Como usamos el mismo ID de prueba, usaremos una lógica simple:
-            // Si NO está reconocido (acknowledged), asumimos que es suscripción nueva y la activamos.
-            // Si ya está reconocido o queremos simular donación repetitiva, consumimos.
-
-            // Para fines de TU TESIS y pruebas fáciles:
-            // Vamos a consumir TODO para que siempre puedas volver a comprar y probar el flujo.
-            // Pero simularemos la activación de Premium visualmente.
-
-            consumePurchase(purchase)
-
-            // Simulación: Si acabamos de comprar, activamos Premium en la UI temporalmente
-            _isPremium.value = true
-
-            /* CÓDIGO REAL PARA PRODUCCIÓN (Descomentar cuando tengas IDs reales):
-            if (purchase.products.contains("id_suscripcion_real")) {
-                acknowledgePurchase(purchase)
-                _isPremium.value = true
-            } else if (purchase.products.contains("id_donacion_real")) {
+            if (purchase.products.contains(PREMIUM_SUB_ID)) {
+                if (!purchase.isAcknowledged) {
+                    acknowledgePurchase(purchase)
+                }
+            } else if (purchase.products.contains(DONATION_PRODUCT_ID)) {
                 consumePurchase(purchase)
             }
-            */
+        } else if (purchase.purchaseState == Purchase.PurchaseState.PENDING) {
+            Log.d("BillingRepo", "La compra está pendiente. Se procesará cuando se complete.")
         }
     }
 
@@ -178,7 +174,9 @@ class BillingRepository @Inject constructor(
 
         billingClient.consumeAsync(consumeParams) { billingResult, _ ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                Log.d("BillingRepo", "¡Producto consumido (Donación/Prueba)!")
+                Log.d("BillingRepo", "¡Donación consumida con éxito!")
+            } else {
+                Log.e("BillingRepo", "Error al consumir donación: ${billingResult.debugMessage}")
             }
         }
     }
@@ -192,7 +190,11 @@ class BillingRepository @Inject constructor(
             billingClient.acknowledgePurchase(acknowledgePurchaseParams) { billingResult ->
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                     Log.d("BillingRepo", "¡Suscripción reconocida y activa!")
-                    _isPremium.value = true
+                    repositoryScope.launch {
+                        authRepository.updateUserSubscription(true)
+                    }
+                } else {
+                    Log.e("BillingRepo", "Error al reconocer suscripción: ${billingResult.debugMessage}")
                 }
             }
         }

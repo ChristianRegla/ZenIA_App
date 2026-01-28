@@ -1,8 +1,26 @@
 package com.zenia.app.ui.screens.home
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -12,11 +30,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Group
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -43,7 +74,6 @@ import com.zenia.app.ui.components.HomeTopBar
 import com.zenia.app.ui.components.MoodPatternsCard
 import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZeniaTeal
-import com.zenia.app.ui.theme.ZeniaWhite
 import com.zenia.app.util.AnalysisUtils
 import com.zenia.app.util.ChartUtils
 import java.time.LocalDate
@@ -76,11 +106,8 @@ fun HomeScreen(
     chartProducer: com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer,
     onNavigateToDiaryEntry: (LocalDate) -> Unit,
     esPremium: Boolean,
-    hasPermission: Boolean,
-    healthConnectStatus: Int,
     onSignOut: () -> Unit,
     onNavigateToAccount: () -> Unit,
-    onConnectSmartwatch: () -> Unit,
     onNavigateToPremium: () -> Unit,
     onNavigateToManualPermission: () -> Unit,
     onInstallHealthConnect: () -> Unit,
@@ -91,7 +118,8 @@ fun HomeScreen(
     currentStreak: Int,
     topBooster: AnalysisUtils.Insight?,
     topDrainer: AnalysisUtils.Insight?,
-    onNavigateToAnalytics: () -> Unit
+    onNavigateToAnalytics: () -> Unit,
+    onNavigateToCommunity: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -144,14 +172,14 @@ fun HomeScreen(
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Hola, $userName 👋",
+                        text = stringResource(R.string.home_greeting, userName),
                         style = MaterialTheme.typography.headlineMedium,
                         fontFamily = RobotoFlex,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "¿Cómo te sientes hoy?",
+                        text = stringResource(R.string.home_how_are_you),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -174,12 +202,12 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Tu balance emocional",
+                            text = stringResource(R.string.home_emotion_balance),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                         TextButton(onClick = onNavigateToAnalytics) {
-                            Text("Ver análisis")
+                            Text(stringResource(R.string.home_view_analysis))
                         }
                     }
 
@@ -209,12 +237,12 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Comunidad Zen",
+                            text = stringResource(R.string.home_community_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
-                        TextButton(onClick = { /* Ver más */ }) {
-                            Text("Ver todo")
+                        TextButton(onClick = onNavigateToCommunity) {
+                            Text(stringResource(R.string.home_view_all))
                         }
                     }
 
@@ -250,22 +278,26 @@ fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
         colors = CardDefaults.cardColors(
             containerColor = if (hasEntry) ZeniaTeal.copy(alpha = 0.15f) else MaterialTheme.colorScheme.primary
         ),
-        modifier = Modifier.fillMaxWidth().height(100.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 10.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = if (hasEntry) "¡Racha activa!" else "Registrar mi día",
+                    text = if (hasEntry) stringResource(R.string.home_streak_active) else stringResource(R.string.home_log_day),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = if (hasEntry) ZeniaTeal else Color.White
                 )
                 Text(
-                    text = if (streak > 0) "¡Llevas $streak días seguidos! 🔥" else "Inicia tu racha hoy.",
+                    text = if (streak > 0) stringResource(R.string.home_streak_counter, streak) else stringResource(R.string.home_start_streak),
                     style = MaterialTheme.typography.bodySmall,
                     color = if (hasEntry) ZeniaTeal.copy(alpha = 0.8f) else Color.White.copy(alpha = 0.8f)
                 )
@@ -302,10 +334,12 @@ fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
 @Composable
 fun EmotionChartCard(chartProducer: com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = ZeniaWhite),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(20.dp),
-        modifier = Modifier.fillMaxWidth().height(250.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(250.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             val lineSpec = remember {
@@ -341,8 +375,11 @@ fun EmotionChartCard(chartProducer: com.patrykandpatrick.vico.core.entry.ChartEn
 @Composable
 fun EmptyChartCard(onClick: () -> Unit) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = ZeniaWhite),
-        modifier = Modifier.fillMaxWidth().height(200.dp).clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp)
     ) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -350,11 +387,11 @@ fun EmptyChartCard(onClick: () -> Unit) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.TrendingUp,
                     contentDescription = null,
-                    tint = Color.Gray,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(48.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Sin datos aún. ¡Registra tu primer día!", color = Color.Gray)
+                Text(stringResource(R.string.home_no_chart_data), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -363,9 +400,11 @@ fun EmptyChartCard(onClick: () -> Unit) {
 @Composable
 fun CommunityCard(actividad: ActividadComunidad) {
     Card(
-        modifier = Modifier.width(160.dp).height(180.dp),
+        modifier = Modifier
+            .width(160.dp)
+            .height(180.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = ZeniaWhite)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Box(
@@ -386,9 +425,9 @@ fun CommunityCard(actividad: ActividadComunidad) {
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = "${actividad.participantes} participantes",
+                text = stringResource(R.string.home_community_participants, actividad.participantes),
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -396,10 +435,36 @@ fun CommunityCard(actividad: ActividadComunidad) {
 
 @Composable
 fun CommunityCardPlaceholder() {
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val translateAnim = transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmer_anim"
+    )
+
+    val brush = Brush.linearGradient(
+        colors = listOf(
+            MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
+            MaterialTheme.colorScheme.surface.copy(alpha = 0.1f),
+            MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)
+        ),
+        start = Offset(translateAnim.value - 500f, translateAnim.value - 500f),
+        end = Offset(translateAnim.value, translateAnim.value)
+    )
+
     Card(
-        modifier = Modifier.width(160.dp).height(180.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.LightGray.copy(alpha = 0.2f))
+        modifier = Modifier
+            .width(160.dp)
+            .height(180.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
-        // Placeholder visual
+        Spacer(modifier = Modifier
+            .fillMaxSize()
+            .background(brush))
     }
 }
