@@ -1,8 +1,6 @@
 package com.zenia.app.ui.navigation
 
 import android.net.Uri
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -13,7 +11,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -223,27 +220,6 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
             CommunityRoute(
                 onNavigateBack = { navController.popBackStack() }
             )
-        }
-    }
-}
-
-fun AnimatedContentTransitionScope<*>.slideIn() =
-    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
-
-fun AnimatedContentTransitionScope<*>.slideOut() =
-    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
-
-fun AnimatedContentTransitionScope<*>.popSlideIn() =
-    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
-
-fun AnimatedContentTransitionScope<*>.popSlideOut() =
-    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
-
-fun androidx.navigation.NavController.safeNavigate(route: String) {
-    val lifecycle = this.currentBackStackEntry?.lifecycle
-    if (lifecycle != null && lifecycle.currentState == Lifecycle.State.RESUMED) {
-        this.navigate(route) {
-            launchSingleTop = true
         }
     }
 }
