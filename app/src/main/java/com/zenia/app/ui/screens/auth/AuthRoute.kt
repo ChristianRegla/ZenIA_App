@@ -23,8 +23,6 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.GoogleAuthProvider
 import com.zenia.app.R
-import com.zenia.app.ui.screens.auth.AuthUiState
-import com.zenia.app.ui.screens.auth.AuthViewModel
 import kotlinx.coroutines.launch
 
 /**
@@ -37,7 +35,6 @@ fun AuthRoute(
     authViewModel: AuthViewModel,
     onNavigateToForgotPassword: () -> Unit
 ) {
-    // --- 1. Estado y Handlers ---
     val uiState by authViewModel.uiState.collectAsState()
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
@@ -45,14 +42,12 @@ fun AuthRoute(
     var isRegisterMode by rememberSaveable { mutableStateOf(false) }
     var termsAccepted by rememberSaveable { mutableStateOf(false) }
 
-    // Handlers de Corutinas y Snackbar
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val termsNotAcceptedMessage = stringResource(R.string.auth_error_terms_not_accepted)
 
-    // --- 2. Lógica de Google Sign-In ---
     val credentialManager = remember { CredentialManager.create(context) }
     val googleIdOption = remember {
         GetGoogleIdOption.Builder()
@@ -61,7 +56,6 @@ fun AuthRoute(
             .build()
     }
 
-    // --- 3. Efectos Secundarios (Snackbars) ---
     LaunchedEffect(uiState) {
         when (val state = uiState) {
             is AuthUiState.VerificationSent -> {
@@ -89,7 +83,6 @@ fun AuthRoute(
         }
     }
 
-    // --- 4. Definición de Estado y Acciones ---
     val screenState = AuthScreenState(
         uiState = uiState,
         isRegisterMode = isRegisterMode,
