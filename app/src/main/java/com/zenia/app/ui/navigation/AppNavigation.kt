@@ -50,7 +50,18 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
         return
     }
 
-    LaunchedEffect(pendingDeepLink, startDestination) {
+    LaunchedEffect(startDestination) {
+        val currentRoute = navController.currentBackStackEntry?.destination?.route
+
+        if (startDestination == Destinations.AUTH_ROUTE && currentRoute != Destinations.AUTH_ROUTE) {
+            navController.navigate(Destinations.AUTH_ROUTE) {
+                popUpTo(0) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
+
+    LaunchedEffect(pendingDeepLink) {
         if (pendingDeepLink != null) {
             delay(100)
 

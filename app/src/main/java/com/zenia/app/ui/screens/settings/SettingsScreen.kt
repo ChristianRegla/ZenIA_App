@@ -160,7 +160,7 @@ fun SettingsScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                         }
                         Text(
-                            text = if (isPremium) "Plan Premium Activo" else stringResource(R.string.settings_btn_premium),
+                            text = if (isPremium) stringResource(R.string.settings_btn_premium_now) else stringResource(R.string.settings_btn_premium),
                             fontFamily = RobotoFlex,
                             fontWeight = FontWeight.Bold,
                         )

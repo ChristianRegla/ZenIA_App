@@ -101,6 +101,7 @@
     <string name="settings_title">Menú</string>
     <string name="settings_profile_picture_desc">Foto de perfil</string>
     <string name="settings_btn_premium">Conviértete en premium</string>
+    <string name="settings_btn_premium_now">Plan Premium Activo</string>
     <string name="settings_item_help_center">Centro de ayuda</string>
     <string name="settings_item_donations">Donaciones</string>
     <string name="settings_item_privacy">Políticas de privacidad</string>
@@ -333,5 +334,6 @@
     <string name="onboarding_desc_biometrics">
         Protege tu privacidad. Accede a tu espacio seguro con huella o reconocimiento facial.
     </string>
+    <string name="auth_error_unknown">Error desconocido. Favor de ponerse en contacto con el equipo de desarrollo.</string>
 
 </resources>

@@ -2,6 +2,7 @@ package com.zenia.app.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.UserPreferencesRepository
 import com.zenia.app.ui.navigation.Destinations
@@ -16,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val auth: FirebaseAuth
 ) : ViewModel() {
     val startDestinationState: StateFlow<String?> = combine(
         authRepository.getUsuarioFlow(),
@@ -24,7 +26,10 @@ class MainViewModel @Inject constructor(
         userPreferencesRepository.isOnboardingCompleted
     ) { usuario, isBiometricEnabled, isOnboardingCompleted ->
 
-        val isLoggedIn = usuario != null
+        val firebaseUser = auth.currentUser
+        val isEmailVerified = firebaseUser?.isEmailVerified == true
+
+        val isLoggedIn = (usuario != null) && isEmailVerified
 
         when {
             !isOnboardingCompleted -> Destinations.ONBOARDING_ROUTE

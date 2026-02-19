@@ -7,4 +7,5 @@ sealed interface AuthUiState {
     object PasswordResetSent: AuthUiState
     object AccountDeleted: AuthUiState
     data class Error(val message: String): AuthUiState
+    data class VerificationRequired(val email: String): AuthUiState
 }

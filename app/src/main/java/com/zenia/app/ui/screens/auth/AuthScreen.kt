@@ -64,7 +64,9 @@ data class AuthScreenActions(
     val onToggleModeClick: () -> Unit,
     val onToggleTermsAccepted: (Boolean) -> Unit,
     val onTermsClick: () -> Unit,
-    val onPrivacyPolicyClick: () -> Unit
+    val onPrivacyPolicyClick: () -> Unit,
+    val onResendVerificationClick: () -> Unit,
+    val onDismissVerificationDialog: () -> Unit
 )
 
 @Composable
@@ -100,11 +102,7 @@ fun AuthScreen(
             val bottomPadding = if (isPortraitPhone) 32.dp else 0.dp
             val adjustedMinHeight = screenHeight - bottomPadding
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
+            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
                 AuthContent(
                     state = state,
                     actions = actions,
@@ -112,6 +110,31 @@ fun AuthScreen(
                     isPortraitPhone = isPortraitPhone,
                     bottomPadding = bottomPadding,
                     contentAlignment = if (isPortraitPhone) Alignment.BottomCenter else Alignment.Center
+                )
+            }
+
+            if (state.uiState is AuthUiState.VerificationRequired) {
+                val email = (state.uiState as AuthUiState.VerificationRequired).email
+
+                AlertDialog(
+                    onDismissRequest = { actions.onDismissVerificationDialog() },
+                    title = { Text(text = "Verificación Necesaria") },
+                    text = {
+                        Text("Hemos enviado un correo a $email. Debes verificar tu cuenta antes de iniciar sesión.\n\n¿No recibiste el correo? Revisa tu carpeta de Spam o intenta reenviarlo.")
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { actions.onResendVerificationClick() }) {
+                            Text("Reenviar Correo")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { actions.onDismissVerificationDialog() }) {
+                            Text("Entendido")
+                        }
+                    },
+                    containerColor = Color.White,
+                    titleContentColor = Color.Black,
+                    textContentColor = Color.DarkGray
                 )
             }
         }
@@ -384,7 +407,7 @@ fun AuthScreenPreview_Login() {
         snackbarHostState = SnackbarHostState(),
         termsAccepted = false
     )
-    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {}, {}, {}, {})
+    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})
     ZenIATheme { AuthScreen(state = state, actions = actions) }
 }
 
@@ -400,6 +423,6 @@ fun AuthScreenPreview_Loading_Zen() {
         snackbarHostState = SnackbarHostState(),
         termsAccepted = false
     )
-    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {}, {}, {}, {})
+    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})
     ZenIATheme { AuthScreen(state = state, actions = actions) }
 }

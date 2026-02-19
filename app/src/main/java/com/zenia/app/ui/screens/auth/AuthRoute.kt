@@ -151,6 +151,12 @@ fun AuthRoute(
         },
         onPrivacyPolicyClick = {
             uriHandler.openUri("https://zenia-official.me/privacidad/")
+        },
+        onResendVerificationClick = {
+            authViewModel.resendVerification(email, password)
+        },
+        onDismissVerificationDialog = {
+            authViewModel.resetState()
         }
     )
 

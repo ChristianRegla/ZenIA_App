@@ -10,6 +10,8 @@ import com.google.firebase.auth.FirebaseAuthException
 import com.zenia.app.R
 import com.zenia.app.data.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -37,45 +39,28 @@ class AuthViewModel @Inject constructor(
     val userEmail: String?
         get() = auth.currentUser?.email
 
-    /**
-     * Expone si el usuario actual ha verificado su correo electrónico.
-     */
     val isUserVerified: Boolean
         get() = auth.currentUser?.isEmailVerified ?: false
 
-    // StateFlow interno para el estado de la UI (Cargando, Error, etc.)
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
-    /**
-     * Expone el estado de la UI para operaciones asíncronas de autenticación.
-     * La UI observa este Flow para mostrar loaders, snackbars de error, etc.
-     */
     val uiState = _uiState.asStateFlow()
 
-    // StateFlow interno para saber si el usuario está logueado.
-    private val _isUserLoggedIn = MutableStateFlow(auth.currentUser != null)
-    /**
-     * Expone un boolean que indica si el usuario está logueado Y verificado.
-     * Este es el "estado de verdad" principal para la navegación de la app.
-     */
+    private val _isUserLoggedIn = MutableStateFlow(false)
     val isUserLoggedIn = _isUserLoggedIn.asStateFlow()
 
-    /**
-     * Listener que se activa cada vez que el estado de autenticación de Firebase cambia (login/logout).
-     * Actualiza [_isUserLoggedIn] basado en si el usuario no es nulo Y su email está verificado.
-     */
-    private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-        val user = firebaseAuth.currentUser
-        // La app considera a un usuario "logueado" solo si existe Y ha verificado su email.
-        _isUserLoggedIn.value = (user != null && user.isEmailVerified)
-    }
-
-    // Estado para el temporizador de reenvío (0 significa listo para enviar)
     private val _resendTimer = MutableStateFlow(0)
     val resendTimer = _resendTimer.asStateFlow()
 
-    // Estado para saber si ya se envió al menos una vez (para mostrar el mensaje de Spam)
     private val _emailSentSuccess = MutableStateFlow(false)
     val emailSentSuccess = _emailSentSuccess.asStateFlow()
+
+    private var timerJob: Job? = null
+
+    private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+        val user = firebaseAuth.currentUser
+        // IMPORTANTE: Solo consideramos logueado si está verificado
+        _isUserLoggedIn.value = (user != null && user.isEmailVerified)
+    }
 
     /**
      * Bloque de inicialización. Se registra el [authStateListener] cuando el ViewModel se crea.
@@ -86,27 +71,19 @@ class AuthViewModel @Inject constructor(
 
     /**
      * Se llama cuando el ViewModel está a punto de ser destruido.
-     * Limpia el [authStateListener] para evitar memory leaks.
+     * Limpia él [authStateListener] para evitar memory leaks.
      */
     override fun onCleared() {
         super.onCleared()
         auth.removeAuthStateListener(authStateListener)
+        timerJob?.cancel()
     }
 
     /**
      * Validador simple para el formato de email.
      */
-    private fun isValidEmail(email: String): Boolean {
-        return email.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
-    }
-
-    /**
-     * Validador simple para la contraseña.
-     * Firebase requiere al menos 6 caracteres.
-     */
-    private fun isValidPassword(password: String): Boolean {
-        return password.isNotBlank() && password.length >= 6
-    }
+    private fun isValidEmail(email: String): Boolean = email.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    private fun isValidPassword(password: String): Boolean = password.isNotBlank() && password.length >= 6
 
     /**
      * Inicia sesión con Correo y Contraseña.
@@ -114,31 +91,32 @@ class AuthViewModel @Inject constructor(
      * Si el email no está verificado, cierra sesión y muestra un error.
      */
     fun signInWithEmail(email: String, password: String) {
-        if (_uiState.value == AuthUiState.Loading) return
+        if (_uiState.value is AuthUiState.Loading) return
 
         if (!isValidEmail(email)) {
-            _uiState.value = AuthUiState.Error(application.getString(R.string.auth_error_invalid_email))
+            _uiState.value = AuthUiState.Error(getString(R.string.auth_error_invalid_email))
             return
         }
         if (password.isBlank()) {
-            _uiState.value = AuthUiState.Error(application.getString(R.string.auth_error_fill_password_empty))
+            _uiState.value = AuthUiState.Error(getString(R.string.auth_error_fill_password_empty))
             return
         }
 
-        _uiState.value = AuthUiState.Loading
-        viewModelScope.launch {
-            try {
-                val result = auth.signInWithEmailAndPassword(email, password).await()
-                val user = result.user
-                if (user != null && user.isEmailVerified) {
+        launchCatching {
+            _uiState.value = AuthUiState.Loading
+            val result = auth.signInWithEmailAndPassword(email, password).await()
+            val user = result.user
+
+            if (user != null) {
+                if (user.isEmailVerified) {
                     authRepository.createUserIfNew(user.uid, user.email, isNewUser = false)
                     _uiState.value = AuthUiState.Idle
                 } else {
                     auth.signOut()
-                    _uiState.value = AuthUiState.Error(application.getString(R.string.auth_error_email_not_verified))
+                    _uiState.value = AuthUiState.VerificationRequired(email)
                 }
-            } catch (e: Exception) {
-                _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
+            } else {
+                _uiState.value = AuthUiState.Error(getString(R.string.auth_error_unknown))
             }
         }
     }
@@ -149,34 +127,53 @@ class AuthViewModel @Inject constructor(
      * y cierra la sesión para forzar al usuario a verificar su email.
      */
     fun createUser(email: String, password: String, confirmPassword: String) {
-        if (_uiState.value == AuthUiState.Loading) return
+        if (_uiState.value is AuthUiState.Loading) return
 
         if (!isValidEmail(email)) {
-            _uiState.value = AuthUiState.Error(application.getString(R.string.auth_error_invalid_email))
+            _uiState.value = AuthUiState.Error(getString(R.string.auth_error_invalid_email))
             return
         }
         if (!isValidPassword(password)) {
-            _uiState.value = AuthUiState.Error(application.getString(R.string.auth_error_weak_password))
+            _uiState.value = AuthUiState.Error(getString(R.string.auth_error_weak_password))
             return
         }
         if (password != confirmPassword) {
-            _uiState.value = AuthUiState.Error(application.getString(R.string.auth_error_passwords_no_match))
+            _uiState.value = AuthUiState.Error(getString(R.string.auth_error_passwords_no_match))
             return
         }
 
-        _uiState.value = AuthUiState.Loading
-        viewModelScope.launch {
-            try {
-                val result = auth.createUserWithEmailAndPassword(email, password).await()
-                val newUser = result.user
-                if (newUser != null) {
-                    authRepository.createUserIfNew(newUser.uid, email, isNewUser = true)
-                    newUser.sendEmailVerification()
-                }
+        launchCatching {
+            _uiState.value = AuthUiState.Loading
+            val result = auth.createUserWithEmailAndPassword(email, password).await()
+            val newUser = result.user
+
+            if (newUser != null) {
+                authRepository.createUserIfNew(newUser.uid, email, isNewUser = true)
+
+                newUser.sendEmailVerification().await()
+
                 auth.signOut()
+
+                _uiState.value = AuthUiState.VerificationRequired(email)
+            }
+        }
+    }
+
+    fun resendVerification(email: String, password: String) {
+        if (_resendTimer.value > 0) return
+
+        launchCatching {
+            _uiState.value = AuthUiState.Loading
+
+            val result = auth.signInWithEmailAndPassword(email, password).await()
+            val user = result.user
+
+            if (user != null) {
+                user.sendEmailVerification().await()
+                auth.signOut()
+
                 _uiState.value = AuthUiState.VerificationSent
-            } catch (e: Exception) {
-                _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
+                startResendTimer()
             }
         }
     }
@@ -225,16 +222,6 @@ class AuthViewModel @Inject constructor(
                 startResendTimer()
             } catch (e: Exception) {
                 _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
-            }
-        }
-    }
-
-    private fun startResendTimer() {
-        viewModelScope.launch {
-            _resendTimer.value = 60
-            while (_resendTimer.value > 0) {
-                kotlinx.coroutines.delay(1000)
-                _resendTimer.value -= 1
             }
         }
     }
@@ -289,16 +276,14 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Cierra la sesión del usuario actual.
-     * El [authStateListener] se encargará de actualizar [_isUserLoggedIn].
-     */
-    fun signOut() {
-        if (_uiState.value == AuthUiState.Loading) return
-
-        viewModelScope.launch {
-            auth.signOut()
-            _uiState.value = AuthUiState.Idle
+    private fun startResendTimer() {
+        timerJob?.cancel()
+        timerJob = viewModelScope.launch {
+            _resendTimer.value = 60
+            while (_resendTimer.value > 0) {
+                delay(1000)
+                _resendTimer.value -= 1
+            }
         }
     }
 
@@ -307,7 +292,19 @@ class AuthViewModel @Inject constructor(
      * Útil para limpiar un mensaje de error después de que el usuario lo haya visto.
      */
     fun resetState() {
-        _uiState.value = AuthUiState.Idle
+        if (_uiState.value !is AuthUiState.Loading) {
+            _uiState.value = AuthUiState.Idle
+        }
+    }
+
+    private fun launchCatching(block: suspend () -> Unit) {
+        viewModelScope.launch {
+            try {
+                block()
+            } catch (e: Exception) {
+                _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
+            }
+        }
     }
 
     /**
@@ -329,5 +326,9 @@ class AuthViewModel @Inject constructor(
             else -> e.message?.let { application.getString(R.string.auth_error_unexpected, it) } ?: application.getString(
                 R.string.auth_error_unexpected, "Unknown")
         }
+    }
+
+    private fun getString(resId: Int, vararg formatArgs: Any): String {
+        return application.getString(resId, *formatArgs)
     }
 }

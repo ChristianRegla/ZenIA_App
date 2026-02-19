@@ -104,6 +104,7 @@
     <string name="settings_title">Menu</string>
     <string name="settings_profile_picture_desc">Profile picture</string>
     <string name="settings_btn_premium">Go Premium</string>
+    <string name="settings_btn_premium_now">You\'re Premium</string>
     <string name="settings_item_help_center">Help Center</string>
     <string name="settings_item_donations">Donations</string>
     <string name="settings_item_privacy">Privacy Policy</string>
@@ -339,5 +340,7 @@
     <string name="onboarding_desc_biometrics">
         Protect your privacy. Access your safe space using fingerprint or facial recognition.
     </string>
+
+    <string name="auth_error_unknown">Unknown error. Please contact ZenIA Team.</string>
 
 </resources>
