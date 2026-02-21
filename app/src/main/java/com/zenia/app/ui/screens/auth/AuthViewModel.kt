@@ -58,7 +58,6 @@ class AuthViewModel @Inject constructor(
 
     private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
         val user = firebaseAuth.currentUser
-        // IMPORTANTE: Solo consideramos logueado si está verificado
         _isUserLoggedIn.value = (user != null && user.isEmailVerified)
     }
 
@@ -77,6 +76,7 @@ class AuthViewModel @Inject constructor(
         super.onCleared()
         auth.removeAuthStateListener(authStateListener)
         timerJob?.cancel()
+        stopVerificationCheck()
     }
 
     /**
@@ -91,9 +91,11 @@ class AuthViewModel @Inject constructor(
      * Si el email no está verificado, cierra sesión y muestra un error.
      */
     fun signInWithEmail(email: String, password: String) {
+        val cleanEmail = email.trim()
+
         if (_uiState.value is AuthUiState.Loading) return
 
-        if (!isValidEmail(email)) {
+        if (!isValidEmail(cleanEmail)) {
             _uiState.value = AuthUiState.Error(getString(R.string.auth_error_invalid_email))
             return
         }
@@ -104,7 +106,7 @@ class AuthViewModel @Inject constructor(
 
         launchCatching {
             _uiState.value = AuthUiState.Loading
-            val result = auth.signInWithEmailAndPassword(email, password).await()
+            val result = auth.signInWithEmailAndPassword(cleanEmail, password).await()
             val user = result.user
 
             if (user != null) {
@@ -112,8 +114,8 @@ class AuthViewModel @Inject constructor(
                     authRepository.createUserIfNew(user.uid, user.email, isNewUser = false)
                     _uiState.value = AuthUiState.Idle
                 } else {
-                    auth.signOut()
-                    _uiState.value = AuthUiState.VerificationRequired(email)
+                    _uiState.value = AuthUiState.VerificationRequired(cleanEmail)
+                    startVerificationCheck()
                 }
             } else {
                 _uiState.value = AuthUiState.Error(getString(R.string.auth_error_unknown))
@@ -127,9 +129,11 @@ class AuthViewModel @Inject constructor(
      * y cierra la sesión para forzar al usuario a verificar su email.
      */
     fun createUser(email: String, password: String, confirmPassword: String) {
+        val cleanEmail = email.trim()
+
         if (_uiState.value is AuthUiState.Loading) return
 
-        if (!isValidEmail(email)) {
+        if (!isValidEmail(cleanEmail)) {
             _uiState.value = AuthUiState.Error(getString(R.string.auth_error_invalid_email))
             return
         }
@@ -144,17 +148,16 @@ class AuthViewModel @Inject constructor(
 
         launchCatching {
             _uiState.value = AuthUiState.Loading
-            val result = auth.createUserWithEmailAndPassword(email, password).await()
+            val result = auth.createUserWithEmailAndPassword(cleanEmail, password).await()
             val newUser = result.user
 
             if (newUser != null) {
-                authRepository.createUserIfNew(newUser.uid, email, isNewUser = true)
+                authRepository.createUserIfNew(newUser.uid, cleanEmail, isNewUser = true)
 
                 newUser.sendEmailVerification().await()
 
-                auth.signOut()
-
-                _uiState.value = AuthUiState.VerificationRequired(email)
+                _uiState.value = AuthUiState.VerificationRequired(cleanEmail)
+                startVerificationCheck()
             }
         }
     }
@@ -170,12 +173,37 @@ class AuthViewModel @Inject constructor(
 
             if (user != null) {
                 user.sendEmailVerification().await()
-                auth.signOut()
 
                 _uiState.value = AuthUiState.VerificationSent
                 startResendTimer()
+                startVerificationCheck()
             }
         }
+    }
+
+    private var verificationPollJob: Job? = null
+
+    fun startVerificationCheck() {
+        if (verificationPollJob?.isActive == true) return
+
+        verificationPollJob = viewModelScope.launch {
+            while (true) {
+                val user = auth.currentUser
+                user?.reload()?.await()
+
+                if (user?.isEmailVerified == true) {
+                    _uiState.value = AuthUiState.Idle
+                    _isUserLoggedIn.value = true
+
+                    break
+                }
+                delay(3000)
+            }
+        }
+    }
+
+    fun stopVerificationCheck() {
+        verificationPollJob?.cancel()
     }
 
     /**
@@ -206,9 +234,11 @@ class AuthViewModel @Inject constructor(
      * Envía un correo de restablecimiento de contraseña a la dirección de email proporcionada.
      */
     fun sendPasswordResetEmail(email: String) {
+        val cleanEmail = email.trim()
+
         if (_resendTimer.value > 0) return
 
-        if (!isValidEmail(email)) {
+        if (!isValidEmail(cleanEmail)) {
             _uiState.value = AuthUiState.Error(application.getString(R.string.auth_error_invalid_email))
             return
         }
@@ -216,7 +246,7 @@ class AuthViewModel @Inject constructor(
         _uiState.value = AuthUiState.Loading
         viewModelScope.launch {
             try {
-                auth.sendPasswordResetEmail(email).await()
+                auth.sendPasswordResetEmail(cleanEmail).await()
                 _uiState.value = AuthUiState.PasswordResetSent
                 _emailSentSuccess.value = true
                 startResendTimer()
@@ -305,6 +335,11 @@ class AuthViewModel @Inject constructor(
                 _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
             }
         }
+    }
+
+    fun signOut() {
+        auth.signOut()
+        _isUserLoggedIn.value = false
     }
 
     /**

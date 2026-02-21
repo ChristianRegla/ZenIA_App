@@ -14,13 +14,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.zenia.app.R
 import com.zenia.app.ui.theme.Lobster
 import com.zenia.app.ui.theme.Nunito
+import com.zenia.app.ui.theme.ZenIATheme // Asegúrate de tener este import si usas tu tema en el preview
 
 @Composable
 fun VerificationScreen(
@@ -39,7 +47,7 @@ fun VerificationScreen(
             painter = painterResource(id = R.drawable.background_login_signup),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize().alpha(0.1f) // Muy sutil
+            modifier = Modifier.fillMaxSize().alpha(0.1f)
         )
 
         Column(
@@ -49,26 +57,36 @@ fun VerificationScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // 1. Ícono Animado o Imagen de "Nube Feliz" esperando
             Box(
                 modifier = Modifier
-                    .size(140.dp)
+                    .size(160.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_nube_feli), // Tu ícono característico
-                    contentDescription = "Esperando verificación",
-                    modifier = Modifier.size(80.dp)
+                val composition by rememberLottieComposition(
+                    LottieCompositionSpec.RawRes(R.raw.verification_mail)
+                )
+
+                val progress by animateLottieCompositionAsState(
+                    composition = composition,
+                    iterations = LottieConstants.IterateForever
+                )
+
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progress },
+                    modifier = Modifier
+                        .size(120.dp)
+                        .padding(8.dp),
+                    contentScale = ContentScale.Fit
                 )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // 2. Título Moderno
             Text(
-                text = "¡Revisa tu correo!",
+                text = stringResource(id = R.string.verification_title),
                 fontFamily = Lobster,
                 fontSize = 32.sp,
                 color = MaterialTheme.colorScheme.primary,
@@ -77,9 +95,8 @@ fun VerificationScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 3. Descripción clara
             Text(
-                text = "Hemos enviado un enlace de confirmación a:\n",
+                text = stringResource(id = R.string.verification_subtitle_1),
                 fontFamily = Nunito,
                 fontSize = 16.sp,
                 color = Color.Gray,
@@ -97,7 +114,7 @@ fun VerificationScreen(
             )
 
             Text(
-                text = "Toca el enlace en ese correo para activar tu cuenta. \nEsta pantalla se actualizará automáticamente.",
+                text = stringResource(id = R.string.verification_subtitle_2),
                 fontFamily = Nunito,
                 fontSize = 14.sp,
                 color = Color.Gray,
@@ -107,7 +124,6 @@ fun VerificationScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // 4. Indicador de "Escuchando..."
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
@@ -119,7 +135,7 @@ fun VerificationScreen(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Esperando confirmación...",
+                    text = stringResource(id = R.string.verification_waiting),
                     fontFamily = Nunito,
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.primary
@@ -128,7 +144,6 @@ fun VerificationScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // 5. Botones de Acción
             Button(
                 onClick = onResendClick,
                 enabled = resendTimer == 0 && !isLoading,
@@ -136,7 +151,11 @@ fun VerificationScreen(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = if (resendTimer > 0) "Reenviar en ${resendTimer}s" else "Reenviar correo",
+                    text = if (resendTimer > 0) {
+                        stringResource(id = R.string.verification_resend_timer, resendTimer)
+                    } else {
+                        stringResource(id = R.string.verification_resend_btn)
+                    },
                     fontFamily = Nunito,
                     fontWeight = FontWeight.Bold
                 )
@@ -147,7 +166,7 @@ fun VerificationScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Cambiar correo / Salir",
+                    text = stringResource(id = R.string.verification_cancel_btn),
                     fontFamily = Nunito,
                     color = MaterialTheme.colorScheme.error
                 )
@@ -157,5 +176,33 @@ fun VerificationScreen(
         if (isLoading) {
             ZenLoadingOverlay()
         }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, device = "id:pixel_7_pro")
+@Composable
+fun VerificationScreenPreview() {
+    ZenIATheme {
+        VerificationScreen(
+            email = "usuario.demo@gmail.com",
+            onResendClick = {},
+            onCancelClick = {},
+            resendTimer = 45,
+            isLoading = false
+        )
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, device = "id:pixel_7_pro")
+@Composable
+fun VerificationScreenResendReadyPreview() {
+    ZenIATheme {
+        VerificationScreen(
+            email = "usuario.demo@gmail.com",
+            onResendClick = {},
+            onCancelClick = {},
+            resendTimer = 0,
+            isLoading = false
+        )
     }
 }

@@ -33,9 +33,13 @@ import kotlinx.coroutines.launch
 @Composable
 fun AuthRoute(
     authViewModel: AuthViewModel,
-    onNavigateToForgotPassword: () -> Unit
+    onNavigateToForgotPassword: () -> Unit,
+    onVerificationCompleted: () -> Unit
 ) {
     val uiState by authViewModel.uiState.collectAsState()
+    val resendTimer by authViewModel.resendTimer.collectAsState()
+    val isUserLoggedIn by authViewModel.isUserLoggedIn.collectAsState()
+
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var confirmPassword by rememberSaveable { mutableStateOf("") }
@@ -54,6 +58,20 @@ fun AuthRoute(
             .setFilterByAuthorizedAccounts(false)
             .setServerClientId(context.getString(R.string.web_client_id))
             .build()
+    }
+
+    LaunchedEffect(uiState) {
+        if (uiState is AuthUiState.VerificationRequired) {
+            authViewModel.startVerificationCheck()
+        } else {
+            authViewModel.stopVerificationCheck()
+        }
+    }
+
+    LaunchedEffect(isUserLoggedIn) {
+        if (isUserLoggedIn) {
+            onVerificationCompleted()
+        }
     }
 
     LaunchedEffect(uiState) {
@@ -83,85 +101,105 @@ fun AuthRoute(
         }
     }
 
-    val screenState = AuthScreenState(
-        uiState = uiState,
-        isRegisterMode = isRegisterMode,
-        email = email,
-        password = password,
-        confirmPassword = confirmPassword,
-        snackbarHostState = snackbarHostState,
-        termsAccepted = termsAccepted
-    )
+    if (uiState is AuthUiState.VerificationRequired) {
+        // MODO 1: Pantalla de Verificación
+        val verificationState = uiState as AuthUiState.VerificationRequired
 
-    val screenActions = AuthScreenActions(
-        onEmailChange = { email = it },
-        onPasswordChange = { password = it },
-        onConfirmPasswordChange = { confirmPassword = it },
-        onToggleModeClick = { isRegisterMode = !isRegisterMode },
-        onForgotPasswordClick = onNavigateToForgotPassword,
-        onLoginOrRegisterClick = {
-            if (isRegisterMode) {
-                if (!termsAccepted) {
-                    scope.launch { snackbarHostState.showSnackbar(termsNotAcceptedMessage) }
-                } else {
-                    authViewModel.createUser(email, password, confirmPassword)
-                }
-            } else {
-                authViewModel.signInWithEmail(email, password)
+        VerificationScreen(
+            email = verificationState.email,
+            resendTimer = resendTimer,
+            isLoading = false,
+            onResendClick = {
+                // Usamos la contraseña guardada en el estado local para re-autenticar y reenviar
+                authViewModel.resendVerification(verificationState.email, password)
+            },
+            onCancelClick = {
+                authViewModel.signOut()
+                authViewModel.resetState()
             }
-        },
-        onGoogleSignInClick = {
-            scope.launch {
-                try {
-                    val request = GetCredentialRequest.Builder()
-                        .addCredentialOption(googleIdOption)
-                        .build()
+        )
 
-                    val result = credentialManager.getCredential(context as Activity, request)
+    } else {
+        val screenState = AuthScreenState(
+            uiState = uiState,
+            isRegisterMode = isRegisterMode,
+            email = email,
+            password = password,
+            confirmPassword = confirmPassword,
+            snackbarHostState = snackbarHostState,
+            termsAccepted = termsAccepted
+        )
 
-                    val credential = result.credential
-                    if (credential is CustomCredential &&
-                        credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-                    ) {
-                        val googleIdTokenCredential =
-                            GoogleIdTokenCredential.createFrom(credential.data)
-                        val firebaseCredential = GoogleAuthProvider.getCredential(
-                            googleIdTokenCredential.idToken,
-                            null
-                        )
-                        authViewModel.signInWithGoogle(firebaseCredential)
+        val screenActions = AuthScreenActions(
+            onEmailChange = { email = it },
+            onPasswordChange = { password = it },
+            onConfirmPasswordChange = { confirmPassword = it },
+            onToggleModeClick = { isRegisterMode = !isRegisterMode },
+            onForgotPasswordClick = onNavigateToForgotPassword,
+            onLoginOrRegisterClick = {
+                if (isRegisterMode) {
+                    if (!termsAccepted) {
+                        scope.launch { snackbarHostState.showSnackbar(termsNotAcceptedMessage) }
                     } else {
-                        snackbarHostState.showSnackbar(context.getString(R.string.auth_error_not_google_credential))
+                        authViewModel.createUser(email, password, confirmPassword)
                     }
-                } catch (_: GetCredentialException) {
-                    snackbarHostState.showSnackbar(context.getString(R.string.auth_error_google_canceled))
-                } catch (e: Exception) {
-                    snackbarHostState.showSnackbar(
-                        context.getString(
-                            R.string.auth_error_unexpected,
-                            e.message ?: "Unknown"
-                        )
-                    )
+                } else {
+                    authViewModel.signInWithEmail(email, password)
                 }
-            }
-        },
-        onToggleTermsAccepted = { termsAccepted = it },
-        onTermsClick = {
-            uriHandler.openUri("https://zenia-official.me/terminos/")
-        },
-        onPrivacyPolicyClick = {
-            uriHandler.openUri("https://zenia-official.me/privacidad/")
-        },
-        onResendVerificationClick = {
-            authViewModel.resendVerification(email, password)
-        },
-        onDismissVerificationDialog = {
-            authViewModel.resetState()
-        }
-    )
+            },
+            onGoogleSignInClick = {
+                scope.launch {
+                    try {
+                        val request = GetCredentialRequest.Builder()
+                            .addCredentialOption(googleIdOption)
+                            .build()
 
-    AuthScreen(
-        state = screenState,
-        actions = screenActions
-    )
+                        val result = credentialManager.getCredential(context as Activity, request)
+
+                        val credential = result.credential
+                        if (credential is CustomCredential &&
+                            credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+                        ) {
+                            val googleIdTokenCredential =
+                                GoogleIdTokenCredential.createFrom(credential.data)
+                            val firebaseCredential = GoogleAuthProvider.getCredential(
+                                googleIdTokenCredential.idToken,
+                                null
+                            )
+                            authViewModel.signInWithGoogle(firebaseCredential)
+                        } else {
+                            snackbarHostState.showSnackbar(context.getString(R.string.auth_error_not_google_credential))
+                        }
+                    } catch (_: GetCredentialException) {
+                        snackbarHostState.showSnackbar(context.getString(R.string.auth_error_google_canceled))
+                    } catch (e: Exception) {
+                        snackbarHostState.showSnackbar(
+                            context.getString(
+                                R.string.auth_error_unexpected,
+                                e.message ?: "Unknown"
+                            )
+                        )
+                    }
+                }
+            },
+            onToggleTermsAccepted = { termsAccepted = it },
+            onTermsClick = {
+                uriHandler.openUri("https://zenia-official.me/terminos/")
+            },
+            onPrivacyPolicyClick = {
+                uriHandler.openUri("https://zenia-official.me/privacidad/")
+            },
+            onResendVerificationClick = {
+                authViewModel.resendVerification(email, password)
+            },
+            onDismissVerificationDialog = {
+                authViewModel.resetState()
+            }
+        )
+
+        AuthScreen(
+            state = screenState,
+            actions = screenActions
+        )
+    }
 }

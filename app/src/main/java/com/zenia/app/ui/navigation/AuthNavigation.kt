@@ -1,10 +1,13 @@
 package com.zenia.app.ui.navigation
 
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -13,6 +16,7 @@ import com.zenia.app.ui.screens.auth.AuthRoute
 import com.zenia.app.ui.screens.auth.AuthViewModel
 import com.zenia.app.ui.screens.auth.ForgotPasswordScreen
 import com.zenia.app.ui.screens.onboarding.OnboardingRoute
+import com.zenia.app.viewmodel.MainViewModel
 
 /**
  * Gráfico de navegación anidado para las pantallas de autenticación.
@@ -38,10 +42,15 @@ fun NavGraphBuilder.authGraph(navController: NavController) {
         }
     ) {
         val authViewModel: AuthViewModel = hiltViewModel()
+        val activity = LocalActivity.current as ComponentActivity
+        val mainViewModel: MainViewModel = hiltViewModel(viewModelStoreOwner = activity)
         AuthRoute(
             authViewModel = authViewModel,
             onNavigateToForgotPassword = {
                 navController.navigate(Destinations.FORGOT_PASSWORD_ROUTE)
+            },
+            onVerificationCompleted = {
+                mainViewModel.checkAuthStatus()
             }
         )
     }

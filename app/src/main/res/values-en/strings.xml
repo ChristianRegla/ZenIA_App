@@ -343,4 +343,13 @@
 
     <string name="auth_error_unknown">Unknown error. Please contact ZenIA Team.</string>
 
+    <string name="verification_image_desc">Waiting for verification</string>
+    <string name="verification_title">Check your email!</string>
+    <string name="verification_subtitle_1">We have sent a confirmation link to:\n</string>
+    <string name="verification_subtitle_2">Tap the link in that email to activate your account.\nThis screen will update automatically.</string>
+    <string name="verification_waiting">Waiting for confirmation…</string>
+    <string name="verification_resend_timer">Resend in %1$ds</string>
+    <string name="verification_resend_btn">Resend email</string>
+    <string name="verification_cancel_btn">Change email / Exit</string>
+
 </resources>

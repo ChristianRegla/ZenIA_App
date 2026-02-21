@@ -336,4 +336,13 @@
     </string>
     <string name="auth_error_unknown">Error desconocido. Favor de ponerse en contacto con el equipo de desarrollo.</string>
 
+    <string name="verification_image_desc">Esperando verificación</string>
+    <string name="verification_title">¡Revisa tu correo!</string>
+    <string name="verification_subtitle_1">Hemos enviado un enlace de confirmación a:\n</string>
+    <string name="verification_subtitle_2">Toca el enlace en ese correo para activar tu cuenta.\nEsta pantalla se actualizará automáticamente.</string>
+    <string name="verification_waiting">Esperando confirmación…</string>
+    <string name="verification_resend_timer">Reenviar en %1$ds</string>
+    <string name="verification_resend_btn">Reenviar correo</string>
+    <string name="verification_cancel_btn">Cambiar correo / Salir</string>
+
 </resources>

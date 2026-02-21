@@ -7,11 +7,13 @@ import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.UserPreferencesRepository
 import com.zenia.app.ui.navigation.Destinations
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
@@ -20,11 +22,14 @@ class MainViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val auth: FirebaseAuth
 ) : ViewModel() {
+    private val _authTrigger = MutableStateFlow(0)
+
     val startDestinationState: StateFlow<String?> = combine(
         authRepository.getUsuarioFlow(),
         userPreferencesRepository.isBiometricEnabled,
-        userPreferencesRepository.isOnboardingCompleted
-    ) { usuario, isBiometricEnabled, isOnboardingCompleted ->
+        userPreferencesRepository.isOnboardingCompleted,
+        _authTrigger
+    ) { usuario, isBiometricEnabled, isOnboardingCompleted, _ ->
 
         val firebaseUser = auth.currentUser
         val isEmailVerified = firebaseUser?.isEmailVerified == true
@@ -42,6 +47,15 @@ class MainViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = null
     )
+
+    fun checkAuthStatus() {
+        viewModelScope.launch {
+            val user = auth.currentUser
+            user?.reload()?.await()
+
+            _authTrigger.value += 1
+        }
+    }
 
     fun signOut() {
         viewModelScope.launch {
