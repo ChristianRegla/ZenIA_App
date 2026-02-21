@@ -10,17 +10,13 @@ fun HealthSyncRoute(
     viewModel: HealthSyncViewModel = hiltViewModel(),
 ) {
     val hasPermissions by viewModel.hasPermissions.collectAsState()
-    val heartRate by viewModel.heartRate.collectAsState()
-    val sleep by viewModel.sleepHours.collectAsState()
-    val stress by viewModel.stress.collectAsState()
-
-    val healthRepo = viewModel.healthRepo
+    val healthSummary by viewModel.healthSummary.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     val permissionLauncher = rememberLauncherForActivityResult(
-        contract = healthRepo.permissionContract()
+        contract = viewModel.permissionContract()
     ) { grantedPermissions ->
-        val granted = grantedPermissions.containsAll(healthRepo.permissions)
-        viewModel.onPermissionsResult(granted)
+        viewModel.onPermissionsResult(grantedPermissions)
     }
 
     LaunchedEffect(Unit) {
@@ -28,12 +24,12 @@ fun HealthSyncRoute(
     }
 
     HealthSyncScreen(
+        isAvailable = viewModel.isAvailable,
         hasPermissions = hasPermissions,
-        heartRate = heartRate,
-        sleepHours = sleep,
-        stress = stress,
+        healthSummary = healthSummary,
+        isLoading = isLoading,
         onConnectClick = {
-            permissionLauncher.launch(healthRepo.permissions)
+            permissionLauncher.launch(viewModel.permissions)
         },
         onNavigateBack = onNavigateBack
     )

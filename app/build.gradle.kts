@@ -46,13 +46,12 @@ android {
     }
 
     buildTypes {
-        getByName("release") { // <-- Se usa getByName("release") en .kts
+        getByName("release") {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Se usa '=' para la asignación
             signingConfig = signingConfigs.getByName("release")
         }
     }
@@ -65,6 +64,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

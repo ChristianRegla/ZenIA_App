@@ -25,15 +25,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.zenia.app.data.HealthSummary
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.*
 
 @Composable
 fun HealthSyncScreen(
+    isAvailable: Boolean,
     hasPermissions: Boolean,
-    heartRate: Int?,
-    sleepHours: Float,
-    stress: String,
+    healthSummary: HealthSummary?,
+    isLoading: Boolean,
     onConnectClick: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
@@ -62,50 +63,80 @@ fun HealthSyncScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            if (connected) {
-                Text("Ritmo cardiaco: ${heartRate ?: "--"} bpm")
-                Text("Sueño: ${"%.1f".format(sleepHours)} hrs")
-                Text("Estrés: $stress")
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    MetricItem(
-                        icon = Icons.Default.Favorite,
-                        label = "Ritmo",
-                        color = Color(0xFFFF5252)
-                    )
-                    MetricItem(
-                        icon = Icons.Default.Bedtime,
-                        label = "Sueño",
-                        color = ZeniaDream
-                    )
-                    MetricItem(
-                        icon = Icons.AutoMirrored.Filled.DirectionsRun,
-                        label = "Pasos",
-                        color = ZeniaExercise
+            when {
+                !isAvailable -> {
+                    Text(
+                        text = "Health Connect no está disponible en este dispositivo.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = ZeniaSlateGrey
                     )
                 }
-            } else {
-                Text(
-                    text = "¿Por qué conectar tu reloj?",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = ZeniaSlateGrey,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                    textAlign = TextAlign.Start
-                )
-                InfoRow(text = "Mejora el análisis de tu estado de ánimo.")
-                InfoRow(text = "Detecta patrones de sueño y estrés.")
-                InfoRow(text = "Recibe recomendaciones personalizadas.")
+
+                isLoading -> {
+                    CircularProgressIndicator()
+                }
+
+                connected && healthSummary != null -> {
+                    Text("Ritmo cardiaco: ${healthSummary.heartRateAvg ?: "--"} bpm")
+                    Text("Sueño: ${"%.1f".format(healthSummary.sleepHours)} hrs")
+                    Text("Pasos: ${healthSummary.steps}")
+                    Text("Estrés: ${healthSummary.stressLevel}")
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        MetricItem(
+                            icon = Icons.Default.Favorite,
+                            label = "Ritmo",
+                            color = Color(0xFFFF5252)
+                        )
+                        MetricItem(
+                            icon = Icons.Default.Bedtime,
+                            label = "Sueño",
+                            color = ZeniaDream
+                        )
+                        MetricItem(
+                            icon = Icons.AutoMirrored.Filled.DirectionsRun,
+                            label = "Pasos",
+                            color = ZeniaExercise
+                        )
+                    }
+                }
+
+                else -> {
+                    Text(
+                        text = "¿Por qué conectar tu reloj?",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = ZeniaSlateGrey,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp),
+                        textAlign = TextAlign.Start
+                    )
+                    InfoRow(text = "Mejora el análisis de tu estado de ánimo.")
+                    InfoRow(text = "Detecta patrones de sueño y estrés.")
+                    InfoRow(text = "Recibe recomendaciones personalizadas.")
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
-            val buttonColor = if (connected) ZeniaSlateGrey else ZeniaTeal
-            val buttonText = if (connected) "Desvincular Dispositivo" else "Conectar con Health Connect"
+            val buttonColor = when {
+                !isAvailable -> ZeniaLightGrey
+                connected -> ZeniaSlateGrey
+                else -> ZeniaTeal
+            }
+
+            val buttonText = when {
+                !isAvailable -> "No disponible"
+                connected -> "Desvincular Dispositivo"
+                else -> "Conectar con Health Connect"
+            }
 
             Button(
                 onClick = onConnectClick,
+                enabled = isAvailable,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
