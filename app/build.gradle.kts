@@ -43,6 +43,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField(
+            "String",
+            "GEMINI_API_KEY",
+            "\"${localProperties.getProperty("GEMINI_API_KEY") ?: ""}\""
+        )
     }
 
     buildTypes {
@@ -133,4 +138,6 @@ dependencies {
     implementation(libs.vico.core)
 
     implementation(libs.lottie.compose)
+
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 }

@@ -3,6 +3,7 @@ package com.zenia.app.ui.screens.zenia
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.ChatRepository
+import com.zenia.app.data.GeminiRepository
 import com.zenia.app.model.MensajeChatbot
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -30,7 +31,8 @@ sealed interface ChatUiEvent {
 
 @HiltViewModel
 class ZeniaChatViewModel @Inject constructor(
-    private val chatRepository: ChatRepository
+    private val chatRepository: ChatRepository,
+    private val geminiRepository: GeminiRepository
 ) : ViewModel() {
 
     private val _uiEvent = Channel<ChatUiEvent>()
@@ -57,7 +59,7 @@ class ZeniaChatViewModel @Inject constructor(
             try {
                 chatRepository.addChatMessage(mensajeUsuario)
                 _isTyping.value = true
-                simularRespuestaIA()
+                obtenerRespuestaIA(texto)
             } catch (e: Exception) {
                 _uiEvent.send(ChatUiEvent.ShowError("No se pudo enviar el mensaje"))
             }
@@ -75,19 +77,25 @@ class ZeniaChatViewModel @Inject constructor(
         }
     }
 
-    private suspend fun simularRespuestaIA() {
-        delay(2000)
-        val respuestasRandom = listOf(
-            "¡Qué interesante! Cuéntame más.",
-            "Entiendo cómo te sientes. Estoy aquí para apoyarte.",
-            "Esa es una excelente pregunta. En mi base de datos encuentro que...",
-            "Soy una versión temprana de ZenIA, pero pronto seré mucho más lista 🧠"
-        )
-        val mensajeIA = MensajeChatbot(
-            emisor = "ia",
-            texto = respuestasRandom.random()
-        )
+    private suspend fun obtenerRespuestaIA(mensaje: String) {
+
+        val result = geminiRepository.generarRespuesta(mensaje)
+
         _isTyping.value = false
-        chatRepository.addChatMessage(mensajeIA)
+
+        result.onSuccess { textoIA ->
+
+            val mensajeIA = MensajeChatbot(
+                emisor = "ia",
+                texto = textoIA
+            )
+
+            chatRepository.addChatMessage(mensajeIA)
+
+        }.onFailure {
+            _uiEvent.send(
+                ChatUiEvent.ShowError("Error al conectar con ZenIA")
+            )
+        }
     }
 }
