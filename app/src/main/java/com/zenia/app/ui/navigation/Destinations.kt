@@ -30,6 +30,7 @@ object Destinations {
     const val CHAT_ROUTE = "chat"
     const val ONBOARDING_ROUTE = "onboarding_route"
     const val COMMUNITY_ROUTE = "community_route"
+    const val EXPORT_SETTINGS_ROUTE = "export_settings_route"
 
     fun createDiaryEntryRoute(date: LocalDate) = "diary_entry/${date}"
     fun homeWithTab(tabRoute: String) = "$HOME_ROUTE?tab=$tabRoute"

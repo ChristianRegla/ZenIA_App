@@ -12,7 +12,8 @@ import java.util.Locale
 
 @Composable
 fun MoreSettingsRoute(
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToExport: () -> Unit
 ) {
     val settingsViewModel: SettingsViewModel = hiltViewModel()
 
@@ -35,8 +36,6 @@ fun MoreSettingsRoute(
             AppCompatDelegate.setApplicationLocales(appLocale)
         },
         onNavigateBack = onNavigateBack,
-        onExportPdf = { includeLogo ->
-            settingsViewModel.exportarDatos(context, includeLogo)
-        }
+        onNavigateToExport = onNavigateToExport
     )
 }

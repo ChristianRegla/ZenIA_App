@@ -27,6 +27,7 @@ class UserPreferencesRepository @Inject constructor(
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val IS_BIOMETRIC_ENABLED = booleanPreferencesKey("is_biometric_enabled")
         val ALLOW_WEAK_BIOMETRICS = booleanPreferencesKey("allow_weak_biometrics")
+        val HAS_SEEN_EXPORT_TUTORIAL = booleanPreferencesKey("has_seen_export_tutorial")
     }
 
     private val safeData = dataStore.data
@@ -44,6 +45,9 @@ class UserPreferencesRepository @Inject constructor(
     val allowWeakBiometrics: Flow<Boolean> =
         safeData.map { it[Keys.ALLOW_WEAK_BIOMETRICS] ?: false }
 
+    val hasSeenExportTutorial: Flow<Boolean> =
+        safeData.map { it[Keys.HAS_SEEN_EXPORT_TUTORIAL] ?: false }
+
     suspend fun setOnboardingCompleted(completed: Boolean) {
         dataStore.edit { it[Keys.ONBOARDING_COMPLETED] = completed }
     }
@@ -54,5 +58,9 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setAllowWeakBiometrics(allow: Boolean) {
         dataStore.edit { it[Keys.ALLOW_WEAK_BIOMETRICS] = allow }
+    }
+
+    suspend fun setExportTutorialSeen() {
+        dataStore.edit { it[Keys.HAS_SEEN_EXPORT_TUTORIAL] = true }
     }
 }
