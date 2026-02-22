@@ -85,7 +85,7 @@ class SettingsViewModel @Inject constructor(
 
     fun setWeakBiometricsEnabled(enabled: Boolean) {
         viewModelScope.launch {
-            userPreferencesRepository.saveAllowWeakBiometrics(enabled)
+            userPreferencesRepository.setAllowWeakBiometrics(enabled)
         }
     }
 

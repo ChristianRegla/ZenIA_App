@@ -23,49 +23,36 @@ class UserPreferencesRepository @Inject constructor(
 ) {
     private val dataStore = context.dataStore
 
-    private object PreferencesKeys {
+    private object Keys {
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val IS_BIOMETRIC_ENABLED = booleanPreferencesKey("is_biometric_enabled")
         val ALLOW_WEAK_BIOMETRICS = booleanPreferencesKey("allow_weak_biometrics")
     }
 
-    companion object {
-
-    }
-
-    val isBiometricEnabled: Flow<Boolean> = dataStore.data
-        .map { preferences ->
-            preferences[PreferencesKeys.IS_BIOMETRIC_ENABLED] ?: false
-        }
-
-    val allowWeakBiometrics: Flow<Boolean> = context.dataStore.data
-        .map { preferences ->
-            preferences[PreferencesKeys.ALLOW_WEAK_BIOMETRICS] ?: false
-        }
-
-    val isOnboardingCompleted: Flow<Boolean> = dataStore.data
+    private val safeData = dataStore.data
         .catch { exception ->
-            if (exception is IOException) emit(emptyPreferences()) else throw exception
-        }
-        .map { preferences ->
-            preferences[PreferencesKeys.ONBOARDING_COMPLETED] ?: false
+            if (exception is IOException) emit(emptyPreferences())
+            else throw exception
         }
 
-    suspend fun saveOnboardingCompleted(completed: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.ONBOARDING_COMPLETED] = completed
-        }
+    val isOnboardingCompleted: Flow<Boolean> =
+        safeData.map { it[Keys.ONBOARDING_COMPLETED] ?: false }
+
+    val isBiometricEnabled: Flow<Boolean> =
+        safeData.map { it[Keys.IS_BIOMETRIC_ENABLED] ?: false }
+
+    val allowWeakBiometrics: Flow<Boolean> =
+        safeData.map { it[Keys.ALLOW_WEAK_BIOMETRICS] ?: false }
+
+    suspend fun setOnboardingCompleted(completed: Boolean) {
+        dataStore.edit { it[Keys.ONBOARDING_COMPLETED] = completed }
     }
 
-    suspend fun setBiometricEnabled(isEnabled: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.IS_BIOMETRIC_ENABLED] = isEnabled
-        }
+    suspend fun setBiometricEnabled(enabled: Boolean) {
+        dataStore.edit { it[Keys.IS_BIOMETRIC_ENABLED] = enabled }
     }
 
-    suspend fun saveAllowWeakBiometrics(allow: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.ALLOW_WEAK_BIOMETRICS] = allow
-        }
+    suspend fun setAllowWeakBiometrics(allow: Boolean) {
+        dataStore.edit { it[Keys.ALLOW_WEAK_BIOMETRICS] = allow }
     }
 }

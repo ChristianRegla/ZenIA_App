@@ -61,17 +61,27 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
         }
     }
 
-    LaunchedEffect(pendingDeepLink) {
-        if (pendingDeepLink != null) {
-            delay(100)
+    LaunchedEffect(pendingDeepLink, startDestination) {
+        if (pendingDeepLink != null && startDestination != null) {
 
-            when (pendingDeepLink.toString()) {
+            val targetRoute = when (pendingDeepLink.toString()) {
                 "zenia://diary/new" -> {
                     val today = LocalDate.now()
-                    navController.navigate(Destinations.createDiaryEntryRoute(today))
+                    Destinations.createDiaryEntryRoute(today)
                 }
-                "zenia://sos" -> {
-                    navController.navigate(Destinations.SOS)
+                "zenia://sos" -> Destinations.SOS
+                else -> null
+            }
+
+            targetRoute?.let { route ->
+                if (startDestination == Destinations.LOCK_ROUTE) {
+                    mainViewModel.setPendingRoute(route)
+
+                    navController.navigate(Destinations.LOCK_ROUTE) {
+                        popUpTo(0)
+                    }
+                } else {
+                    navController.navigate(route)
                 }
             }
         }
@@ -193,7 +203,11 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
         composable(Destinations.LOCK_ROUTE) {
             LockRoute(
                 onUnlockSuccess = {
-                    navController.navigate(Destinations.HOME_ROUTE) {
+                    val pendingRoute = mainViewModel.consumePendingRoute()
+
+                    navController.navigate(
+                        pendingRoute ?: Destinations.HOME_ROUTE
+                    ) {
                         popUpTo(Destinations.LOCK_ROUTE) { inclusive = true }
                     }
                 },
