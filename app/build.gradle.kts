@@ -111,6 +111,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.material3)
 
     // --- Test ---
     testImplementation(libs.junit)

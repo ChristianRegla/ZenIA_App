@@ -1,5 +1,6 @@
 package com.zenia.app.ui.screens.home
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -272,11 +273,35 @@ fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
         iterations = LottieConstants.IterateForever
     )
 
+    val containerColor by animateColorAsState(
+        targetValue = if (hasEntry) ZeniaTeal.copy(alpha = 0.15f) else MaterialTheme.colorScheme.primary,
+        animationSpec = tween(durationMillis = 500),
+        label = "containerColor"
+    )
+
+    val titleTextColor by animateColorAsState(
+        targetValue = if (hasEntry) MaterialTheme.colorScheme.primary else Color.White,
+        animationSpec = tween(durationMillis = 500),
+        label = "titleColor"
+    )
+
+    val subtitleTextColor by animateColorAsState(
+        targetValue = if (hasEntry) ZeniaTeal else Color.White.copy(alpha = 0.8f),
+        animationSpec = tween(durationMillis = 500),
+        label = "subtitleColor"
+    )
+
+    val iconBackgroundColor by animateColorAsState(
+        targetValue = if (hasEntry) ZeniaTeal.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.2f),
+        animationSpec = tween(durationMillis = 500),
+        label = "iconBgColor"
+    )
+
     Card(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (hasEntry) ZeniaTeal.copy(alpha = 0.15f) else MaterialTheme.colorScheme.primary
+            containerColor = containerColor
         ),
         modifier = Modifier
             .fillMaxWidth()
@@ -294,12 +319,12 @@ fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
                     text = if (hasEntry) stringResource(R.string.home_streak_active) else stringResource(R.string.home_log_day),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = if (hasEntry) ZeniaTeal else Color.White
+                    color = titleTextColor
                 )
                 Text(
                     text = if (streak > 0) stringResource(R.string.home_streak_counter, streak) else stringResource(R.string.home_start_streak),
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (hasEntry) ZeniaTeal.copy(alpha = 0.8f) else Color.White.copy(alpha = 0.8f)
+                    color = subtitleTextColor
                 )
             }
 
@@ -307,10 +332,7 @@ fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
                 modifier = Modifier
                     .size(56.dp)
                     .clip(CircleShape)
-                    .background(
-                        if (hasEntry) ZeniaTeal.copy(alpha = 0.2f)
-                        else Color.White.copy(alpha = 0.2f)
-                    ),
+                    .background(iconBackgroundColor),
                 contentAlignment = Alignment.Center
             ) {
                 if (hasEntry || streak > 0) {

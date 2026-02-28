@@ -49,7 +49,10 @@ class HomeViewModel @Inject constructor(
     // Solo cargamos los últimos 7 días para la gráfica y el estado de "hoy"
     // Esto es muy ligero
     val registrosDiario = diaryRepository.getEntriesFromDate(sevenDaysAgo)
-        .onEach { entradas -> processChartData(entradas) }
+        .onEach { entradas ->
+            processChartData(entradas)
+            loadStreak()
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val hasEntryToday: StateFlow<Boolean> = registrosDiario.map { lista ->
