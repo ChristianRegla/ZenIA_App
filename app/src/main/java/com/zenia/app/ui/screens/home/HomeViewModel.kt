@@ -7,7 +7,6 @@ import com.patrykandpatrick.vico.core.entry.entryOf
 import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.ContentRepository
 import com.zenia.app.data.DiaryRepository
-import com.zenia.app.data.HealthConnectRepository
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.util.AnalysisUtils
 import com.zenia.app.util.ChartUtils
@@ -69,10 +68,6 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Idle)
     val uiState = _uiState.asStateFlow()
 
-    init {
-        loadStreak()
-    }
-
     /**
      * Carga la racha usando la función eficiente del repositorio.
      * Esto evita descargar todo el contenido de meses pasados.
@@ -110,9 +105,7 @@ class HomeViewModel @Inject constructor(
             .sortedBy { it.x }
             .takeLast(7)
 
-        if (entries.isNotEmpty()) {
-            chartProducer.setEntries(entries)
-        }
+        chartProducer.setEntries(entries)
     }
 
     fun resetState() {

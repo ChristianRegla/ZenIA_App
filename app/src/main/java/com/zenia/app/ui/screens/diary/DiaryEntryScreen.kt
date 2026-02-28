@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -322,7 +323,16 @@ fun SectionTitle(text: String) {
 
 @Composable
 fun FeelingItem(iconRes: Int, label: String, isSelected: Boolean, color: Color, onClick: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable(onClick = onClick).padding(4.dp)) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clickable(
+                onClick = onClick,
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            )
+            .padding(4.dp)
+    ) {
         Box(
             modifier = Modifier
                 .size(52.dp)
@@ -342,12 +352,9 @@ fun FeelingItem(iconRes: Int, label: String, isSelected: Boolean, color: Color, 
     }
 }
 
-// --- PREVIEWS (¡Ahora sí funcionan!) ---
-
 @Preview(name = "Formulario Vacío", showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 fun DiaryEntryPreview() {
-    // Necesitamos mocks simples de las listas (normalmente estarían en un objeto MockData)
     val mockFeelings = listOf(
         FeelingData(
             1,
