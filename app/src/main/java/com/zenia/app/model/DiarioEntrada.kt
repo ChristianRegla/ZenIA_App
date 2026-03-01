@@ -9,6 +9,8 @@ data class DiarioEntrada(
     val estadoMental: String? = null,
     val ejercicio: String? = null,
 
+    val categoriasExtra: Map<String, String> = emptyMap(),
+
     val actividades: List<String> = emptyList(),
     val notas: String = "",
     val timestamp: Long = System.currentTimeMillis(),

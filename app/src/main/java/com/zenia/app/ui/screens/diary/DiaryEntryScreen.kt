@@ -4,7 +4,6 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,9 +12,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -29,18 +30,25 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.zenia.app.R
+import com.zenia.app.model.CategoriaDiario
 import com.zenia.app.model.DiarioEntrada
+import com.zenia.app.model.OpcionCategoria
 import com.zenia.app.ui.theme.RobotoFlex
-import com.zenia.app.ui.theme.ZenIATheme
+import com.zenia.app.ui.theme.ZeniaDream
+import com.zenia.app.ui.theme.ZeniaExercise
 import com.zenia.app.ui.theme.ZeniaFeelings
+import com.zenia.app.ui.theme.ZeniaMind
+import com.zenia.app.ui.theme.ZeniaTeal
+import com.zenia.app.util.IconMapper
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import java.util.UUID
 
 @Composable
 fun DiaryEntryScreen(
@@ -52,7 +60,6 @@ fun DiaryEntryScreen(
 
     Scaffold(
         topBar = {
-            // TopBar Responsive Wrapper
             Box(
                 modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.TopCenter
@@ -86,10 +93,13 @@ fun ConnectedDiaryEntry(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val existingEntry by viewModel.existingEntry.collectAsState()
-
     val healthConnectData by viewModel.healthConnectData.collectAsState()
 
+    val categoriasUsuario by viewModel.categoriasUsuario.collectAsState()
     val context = LocalContext.current
+
+    var showCategoryEditor by remember { mutableStateOf(false) }
+    var categoryToEdit by remember { mutableStateOf<CategoriaDiario?>(null) }
 
     LaunchedEffect(date) { viewModel.cargarEntrada(date) }
 
@@ -114,19 +124,50 @@ fun ConnectedDiaryEntry(
         uiState = uiState,
         existingEntry = existingEntry,
         healthConnectData = healthConnectData,
-        feelingsList = viewModel.feelings,
-        sleepList = viewModel.dreamQuality,
-        mindList = viewModel.mind,
-        exerciseList = viewModel.exercise,
+        categoriasUsuario = categoriasUsuario,
         activitiesList = viewModel.activitiesList,
-        onSave = { mood, sleep, mind, exercise, activities, notes, pasos, calorias, minsSueno, minsEj ->
+        onSave = { seleccionesMap, activities, notes, pasos, calorias, minsSueno, minsEj ->
             viewModel.guardarEntrada(
-                date, mood, sleep, mind, exercise, activities, notes,
-                pasos, calorias, minsSueno, minsEj
-            ) { }
+                date = date,
+                selecciones = seleccionesMap,
+                actividades = activities,
+                notas = notes,
+                hcPasos = pasos,
+                hcCaloriasActivas = calorias,
+                hcMinutosSueno = minsSueno,
+                hcMinutosEjercicio = minsEj,
+                onSuccess = {}
+            )
         },
-        onDelete = { viewModel.eliminarEntrada(date) }
+        onDelete = { viewModel.eliminarEntrada(date) },
+        onEditCategory = { idCategoria ->
+            categoryToEdit = categoriasUsuario.find { it.idCategoria == idCategoria }
+            showCategoryEditor = true
+        },
+        onAddCategory = {
+            categoryToEdit = null
+            showCategoryEditor = true
+        }
     )
+
+    if (showCategoryEditor) {
+        CategoryEditorSheet(
+            categoriaInicial = categoryToEdit,
+            onDismiss = { showCategoryEditor = false },
+            onSave = { categoriaModificada ->
+                if (categoryToEdit == null) {
+                    viewModel.agregarCategoriaPersonalizada(categoriaModificada)
+                } else {
+                    viewModel.actualizarCategoria(categoriaModificada)
+                }
+                showCategoryEditor = false
+            },
+            onDelete = { idCategoria ->
+                viewModel.eliminarCategoria(idCategoria)
+                showCategoryEditor = false
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -136,19 +177,15 @@ fun DiaryEntryContent(
     uiState: DiaryEntryUiState,
     existingEntry: DiarioEntrada?,
     healthConnectData: HealthDataResult?,
-    feelingsList: List<FeelingData>,
-    sleepList: List<FeelingData>,
-    mindList: List<FeelingData>,
-    exerciseList: List<FeelingData>,
+    categoriasUsuario: List<CategoriaDiario>,
     activitiesList: List<ActivityData>,
-    onSave: (String?, String?, String?, String?, List<String>, String, Int?, Int?, Int?, Int?) -> Unit,
-    onDelete: () -> Unit
+    onSave: (Map<String, String>, List<String>, String, Int?, Int?, Int?, Int?) -> Unit,
+    onDelete: () -> Unit,
+    onEditCategory: (String) -> Unit,
+    onAddCategory: () -> Unit
 ) {
-    // Estado local del formulario
-    var feelingIdx by rememberSaveable(existingEntry) { mutableStateOf<Int?>(null) }
-    var sleepIdx by rememberSaveable(existingEntry) { mutableStateOf<Int?>(null) }
-    var mindIdx by rememberSaveable(existingEntry) { mutableStateOf<Int?>(null) }
-    var exerciseIdx by rememberSaveable(existingEntry) { mutableStateOf<Int?>(null) }
+    val selecciones = remember { mutableStateMapOf<String, Int>() }
+
     var noteText by rememberSaveable(existingEntry) { mutableStateOf("") }
     val selectedActivities = remember(existingEntry) { mutableStateListOf<String>() }
 
@@ -165,18 +202,24 @@ fun DiaryEntryContent(
         mutableStateOf(existingEntry?.hcMinutosEjercicio?.toString() ?: healthConnectData?.minutosEjercicio?.toString() ?: "")
     }
 
-    LaunchedEffect(existingEntry) {
-        if (existingEntry != null) {
-            feelingIdx = feelingsList.find { it.dbValue == existingEntry.estadoAnimo }?.id
-            sleepIdx = sleepList.find { it.dbValue == existingEntry.calidadSueno }?.id
-            mindIdx = mindList.find { it.dbValue == existingEntry.estadoMental }?.id
-            exerciseIdx = exerciseList.find { it.dbValue == existingEntry.ejercicio }?.id
+    LaunchedEffect(existingEntry, categoriasUsuario) {
+        selecciones.clear()
+        if (existingEntry != null && categoriasUsuario.isNotEmpty()) {
+            fun getLevel(catId: String, dbName: String?): Int? {
+                if (dbName == null) return null
+                return categoriasUsuario.find { it.idCategoria == catId }
+                    ?.opciones?.find { it.nombrePersonalizado == dbName }?.nivel
+            }
+
+            getLevel("estadoAnimo", existingEntry.estadoAnimo)?.let { selecciones["estadoAnimo"] = it }
+            getLevel("calidadSueno", existingEntry.calidadSueno)?.let { selecciones["calidadSueno"] = it }
+            getLevel("estadoMental", existingEntry.estadoMental)?.let { selecciones["estadoMental"] = it }
+            getLevel("ejercicio", existingEntry.ejercicio)?.let { selecciones["ejercicio"] = it }
+
             noteText = existingEntry.notas
             selectedActivities.clear()
             selectedActivities.addAll(existingEntry.actividades)
         } else {
-            // Reset si es nuevo (o cambió la fecha y no hay entrada)
-            feelingIdx = null; sleepIdx = null; mindIdx = null; exerciseIdx = null
             noteText = ""
             selectedActivities.clear()
         }
@@ -261,10 +304,44 @@ fun DiaryEntryContent(
             }
         }
 
-        item { SelectionSection(stringResource(R.string.diary_section_feelings), feelingsList, feelingIdx) { feelingIdx = if (feelingIdx == it) null else it } }
-        item { SelectionSection(stringResource(R.string.diary_section_sleep), sleepList, sleepIdx) { sleepIdx = if (sleepIdx == it) null else it } }
-        item { SelectionSection(stringResource(R.string.diary_section_mind), mindList, mindIdx) { mindIdx = if (mindIdx == it) null else it } }
-        item { SelectionSection(stringResource(R.string.diary_section_exercise), exerciseList, exerciseIdx) { exerciseIdx = if (exerciseIdx == it) null else it } }
+        items(categoriasUsuario.size) { index ->
+            val categoria = categoriasUsuario[index]
+            val categoryColor = when(categoria.idCategoria) {
+                "estadoAnimo" -> ZeniaFeelings
+                "calidadSueno" -> ZeniaDream
+                "estadoMental" -> ZeniaMind
+                "ejercicio" -> ZeniaExercise
+                else -> ZeniaTeal
+            }
+
+            SelectionSection(
+                categoria = categoria,
+                selectedNivel = selecciones[categoria.idCategoria],
+                color = categoryColor,
+                onSelect = { nivel ->
+                    if (selecciones[categoria.idCategoria] == nivel) {
+                        selecciones.remove(categoria.idCategoria)
+                    } else {
+                        selecciones[categoria.idCategoria] = nivel
+                    }
+                },
+                onEdit = { onEditCategory(categoria.idCategoria) }
+            )
+        }
+
+        if (categoriasUsuario.size < 7) {
+            item {
+                OutlinedButton(
+                    onClick = onAddCategory,
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, ZeniaTeal.copy(alpha = 0.5f)),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ZeniaTeal)
+                ) {
+                    Text("+ Añadir Categoría Personalizada", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
 
         item {
             SectionTitle("¿Qué has hecho?")
@@ -337,20 +414,24 @@ fun DiaryEntryContent(
         }
 
         item {
-            val hasContent = feelingIdx != null || sleepIdx != null || mindIdx != null || exerciseIdx != null || noteText.isNotEmpty()
+            val hasContent = selecciones.isNotEmpty() || noteText.isNotEmpty() || pasosText.isNotEmpty()
             val isLoading = uiState is DiaryEntryUiState.Loading
             val buttonText = if (existingEntry != null) stringResource(R.string.diary_btn_edit) else stringResource(R.string.diary_btn_save)
 
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Button(
                     onClick = {
-                        val mood = feelingIdx?.let { id -> feelingsList.find { it.id == id }?.dbValue }
-                        val sleep = sleepIdx?.let { id -> sleepList.find { it.id == id }?.dbValue }
-                        val mind = mindIdx?.let { id -> mindList.find { it.id == id }?.dbValue }
-                        val exercise = exerciseIdx?.let { id -> exerciseList.find { it.id == id }?.dbValue }
+                        val seleccionesParaBD = selecciones.mapNotNull { (catId, nivel) ->
+                            val dbName = categoriasUsuario.find { it.idCategoria == catId }
+                                ?.opciones?.find { it.nivel == nivel }?.nombrePersonalizado
+
+                            if (dbName != null) catId to dbName else null
+                        }.toMap()
 
                         onSave(
-                            mood, sleep, mind, exercise, selectedActivities.toList(), noteText,
+                            seleccionesParaBD,
+                            selectedActivities.toList(),
+                            noteText,
                             pasosText.toIntOrNull(), caloriasText.toIntOrNull(),
                             suenoText.toIntOrNull(), ejercicioText.toIntOrNull()
                         )
@@ -380,13 +461,38 @@ fun DiaryEntryContent(
     }
 }
 
-// ... SelectionSection, SectionTitle, FeelingItem (Mismos de antes) ...
 @Composable
-fun SelectionSection(title: String, items: List<FeelingData>, selectedIndex: Int?, onSelect: (Int) -> Unit) {
-    SectionTitle(title)
+fun SelectionSection(
+    categoria: CategoriaDiario,
+    selectedNivel: Int?,
+    color: Color,
+    onSelect: (Int) -> Unit,
+    onEdit: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = categoria.tituloPersonalizado,
+            fontFamily = RobotoFlex,
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
+            Icon(Icons.Default.Settings, contentDescription = "Editar", tint = MaterialTheme.colorScheme.primary)
+        }
+    }
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        items.forEach { item ->
-            FeelingItem(item.iconRes, stringResource(item.labelRes), selectedIndex == item.id, item.color) { onSelect(item.id) }
+        categoria.opciones.forEach { opcion ->
+            FeelingItem(
+                iconName = opcion.iconResName,
+                label = opcion.nombrePersonalizado,
+                isSelected = selectedNivel == opcion.nivel,
+                color = color
+            ) { onSelect(opcion.nivel) }
         }
     }
 }
@@ -397,17 +503,10 @@ fun SectionTitle(text: String) {
 }
 
 @Composable
-fun FeelingItem(iconRes: Int, label: String, isSelected: Boolean, color: Color, onClick: () -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .clickable(
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null
-            )
-            .padding(4.dp)
-    ) {
+fun FeelingItem(iconName: String, label: String, isSelected: Boolean, color: Color, onClick: () -> Unit) {
+    val iconRes = IconMapper.getDrawable(iconName)
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable(onClick = onClick).padding(4.dp)) {
         Box(
             modifier = Modifier
                 .size(52.dp)
@@ -427,32 +526,130 @@ fun FeelingItem(iconRes: Int, label: String, isSelected: Boolean, color: Color, 
     }
 }
 
-@Preview(name = "Formulario Vacío", showBackground = true, backgroundColor = 0xFFFFFFFF)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DiaryEntryPreview() {
-    val mockFeelings = listOf(
-        FeelingData(
-            1,
-            R.drawable.ic_sol_feli,
-            R.string.mood_happy,
-            "Bien",
-            ZeniaFeelings
-        )
-    )
+fun CategoryEditorSheet(
+    categoriaInicial: CategoriaDiario?,
+    onDismiss: () -> Unit,
+    onSave: (CategoriaDiario) -> Unit,
+    onDelete: (String) -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    ZenIATheme {
-        DiaryEntryContent(
-            date = LocalDate.now(),
-            uiState = DiaryEntryUiState.Idle,
-            existingEntry = null,
-            healthConnectData = null,
-            feelingsList = mockFeelings,
-            sleepList = emptyList(),
-            mindList = emptyList(),
-            exerciseList = emptyList(),
-            activitiesList = emptyList(),
-            onSave = { _, _, _, _, _, _, _, _, _, _ -> },
-            onDelete = {}
+    var titulo by rememberSaveable { mutableStateOf(categoriaInicial?.tituloPersonalizado ?: "") }
+
+    val opciones = remember {
+        val iniciales = categoriaInicial?.opciones ?: listOf(
+            OpcionCategoria(5, "", "sol_feliz"),
+            OpcionCategoria(4, "", "nube_feliz"),
+            OpcionCategoria(3, "", "nube_feliz"),
+            OpcionCategoria(2, "", "nube_triste"),
+            OpcionCategoria(1, "", "sol_triste")
         )
+        mutableStateListOf(*iniciales.toTypedArray())
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = if (categoriaInicial == null) "Nueva Categoría" else "Editar Categoría",
+                fontFamily = RobotoFlex,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+
+            OutlinedTextField(
+                value = titulo,
+                onValueChange = { titulo = it },
+                label = { Text("Nombre de la categoría (Ej. Nivel de Estrés)") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true
+            )
+
+            Text(
+                text = "Toca el ícono para cambiarlo. Ordena de Mejor (5) a Peor (1).",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            opciones.forEachIndexed { index, opcion ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .clickable {
+                                val currentIndex = IconMapper.availableIcons.indexOf(opcion.iconResName)
+                                val nextIndex = (currentIndex + 1) % IconMapper.availableIcons.size
+                                opciones[index] = opcion.copy(iconResName = IconMapper.availableIcons[nextIndex])
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = IconMapper.getDrawable(opcion.iconResName)),
+                            contentDescription = "Cambiar ícono",
+                            tint = ZeniaTeal,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+
+                    OutlinedTextField(
+                        value = opcion.nombrePersonalizado,
+                        onValueChange = { nuevoTexto -> opciones[index] = opcion.copy(nombrePersonalizado = nuevoTexto) },
+                        label = { Text("Nivel ${opcion.nivel}") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Botones de acción
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (categoriaInicial != null) {
+                    OutlinedButton(
+                        onClick = { onDelete(categoriaInicial.idCategoria) },
+                        modifier = Modifier.weight(1f).height(50.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = "Eliminar")
+                    }
+                }
+
+                Button(
+                    onClick = {
+                        val id = categoriaInicial?.idCategoria ?: UUID.randomUUID().toString()
+                        onSave(CategoriaDiario(id, titulo, opciones.toList()))
+                    },
+                    modifier = Modifier.weight(3f).height(50.dp),
+                    enabled = titulo.isNotBlank() && opciones.all { it.nombrePersonalizado.isNotBlank() },
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Guardar", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
     }
 }

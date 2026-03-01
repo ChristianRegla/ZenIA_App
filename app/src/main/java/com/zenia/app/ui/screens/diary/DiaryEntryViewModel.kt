@@ -1,16 +1,13 @@
 package com.zenia.app.ui.screens.diary
 
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.R
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.HealthConnectRepository
+import com.zenia.app.model.CategoriaDiario
 import com.zenia.app.model.DiarioEntrada
-import com.zenia.app.ui.theme.ZeniaDream
-import com.zenia.app.ui.theme.ZeniaExercise
-import com.zenia.app.ui.theme.ZeniaFeelings
-import com.zenia.app.ui.theme.ZeniaMind
+import com.zenia.app.model.OpcionCategoria
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,7 +25,6 @@ sealed interface DiaryEntryUiState {
     data class Error(val msgRes: Int) : DiaryEntryUiState
 }
 
-data class FeelingData(val id: Int, val iconRes: Int, val labelRes: Int, val dbValue: String, val color: Color)
 data class ActivityData(val labelRes: Int, val dbValue: String)
 
 data class HealthDataResult(
@@ -53,40 +49,15 @@ class DiaryEntryViewModel @Inject constructor(
     private val _healthConnectData = MutableStateFlow<HealthDataResult?>(null)
     val healthConnectData = _healthConnectData.asStateFlow()
 
+    private val _categoriasUsuario = MutableStateFlow<List<CategoriaDiario>>(emptyList())
+    val categoriasUsuario = _categoriasUsuario.asStateFlow()
+
     val allEntries = diaryRepository.getDiaryEntriesStream()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
-
-    val feelings = listOf(
-        FeelingData(0, R.drawable.ic_nube_feli, R.string.mood_good, "Bien", ZeniaFeelings),
-        FeelingData(1, R.drawable.ic_sol_feli, R.string.mood_happy, "Feliz", ZeniaFeelings),
-        FeelingData(2, R.drawable.ic_nube_tite, R.string.mood_discouraged, "Desanimado", ZeniaFeelings),
-        FeelingData(3, R.drawable.ic_sol_tite, R.string.mood_joyful, "Alegre", ZeniaFeelings)
-    )
-
-    val dreamQuality = listOf(
-        FeelingData(0, R.drawable.ic_nube_feli, R.string.sleep_rested, "Descansado", ZeniaDream),
-        FeelingData(1, R.drawable.ic_sol_feli, R.string.sleep_energetic, "Energético", ZeniaDream),
-        FeelingData(2, R.drawable.ic_nube_tite, R.string.sleep_tired, "Cansado", ZeniaDream),
-        FeelingData(3, R.drawable.ic_sol_tite, R.string.sleep_very_good, "Muy bien", ZeniaDream)
-    )
-
-    val mind = listOf(
-        FeelingData(0, R.drawable.ic_nube_feli, R.string.mind_calm, "Tranquilidad", ZeniaMind),
-        FeelingData(1, R.drawable.ic_sol_feli, R.string.mind_clarity, "Claridad", ZeniaMind),
-        FeelingData(2, R.drawable.ic_nube_tite, R.string.mind_unmotivated, "Sin motivación", ZeniaMind),
-        FeelingData(3, R.drawable.ic_sol_tite, R.string.mind_stressed, "Estresado", ZeniaMind)
-    )
-
-    val exercise = listOf(
-        FeelingData(0, R.drawable.ic_nube_feli, R.string.exercise_walk, "Caminata", ZeniaExercise),
-        FeelingData(1, R.drawable.ic_sol_feli, R.string.exercise_intense, "Intenso", ZeniaExercise),
-        FeelingData(2, R.drawable.ic_nube_tite, R.string.exercise_none, "Nada", ZeniaExercise),
-        FeelingData(3, R.drawable.ic_sol_tite, R.string.exercise_light, "Ligero", ZeniaExercise)
-    )
 
     val activitiesList = listOf(
         ActivityData(R.string.activity_work, "Trabajo"),
@@ -100,14 +71,63 @@ class DiaryEntryViewModel @Inject constructor(
         ActivityData(R.string.activity_rest, "Descanso")
     )
 
+    init {
+        cargarCategorias()
+    }
+
     fun resetState() { _uiState.value = DiaryEntryUiState.Idle }
+
+    private fun cargarCategorias() {
+        viewModelScope.launch {
+            val defaults = listOf(
+                CategoriaDiario(
+                    idCategoria = "estadoAnimo",
+                    tituloPersonalizado = "Estado de Ánimo",
+                    opciones = listOf(
+                        OpcionCategoria(4, "Increíble", "ic_sol_feli"),
+                        OpcionCategoria(3, "Bien", "ic_nube_feli"),
+                        OpcionCategoria(2, "Desanimado", "ic_sol_tite"),
+                        OpcionCategoria(1, "Terrible", "ic_nube_tite")
+                    )
+                ),
+                CategoriaDiario(
+                    idCategoria = "calidadSueno",
+                    tituloPersonalizado = "Calidad del Sueño",
+                    opciones = listOf(
+                        OpcionCategoria(4, "Muy bien", "ic_sol_feli"),
+                        OpcionCategoria(3, "Descansado", "ic_nube_feli"),
+                        OpcionCategoria(2, "Cansado", "ic_nube_tite"),
+                        OpcionCategoria(1, "Insomnio", "ic_sol_tite")
+                    )
+                ),
+                CategoriaDiario(
+                    idCategoria = "estadoMental",
+                    tituloPersonalizado = "Estado Mental",
+                    opciones = listOf(
+                        OpcionCategoria(4, "Claridad", "ic_sol_feli"),
+                        OpcionCategoria(3, "Tranquilidad", "ic_nube_feli"),
+                        OpcionCategoria(2, "Estrés", "ic_nube_tite"),
+                        OpcionCategoria(1, "Caos", "ic_sol_tite")
+                    )
+                ),
+                CategoriaDiario(
+                    idCategoria = "ejercicio",
+                    tituloPersonalizado = "Intensidad del Ejercicio",
+                    opciones = listOf(
+                        OpcionCategoria(4, "Intenso", "ic_sol_feli"),
+                        OpcionCategoria(3, "Moderado", "ic_nube_feli"),
+                        OpcionCategoria(2, "Ligero", "ic_nube_tite"),
+                        OpcionCategoria(1, "Nada", "ic_sol_tite")
+                    )
+                )
+            )
+            _categoriasUsuario.value = defaults
+        }
+    }
 
     fun guardarEntrada(
         date: LocalDate,
-        estadoAnimo: String?,
-        calidadSueno: String?,
-        estadoMental: String?,
-        ejercicio: String?,
+        selecciones: Map<String, String>,
         actividades: List<String>,
         notas: String,
         hcPasos: Int?,
@@ -120,19 +140,22 @@ class DiaryEntryViewModel @Inject constructor(
             _uiState.value = DiaryEntryUiState.Loading
 
             val currentUserId = diaryRepository.getCurrentUserId() ?: ""
-
             if (currentUserId.isBlank()) {
                 _uiState.value = DiaryEntryUiState.Error(R.string.diary_error_user_id)
                 return@launch
             }
 
+            val categoriasBase = listOf("estadoAnimo", "calidadSueno", "estadoMental", "ejercicio")
+            val extras = selecciones.filterKeys { it !in categoriasBase }
+
             val nuevaEntrada = DiarioEntrada(
                 userId = currentUserId,
                 fecha = date.toString(),
-                estadoAnimo = estadoAnimo,
-                calidadSueno = calidadSueno,
-                estadoMental = estadoMental,
-                ejercicio = ejercicio,
+                estadoAnimo = selecciones["estadoAnimo"],
+                calidadSueno = selecciones["calidadSueno"],
+                estadoMental = selecciones["estadoMental"],
+                ejercicio = selecciones["ejercicio"],
+                categoriasExtra = extras,
                 actividades = actividades,
                 notas = notas,
                 hcPasos = hcPasos,
@@ -153,7 +176,7 @@ class DiaryEntryViewModel @Inject constructor(
 
             try {
                 diaryRepository.saveDiaryEntry(nuevaEntrada)
-                val feedbackMsg = when (estadoAnimo?.lowercase()?.trim()) {
+                val feedbackMsg = when (selecciones["estadoAnimo"]?.lowercase()?.trim()) {
                     "feliz", "increíble", "excelente", "5" -> R.string.feedback_happy
                     "bien", "contento", "4" -> R.string.feedback_good
                     "mal", "triste", "cansado", "2" -> R.string.feedback_sad
@@ -190,6 +213,30 @@ class DiaryEntryViewModel @Inject constructor(
                 e.printStackTrace()
             }
         }
+    }
+
+    val limiteCategorias = 7
+    fun agregarCategoriaPersonalizada(nuevaCategoria: CategoriaDiario) {
+        val actuales = _categoriasUsuario.value.toMutableList()
+        if (actuales.size < limiteCategorias) {
+            actuales.add(nuevaCategoria)
+            _categoriasUsuario.value = actuales
+        }
+    }
+
+    fun actualizarCategoria(categoriaModificada: CategoriaDiario) {
+        val actuales = _categoriasUsuario.value.toMutableList()
+        val index = actuales.indexOfFirst { it.idCategoria == categoriaModificada.idCategoria }
+        if (index != -1) {
+            actuales[index] = categoriaModificada
+            _categoriasUsuario.value = actuales
+        }
+    }
+
+    fun eliminarCategoria(idCategoria: String) {
+        val actuales = _categoriasUsuario.value.toMutableList()
+        actuales.removeAll { it.idCategoria == idCategoria }
+        _categoriasUsuario.value = actuales
     }
 
     private suspend fun obtenerDatosDeSaludDelDia(date: LocalDate) {
