@@ -6,6 +6,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -549,6 +552,8 @@ fun CategoryEditorSheet(
         mutableStateListOf(*iniciales.toTypedArray())
     }
 
+    var seleccionandoIconoParaIndex by remember { mutableStateOf<Int?>(null) }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -581,7 +586,7 @@ fun CategoryEditorSheet(
             )
 
             Text(
-                text = "Toca el ícono para cambiarlo. Ordena de Mejor (5) a Peor (1).",
+                text = "Toca un ícono para cambiarlo. Ordena de Mejor (5) a Peor (1).",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -597,11 +602,8 @@ fun CategoryEditorSheet(
                             .size(48.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .clickable {
-                                val currentIndex = IconMapper.availableIcons.indexOf(opcion.iconResName)
-                                val nextIndex = (currentIndex + 1) % IconMapper.availableIcons.size
-                                opciones[index] = opcion.copy(iconResName = IconMapper.availableIcons[nextIndex])
-                            },
+                            // 👇 ACTUALIZADO: Al tocar, abrimos el diálogo para este índice
+                            .clickable { seleccionandoIconoParaIndex = index },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -625,7 +627,6 @@ fun CategoryEditorSheet(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Botones de acción
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (categoriaInicial != null) {
                     OutlinedButton(
@@ -651,5 +652,50 @@ fun CategoryEditorSheet(
                 }
             }
         }
+    }
+
+    if (seleccionandoIconoParaIndex != null) {
+        AlertDialog(
+            onDismissRequest = { seleccionandoIconoParaIndex = null },
+            title = {
+                Text("Selecciona un ícono", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
+            },
+            text = {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(4),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    items(IconMapper.availableIcons) { iconName ->
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .clickable {
+                                    val indexToUpdate = seleccionandoIconoParaIndex!!
+                                    opciones[indexToUpdate] = opciones[indexToUpdate].copy(iconResName = iconName)
+                                    seleccionandoIconoParaIndex = null
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(id = IconMapper.getDrawable(iconName)),
+                                contentDescription = null,
+                                tint = ZeniaTeal,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { seleccionandoIconoParaIndex = null }) {
+                    Text("Cancelar", fontFamily = RobotoFlex, color = MaterialTheme.colorScheme.error)
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     }
 }
