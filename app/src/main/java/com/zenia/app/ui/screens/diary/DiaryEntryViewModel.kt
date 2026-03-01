@@ -5,12 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.R
 import com.zenia.app.data.DiaryRepository
+import com.zenia.app.data.HealthConnectRepository
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.theme.ZeniaDream
 import com.zenia.app.ui.theme.ZeniaExercise
 import com.zenia.app.ui.theme.ZeniaFeelings
 import com.zenia.app.ui.theme.ZeniaMind
-import com.zenia.app.ui.theme.ZeniaTeal
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,17 +30,18 @@ sealed interface DiaryEntryUiState {
 
 data class FeelingData(val id: Int, val iconRes: Int, val labelRes: Int, val dbValue: String, val color: Color)
 data class ActivityData(val labelRes: Int, val dbValue: String)
-data class ConfigurableItem(
-    val id: String,
-    val label: String,
-    val iconName: String,
-    val isCustom: Boolean = false,
-    val color: Color = ZeniaTeal
+
+data class HealthDataResult(
+    val pasos: Int? = null,
+    val calorias: Int? = null,
+    val minutosSueno: Int? = null,
+    val minutosEjercicio: Int? = null
 )
 
 @HiltViewModel
 class DiaryEntryViewModel @Inject constructor(
-    private val diaryRepository: DiaryRepository
+    private val diaryRepository: DiaryRepository,
+    private val healthConnectRepository: HealthConnectRepository?
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<DiaryEntryUiState>(DiaryEntryUiState.Idle)
@@ -48,6 +49,9 @@ class DiaryEntryViewModel @Inject constructor(
 
     private val _existingEntry = MutableStateFlow<DiarioEntrada?>(null)
     val existingEntry = _existingEntry.asStateFlow()
+
+    private val _healthConnectData = MutableStateFlow<HealthDataResult?>(null)
+    val healthConnectData = _healthConnectData.asStateFlow()
 
     val allEntries = diaryRepository.getDiaryEntriesStream()
         .stateIn(
@@ -106,6 +110,10 @@ class DiaryEntryViewModel @Inject constructor(
         ejercicio: String?,
         actividades: List<String>,
         notas: String,
+        hcPasos: Int?,
+        hcCaloriasActivas: Int?,
+        hcMinutosSueno: Int?,
+        hcMinutosEjercicio: Int?,
         onSuccess: () -> Unit
     ) {
         viewModelScope.launch {
@@ -126,13 +134,16 @@ class DiaryEntryViewModel @Inject constructor(
                 estadoMental = estadoMental,
                 ejercicio = ejercicio,
                 actividades = actividades,
-                notas = notas
+                notas = notas,
+                hcPasos = hcPasos,
+                hcCaloriasActivas = hcCaloriasActivas,
+                hcMinutosSueno = hcMinutosSueno,
+                hcMinutosEjercicio = hcMinutosEjercicio
             )
 
             val entradaActual = _existingEntry.value
             if (entradaActual != null) {
                 val entradaParaComparar = nuevaEntrada.copy(timestamp = entradaActual.timestamp)
-
                 if (entradaActual == entradaParaComparar) {
                     _uiState.value = DiaryEntryUiState.Success(R.string.diary_toast_saved)
                     onSuccess()
@@ -160,17 +171,42 @@ class DiaryEntryViewModel @Inject constructor(
 
     fun cargarEntrada(date: LocalDate) {
         _existingEntry.value = null
+        _healthConnectData.value = null
+
         viewModelScope.launch {
             _uiState.value = DiaryEntryUiState.Loading
             try {
                 val entry = diaryRepository.getDiaryEntryByDate(date.toString())
                 _existingEntry.value = entry
+
+                if (entry == null || (entry.hcPasos == null && entry.hcMinutosSueno == null)) {
+                    obtenerDatosDeSaludDelDia(date)
+                }
+
                 _uiState.value = DiaryEntryUiState.Idle
             } catch (e: Exception) {
                 _existingEntry.value = null
                 _uiState.value = DiaryEntryUiState.Idle
                 e.printStackTrace()
             }
+        }
+    }
+
+    private suspend fun obtenerDatosDeSaludDelDia(date: LocalDate) {
+        if (healthConnectRepository == null) return
+
+        try {
+            val pasos = healthConnectRepository.readStepsByDate(date)
+            val suenoMinutos = healthConnectRepository.readSleepMinutesByDate(date)
+
+            _healthConnectData.value = HealthDataResult(
+                pasos = if (pasos > 0) pasos else null,
+                minutosSueno = if (suenoMinutos > 0) suenoMinutos else null,
+                calorias = null,
+                minutosEjercicio = null
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -185,9 +221,5 @@ class DiaryEntryViewModel @Inject constructor(
                 e.printStackTrace()
             }
         }
-    }
-
-    fun findIndexByDbValue(list: List<FeelingData>, dbValue: String?): Int? {
-        return list.find { it.dbValue == dbValue }?.id
     }
 }

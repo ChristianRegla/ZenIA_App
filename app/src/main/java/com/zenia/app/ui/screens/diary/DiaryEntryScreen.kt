@@ -8,9 +8,14 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -23,6 +28,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,13 +42,11 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-// --- 1. ENTRY POINT (Ruta de Navegación) ---
 @Composable
 fun DiaryEntryScreen(
     date: LocalDate,
     onNavigateBack: () -> Unit
 ) {
-    // TopBar específica para cuando entras a una fecha sola
     val viewModel: DiaryEntryViewModel = hiltViewModel()
     val allEntries by viewModel.allEntries.collectAsState()
 
@@ -66,7 +70,6 @@ fun DiaryEntryScreen(
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-            // Llamamos al componente "Conectado"
             ConnectedDiaryEntry(
                 date = date,
                 onSuccessCallback = onNavigateBack
@@ -75,8 +78,6 @@ fun DiaryEntryScreen(
     }
 }
 
-// --- 2. COMPONENTE CONECTADO (Stateful) ---
-// Este se encarga de hablar con el ViewModel y preparar los datos
 @Composable
 fun ConnectedDiaryEntry(
     date: LocalDate,
@@ -85,6 +86,9 @@ fun ConnectedDiaryEntry(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val existingEntry by viewModel.existingEntry.collectAsState()
+
+    val healthConnectData by viewModel.healthConnectData.collectAsState()
+
     val context = LocalContext.current
 
     LaunchedEffect(date) { viewModel.cargarEntrada(date) }
@@ -105,38 +109,39 @@ fun ConnectedDiaryEntry(
         }
     }
 
-    // Pasamos TODO como parámetros simples al componente de UI pura
     DiaryEntryContent(
         date = date,
         uiState = uiState,
         existingEntry = existingEntry,
-        // Pasamos las listas estáticas del ViewModel
+        healthConnectData = healthConnectData,
         feelingsList = viewModel.feelings,
         sleepList = viewModel.dreamQuality,
         mindList = viewModel.mind,
         exerciseList = viewModel.exercise,
         activitiesList = viewModel.activitiesList,
-        // Eventos
-        onSave = { mood, sleep, mind, exercise, activities, notes ->
-            viewModel.guardarEntrada(date, mood, sleep, mind, exercise, activities, notes) {}
+        onSave = { mood, sleep, mind, exercise, activities, notes, pasos, calorias, minsSueno, minsEj ->
+            viewModel.guardarEntrada(
+                date, mood, sleep, mind, exercise, activities, notes,
+                pasos, calorias, minsSueno, minsEj
+            ) { }
         },
         onDelete = { viewModel.eliminarEntrada(date) }
     )
 }
 
-// --- 3. COMPONENTE UI PURO (Stateless) ---
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun DiaryEntryContent(
     date: LocalDate,
     uiState: DiaryEntryUiState,
     existingEntry: DiarioEntrada?,
+    healthConnectData: HealthDataResult?,
     feelingsList: List<FeelingData>,
     sleepList: List<FeelingData>,
     mindList: List<FeelingData>,
     exerciseList: List<FeelingData>,
     activitiesList: List<ActivityData>,
-    onSave: (String?, String?, String?, String?, List<String>, String) -> Unit,
+    onSave: (String?, String?, String?, String?, List<String>, String, Int?, Int?, Int?, Int?) -> Unit,
     onDelete: () -> Unit
 ) {
     // Estado local del formulario
@@ -147,7 +152,19 @@ fun DiaryEntryContent(
     var noteText by rememberSaveable(existingEntry) { mutableStateOf("") }
     val selectedActivities = remember(existingEntry) { mutableStateListOf<String>() }
 
-    // Inicializar valores si estamos editando
+    var pasosText by rememberSaveable(existingEntry, healthConnectData) {
+        mutableStateOf(existingEntry?.hcPasos?.toString() ?: healthConnectData?.pasos?.toString() ?: "")
+    }
+    var caloriasText by rememberSaveable(existingEntry, healthConnectData) {
+        mutableStateOf(existingEntry?.hcCaloriasActivas?.toString() ?: healthConnectData?.calorias?.toString() ?: "")
+    }
+    var suenoText by rememberSaveable(existingEntry, healthConnectData) {
+        mutableStateOf(existingEntry?.hcMinutosSueno?.toString() ?: healthConnectData?.minutosSueno?.toString() ?: "")
+    }
+    var ejercicioText by rememberSaveable(existingEntry, healthConnectData) {
+        mutableStateOf(existingEntry?.hcMinutosEjercicio?.toString() ?: healthConnectData?.minutosEjercicio?.toString() ?: "")
+    }
+
     LaunchedEffect(existingEntry) {
         if (existingEntry != null) {
             feelingIdx = feelingsList.find { it.dbValue == existingEntry.estadoAnimo }?.id
@@ -189,6 +206,59 @@ fun DiaryEntryContent(
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
+        }
+
+        item {
+            SectionTitle("Actividad Física y Salud")
+            Text(
+                text = "Sincronizado con tu reloj o ingresado manualmente.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = pasosText,
+                        onValueChange = { pasosText = it },
+                        label = { Text("Pasos") },
+                        leadingIcon = { Icon(Icons.AutoMirrored.Filled.DirectionsWalk, null) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    OutlinedTextField(
+                        value = caloriasText,
+                        onValueChange = { caloriasText = it },
+                        label = { Text("Calorías (kcal)") },
+                        leadingIcon = { Icon(Icons.Default.LocalFireDepartment, null) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = suenoText,
+                        onValueChange = { suenoText = it },
+                        label = { Text("Sueño (mins)") },
+                        leadingIcon = { Icon(Icons.Default.Bedtime, null) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    OutlinedTextField(
+                        value = ejercicioText,
+                        onValueChange = { ejercicioText = it },
+                        label = { Text("Ejercicio (mins)") },
+                        leadingIcon = { Icon(Icons.Default.FitnessCenter, null) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+            }
         }
 
         item { SelectionSection(stringResource(R.string.diary_section_feelings), feelingsList, feelingIdx) { feelingIdx = if (feelingIdx == it) null else it } }
@@ -278,7 +348,12 @@ fun DiaryEntryContent(
                         val sleep = sleepIdx?.let { id -> sleepList.find { it.id == id }?.dbValue }
                         val mind = mindIdx?.let { id -> mindList.find { it.id == id }?.dbValue }
                         val exercise = exerciseIdx?.let { id -> exerciseList.find { it.id == id }?.dbValue }
-                        onSave(mood, sleep, mind, exercise, selectedActivities.toList(), noteText)
+
+                        onSave(
+                            mood, sleep, mind, exercise, selectedActivities.toList(), noteText,
+                            pasosText.toIntOrNull(), caloriasText.toIntOrNull(),
+                            suenoText.toIntOrNull(), ejercicioText.toIntOrNull()
+                        )
                     },
                     enabled = hasContent && !isLoading,
                     modifier = Modifier.fillMaxWidth().height(50.dp),
@@ -370,12 +445,13 @@ fun DiaryEntryPreview() {
             date = LocalDate.now(),
             uiState = DiaryEntryUiState.Idle,
             existingEntry = null,
+            healthConnectData = null,
             feelingsList = mockFeelings,
             sleepList = emptyList(),
             mindList = emptyList(),
             exerciseList = emptyList(),
             activitiesList = emptyList(),
-            onSave = { _, _, _, _, _, _ -> },
+            onSave = { _, _, _, _, _, _, _, _, _, _ -> },
             onDelete = {}
         )
     }

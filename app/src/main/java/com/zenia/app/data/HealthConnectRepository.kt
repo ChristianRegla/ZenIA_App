@@ -16,6 +16,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
@@ -57,6 +59,41 @@ class HealthConnectRepository @Inject constructor(
 
     fun permissionContract(): ActivityResultContract<Set<String>, Set<String>> =
         PermissionController.createRequestPermissionResultContract()
+
+    private fun getTimeRangeForDate(date: LocalDate): TimeRangeFilter {
+        val zoneId = ZoneId.systemDefault()
+        val startOfDay = date.atStartOfDay(zoneId).toInstant()
+        val endOfDay = date.plusDays(1).atStartOfDay(zoneId).toInstant()
+        return TimeRangeFilter.between(startOfDay, endOfDay)
+    }
+
+    suspend fun readStepsByDate(date: LocalDate): Int = withContext(defaultDispatcher) {
+        if (client == null || !hasPermissions()) return@withContext 0
+
+        val records = client.readRecords(
+            ReadRecordsRequest(
+                StepsRecord::class,
+                getTimeRangeForDate(date)
+            )
+        ).records
+
+        records.sumOf { it.count }.toInt()
+    }
+
+    suspend fun readSleepMinutesByDate(date: LocalDate): Int = withContext(defaultDispatcher) {
+        if (client == null || !hasPermissions()) return@withContext 0
+
+        val records = client.readRecords(
+            ReadRecordsRequest(
+                SleepSessionRecord::class,
+                getTimeRangeForDate(date)
+            )
+        ).records
+
+        records.sumOf {
+            ChronoUnit.MINUTES.between(it.startTime, it.endTime)
+        }.toInt()
+    }
 
     suspend fun hasPermissions(): Boolean {
         val granted = client?.permissionController?.getGrantedPermissions() ?: emptySet()
