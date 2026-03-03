@@ -1,5 +1,15 @@
 package com.zenia.app.ui.screens.auth
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,6 +19,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -16,6 +28,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -43,6 +57,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.zenia.app.R
 import com.zenia.app.ui.theme.*
+import kotlinx.coroutines.delay
 
 data class AuthScreenState(
     val uiState: AuthUiState,
@@ -151,7 +166,30 @@ private fun AuthContent(
     contentAlignment: Alignment
 ) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    var isPasswordFocused by remember { mutableStateOf(false) }
+    var showPasswordPanel by remember { mutableStateOf(false) }
+
     val isLoading = state.uiState == AuthUiState.Loading
+
+    val isPasswordValid = state.password.length >= 8 &&
+            state.password.any { it.isUpperCase() } &&
+            state.password.any { it.isDigit() } &&
+            state.password.any { !it.isLetterOrDigit() && !it.isWhitespace() }
+
+    LaunchedEffect(isPasswordFocused, state.password) {
+        if (isPasswordFocused && state.isRegisterMode) {
+            showPasswordPanel = true
+        }
+
+        if (isPasswordFocused && isPasswordValid) {
+            delay(300)
+            showPasswordPanel = false
+        }
+
+        if (!isPasswordFocused) {
+            showPasswordPanel = false
+        }
+    }
 
     Box(
         modifier = Modifier.fillMaxSize().padding(bottom = bottomPadding),
@@ -169,11 +207,10 @@ private fun AuthContent(
             ConstraintLayout(
                 modifier = Modifier.fillMaxWidth().then(if (isPortraitPhone) Modifier.heightIn(min = minHeight) else Modifier)
             ) {
-                val (appName, emailField, passwordField, confirmPasswordField,
+                val (appName, emailField, passwordContainer, confirmPasswordField,
                     forgotPassword, loginButton, divider, googleButton,
                     toggleModeText, termsCheckbox) = createRefs()
 
-                // TÍTULO
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(fontFamily = Lobster)) { append("Zen") }
@@ -190,7 +227,6 @@ private fun AuthContent(
                     }
                 )
 
-                // CAMPO EMAIL
                 AuthTextField(
                     value = state.email,
                     onValueChange = actions.onEmailChange,
@@ -198,33 +234,105 @@ private fun AuthContent(
                     enabled = !isLoading,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     modifier = Modifier.constrainAs(emailField) {
-                        bottom.linkTo(passwordField.top, margin = 16.dp)
+                        bottom.linkTo(passwordContainer.top, margin = 16.dp)
                         centerHorizontallyTo(parent)
                     }
                 )
 
-                AuthTextField(
-                    value = state.password,
-                    onValueChange = actions.onPasswordChange,
-                    label = stringResource(R.string.password),
-                    enabled = !isLoading,
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                        IconButton(onClick = { passwordVisible = !passwordVisible }, enabled = !isLoading) {
-                            Icon(imageVector = image, contentDescription = null)
+                Box(
+                    modifier = Modifier
+                        .constrainAs(passwordContainer) {
+                            if (state.isRegisterMode)
+                                bottom.linkTo(confirmPasswordField.top, margin = 16.dp)
+                            else
+                                bottom.linkTo(forgotPassword.top)
+                            centerHorizontallyTo(parent)
+                            width = Dimension.fillToConstraints
                         }
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = if (state.isRegisterMode) ImeAction.Next else ImeAction.Done
-                    ),
-                    modifier = Modifier.constrainAs(passwordField) {
-                        if (state.isRegisterMode) bottom.linkTo(confirmPasswordField.top, margin = 16.dp)
-                        else bottom.linkTo(forgotPassword.top)
-                        centerHorizontallyTo(parent)
+                ) {
+
+                    Column {
+                        AnimatedVisibility(
+                            visible = showPasswordPanel,
+                            enter = expandVertically(
+                                animationSpec = tween(220)
+                            ) + fadeIn(),
+                            exit = shrinkVertically(
+                                animationSpec = tween(200)
+                            ) + fadeOut()
+                        ) {
+                            PasswordRequirementsPanel(state.password)
+                        }
+
+                        val animatedTopCorner by animateDpAsState(
+                            targetValue = if (showPasswordPanel) 0.dp else 15.dp,
+                            animationSpec = tween(durationMillis = 220),
+                            label = "cornerAnimation"
+                        )
+
+                        val textFieldShape = RoundedCornerShape(
+                            topStart = animatedTopCorner,
+                            topEnd = animatedTopCorner,
+                            bottomStart = 15.dp,
+                            bottomEnd = 15.dp
+                        )
+
+                        AuthTextField(
+                            value = state.password,
+                            onValueChange = actions.onPasswordChange,
+                            label = stringResource(R.string.password),
+                            enabled = !isLoading,
+                            shape = textFieldShape,
+                            visualTransformation =
+                                if (passwordVisible)
+                                    VisualTransformation.None
+                                else
+                                    PasswordVisualTransformation(),
+                            trailingIcon = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+
+                                    if (isPasswordValid) {
+                                        Icon(
+                                            imageVector = Icons.Filled.CheckCircle,
+                                            contentDescription = null,
+                                            tint = ZeniaTeal,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                    }
+
+                                    IconButton(
+                                        onClick = { passwordVisible = !passwordVisible },
+                                        enabled = !isLoading
+                                    ) {
+                                        Icon(
+                                            imageVector =
+                                                if (passwordVisible)
+                                                    Icons.Filled.Visibility
+                                                else
+                                                    Icons.Filled.VisibilityOff,
+                                            contentDescription = null,
+                                            tint = ZeniaInputLabel
+                                        )
+                                    }
+                                }
+                            },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Password,
+                                imeAction =
+                                    if (state.isRegisterMode)
+                                        ImeAction.Next
+                                    else
+                                        ImeAction.Done
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onFocusChanged {
+                                    isPasswordFocused = it.isFocused
+                                }
+                        )
                     }
-                )
+                }
 
                 if (state.isRegisterMode) {
                     AuthTextField(
@@ -391,6 +499,68 @@ private fun TermsAndConditionsCheckbox(
         Text(
             text = annotatedString,
             style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = if(isLoading) 0.6f else 1f))
+        )
+    }
+}
+
+
+
+@Composable
+fun PasswordRequirementsPanel(passwordText: String) {
+
+    val hasMinLength = passwordText.length >= 8
+    val hasUpper = passwordText.any { it.isUpperCase() }
+    val hasNumber = passwordText.any { it.isDigit() }
+    val hasSpecialChar =
+        passwordText.any { !it.isLetterOrDigit() && !it.isWhitespace() }
+
+    Surface(
+        shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp),
+        tonalElevation = 2.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            RequirementRow("Al menos 8 caracteres", hasMinLength)
+            RequirementRow("Una letra mayúscula", hasUpper)
+            RequirementRow("Un número", hasNumber)
+            RequirementRow("Un carácter especial", hasSpecialChar)
+        }
+    }
+}
+
+@Composable
+private fun RequirementRow(text: String, isMet: Boolean) {
+
+    val color by animateColorAsState(
+        targetValue = if (isMet) ZeniaTeal else Color.Gray,
+        label = "reqColor"
+    )
+
+    val icon =
+        if (isMet)
+            Icons.Filled.CheckCircle
+        else
+            Icons.Filled.RadioButtonUnchecked
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(16.dp)
+        )
+
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = color,
+            fontFamily = Nunito
         )
     }
 }

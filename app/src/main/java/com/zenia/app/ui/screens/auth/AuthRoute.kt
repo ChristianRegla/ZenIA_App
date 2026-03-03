@@ -102,7 +102,6 @@ fun AuthRoute(
     }
 
     if (uiState is AuthUiState.VerificationRequired) {
-        // MODO 1: Pantalla de Verificación
         val verificationState = uiState as AuthUiState.VerificationRequired
 
         VerificationScreen(
@@ -110,7 +109,6 @@ fun AuthRoute(
             resendTimer = resendTimer,
             isLoading = false,
             onResendClick = {
-                // Usamos la contraseña guardada en el estado local para re-autenticar y reenviar
                 authViewModel.resendVerification(verificationState.email, password)
             },
             onCancelClick = {

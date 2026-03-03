@@ -25,7 +25,8 @@ fun AuthTextField(
     enabled: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     visualTransformation: androidx.compose.ui.text.input.VisualTransformation = androidx.compose.ui.text.input.VisualTransformation.None,
-    trailingIcon: @Composable (() -> Unit)? = null
+    trailingIcon: @Composable (() -> Unit)? = null,
+    shape: RoundedCornerShape = RoundedCornerShape(15.dp)
 ) {
     TextField(
         value = value,
@@ -33,7 +34,7 @@ fun AuthTextField(
         enabled = enabled,
         textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = Nunito),
         label = { Text(label, fontFamily = Nunito) },
-        shape = RoundedCornerShape(15.dp),
+        shape = shape,
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = Color.Black,
             unfocusedTextColor = Color.Black,
