@@ -8,8 +8,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,14 +27,12 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -116,8 +112,6 @@ fun AuthScreen(
             }
 
             val configuration = LocalConfiguration.current
-            val density = LocalDensity.current
-            val imeVisible = WindowInsets.ime.getBottom(density) > 0
             val screenHeight = configuration.screenHeightDp.dp
             val screenWidth = configuration.screenWidthDp.dp
             val isPortraitPhone = screenHeight > 600.dp && screenHeight > screenWidth
@@ -132,15 +126,12 @@ fun AuthScreen(
                     isPortraitPhone = isPortraitPhone,
                     bottomPadding = bottomPadding,
                     contentAlignment =
-                        if (isPortraitPhone && !imeVisible)
-                            Alignment.BottomCenter
-                        else Alignment.Center,
-                    imeVisible = imeVisible
+                        if (isPortraitPhone) Alignment.BottomCenter else Alignment.Center,
                 )
             }
 
             if (state.uiState is AuthUiState.VerificationRequired) {
-                val email = (state.uiState as AuthUiState.VerificationRequired).email
+                val email = state.uiState.email
 
                 AlertDialog(
                     onDismissRequest = { actions.onDismissVerificationDialog() },
@@ -174,8 +165,7 @@ private fun AuthContent(
     minHeight: Dp,
     isPortraitPhone: Boolean,
     bottomPadding: Dp,
-    contentAlignment: Alignment,
-    imeVisible: Boolean
+    contentAlignment: Alignment
 ) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var isPasswordFocused by remember { mutableStateOf(false) }
@@ -232,8 +222,7 @@ private fun AuthContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .then(
-                        if (isPortraitPhone && !imeVisible)
-                            Modifier.heightIn(min = minHeight)
+                        if (isPortraitPhone) Modifier.heightIn(min = minHeight)
                         else Modifier
                     )
             ) {

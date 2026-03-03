@@ -38,6 +38,7 @@ fun AuthRoute(
 ) {
     val uiState by authViewModel.uiState.collectAsState()
     val resendTimer by authViewModel.resendTimer.collectAsState()
+    val isResending by authViewModel.isResending.collectAsState()
     val isUserLoggedIn by authViewModel.isUserLoggedIn.collectAsState()
 
     var email by rememberSaveable { mutableStateOf("") }
@@ -108,8 +109,9 @@ fun AuthRoute(
             email = verificationState.email,
             resendTimer = resendTimer,
             isLoading = false,
+            isResending = isResending,
             onResendClick = {
-                authViewModel.resendVerification(verificationState.email, password)
+                authViewModel.resendVerification()
             },
             onCancelClick = {
                 authViewModel.signOut()
@@ -188,7 +190,7 @@ fun AuthRoute(
                 uriHandler.openUri("https://zenia-official.me/privacidad/")
             },
             onResendVerificationClick = {
-                authViewModel.resendVerification(email, password)
+                authViewModel.resendVerification()
             },
             onDismissVerificationDialog = {
                 authViewModel.resetState()

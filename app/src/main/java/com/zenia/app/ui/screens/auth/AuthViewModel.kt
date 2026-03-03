@@ -54,6 +54,9 @@ class AuthViewModel @Inject constructor(
     private val _emailSentSuccess = MutableStateFlow(false)
     val emailSentSuccess = _emailSentSuccess.asStateFlow()
 
+    private val _isResending = MutableStateFlow(false)
+    val isResending = _isResending.asStateFlow()
+
     private var timerJob: Job? = null
 
     private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
@@ -162,21 +165,22 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun resendVerification(email: String, password: String) {
+    fun resendVerification() {
         if (_resendTimer.value > 0) return
 
-        launchCatching {
-            _uiState.value = AuthUiState.Loading
+        val user = auth.currentUser ?: return
 
-            val result = auth.signInWithEmailAndPassword(email, password).await()
-            val user = result.user
+        viewModelScope.launch {
+            try {
+                _uiState.value = AuthUiState.VerificationRequired(user.email ?: "")
 
-            if (user != null) {
+                _isResending.value = true
                 user.sendEmailVerification().await()
+                _isResending.value = false
 
-                _uiState.value = AuthUiState.VerificationSent
                 startResendTimer()
-                startVerificationCheck()
+            } catch (e: Exception) {
+                _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
             }
         }
     }

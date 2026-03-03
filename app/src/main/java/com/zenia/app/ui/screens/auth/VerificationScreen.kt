@@ -36,8 +36,11 @@ fun VerificationScreen(
     onResendClick: () -> Unit,
     onCancelClick: () -> Unit,
     resendTimer: Int,
-    isLoading: Boolean
+    isLoading: Boolean,
+    isResending: Boolean
 ) {
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -146,19 +149,27 @@ fun VerificationScreen(
 
             Button(
                 onClick = onResendClick,
-                enabled = resendTimer == 0 && !isLoading,
+                enabled = resendTimer == 0 && !isResending,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text(
-                    text = if (resendTimer > 0) {
-                        stringResource(id = R.string.verification_resend_timer, resendTimer)
-                    } else {
-                        stringResource(id = R.string.verification_resend_btn)
-                    },
-                    fontFamily = Nunito,
-                    fontWeight = FontWeight.Bold
-                )
+                if (isResending) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = Color.White
+                    )
+                } else {
+                    Text(
+                        text = if (resendTimer > 0) {
+                            stringResource(id = R.string.verification_resend_timer, resendTimer)
+                        } else {
+                            stringResource(id = R.string.verification_resend_btn)
+                        },
+                        fontFamily = Nunito,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             TextButton(
@@ -188,7 +199,8 @@ fun VerificationScreenPreview() {
             onResendClick = {},
             onCancelClick = {},
             resendTimer = 45,
-            isLoading = false
+            isLoading = false,
+            isResending = false
         )
     }
 }
@@ -202,7 +214,8 @@ fun VerificationScreenResendReadyPreview() {
             onResendClick = {},
             onCancelClick = {},
             resendTimer = 0,
-            isLoading = false
+            isLoading = false,
+            isResending = false
         )
     }
 }
