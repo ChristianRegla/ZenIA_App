@@ -16,6 +16,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -29,10 +30,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -111,6 +116,8 @@ fun AuthScreen(
             }
 
             val configuration = LocalConfiguration.current
+            val density = LocalDensity.current
+            val imeVisible = WindowInsets.ime.getBottom(density) > 0
             val screenHeight = configuration.screenHeightDp.dp
             val screenWidth = configuration.screenWidthDp.dp
             val isPortraitPhone = screenHeight > 600.dp && screenHeight > screenWidth
@@ -124,7 +131,11 @@ fun AuthScreen(
                     minHeight = adjustedMinHeight,
                     isPortraitPhone = isPortraitPhone,
                     bottomPadding = bottomPadding,
-                    contentAlignment = if (isPortraitPhone) Alignment.BottomCenter else Alignment.Center
+                    contentAlignment =
+                        if (isPortraitPhone && !imeVisible)
+                            Alignment.BottomCenter
+                        else Alignment.Center,
+                    imeVisible = imeVisible
                 )
             }
 
@@ -163,7 +174,8 @@ private fun AuthContent(
     minHeight: Dp,
     isPortraitPhone: Boolean,
     bottomPadding: Dp,
-    contentAlignment: Alignment
+    contentAlignment: Alignment,
+    imeVisible: Boolean
 ) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var isPasswordFocused by remember { mutableStateOf(false) }
@@ -175,6 +187,18 @@ private fun AuthContent(
             state.password.any { it.isUpperCase() } &&
             state.password.any { it.isDigit() } &&
             state.password.any { !it.isLetterOrDigit() && !it.isWhitespace() }
+
+    val focusManager = LocalFocusManager.current
+
+    val emailFocusRequester = remember { FocusRequester() }
+    val passwordFocusRequester = remember { FocusRequester() }
+    val confirmFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(state.isRegisterMode) {
+        showPasswordPanel = false
+        isPasswordFocused = false
+        focusManager.clearFocus()
+    }
 
     LaunchedEffect(isPasswordFocused, state.password) {
         if (isPasswordFocused && state.isRegisterMode) {
@@ -205,7 +229,13 @@ private fun AuthContent(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             ConstraintLayout(
-                modifier = Modifier.fillMaxWidth().then(if (isPortraitPhone) Modifier.heightIn(min = minHeight) else Modifier)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(
+                        if (isPortraitPhone && !imeVisible)
+                            Modifier.heightIn(min = minHeight)
+                        else Modifier
+                    )
             ) {
                 val (appName, emailField, passwordContainer, confirmPasswordField,
                     forgotPassword, loginButton, divider, googleButton,
@@ -232,11 +262,19 @@ private fun AuthContent(
                     onValueChange = actions.onEmailChange,
                     label = stringResource(R.string.email),
                     enabled = !isLoading,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    modifier = Modifier.constrainAs(emailField) {
-                        bottom.linkTo(passwordContainer.top, margin = 16.dp)
-                        centerHorizontallyTo(parent)
-                    }
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { passwordFocusRequester.requestFocus() }
+                    ),
+                    modifier = Modifier
+                        .focusRequester(emailFocusRequester)
+                        .constrainAs(emailField) {
+                            bottom.linkTo(passwordContainer.top, margin = 16.dp)
+                            centerHorizontallyTo(parent)
+                        }
                 )
 
                 Box(
@@ -319,13 +357,19 @@ private fun AuthContent(
                             },
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Password,
-                                imeAction =
+                                imeAction = if (state.isRegisterMode) ImeAction.Next else ImeAction.Done
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = {
                                     if (state.isRegisterMode)
-                                        ImeAction.Next
-                                    else
-                                        ImeAction.Done
+                                        confirmFocusRequester.requestFocus()
+                                },
+                                onDone = {
+                                    focusManager.clearFocus()
+                                }
                             ),
                             modifier = Modifier
+                                .focusRequester(passwordFocusRequester)
                                 .fillMaxWidth()
                                 .onFocusChanged {
                                     isPasswordFocused = it.isFocused
@@ -341,11 +385,19 @@ private fun AuthContent(
                         label = stringResource(R.string.confirmPassword),
                         enabled = !isLoading,
                         visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        modifier = Modifier.constrainAs(confirmPasswordField) {
-                            bottom.linkTo(termsCheckbox.top, margin = 10.dp)
-                            centerHorizontallyTo(parent)
-                        }
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { focusManager.clearFocus() }
+                        ),
+                        modifier = Modifier
+                            .focusRequester(confirmFocusRequester)
+                            .constrainAs(confirmPasswordField) {
+                                bottom.linkTo(termsCheckbox.top, margin = 10.dp)
+                                centerHorizontallyTo(parent)
+                            }
                     )
 
                     TermsAndConditionsCheckbox(
