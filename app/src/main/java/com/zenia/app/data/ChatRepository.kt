@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.WriteBatch
 import com.zenia.app.model.MensajeChatbot
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -65,6 +66,35 @@ class ChatRepository @Inject constructor(
             docRef.set(messageWithId).await()
 
             Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteMessagesByIds(ids: Set<String>): Result<Unit> {
+
+        if (ids.isEmpty()) return Result.success(Unit)
+
+        val uid = getUserIdOrNull()
+            ?: return Result.failure(Exception("Usuario no autenticado"))
+
+        return try {
+
+            val batch: WriteBatch = db.batch()
+
+            val collectionRef = db.collection(FirestoreCollections.USERS)
+                .document(uid)
+                .collection(FirestoreCollections.CHAT_HISTORY)
+
+            ids.forEach { id ->
+                val docRef = collectionRef.document(id)
+                batch.delete(docRef)
+            }
+
+            batch.commit().await()
+
+            Result.success(Unit)
+
         } catch (e: Exception) {
             Result.failure(e)
         }

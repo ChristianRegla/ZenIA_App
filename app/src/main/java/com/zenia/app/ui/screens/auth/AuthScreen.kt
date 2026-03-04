@@ -135,18 +135,18 @@ fun AuthScreen(
 
                 AlertDialog(
                     onDismissRequest = { actions.onDismissVerificationDialog() },
-                    title = { Text(text = "Verificación Necesaria") },
+                    title = { Text(stringResource(R.string.auth_verification_required_title)) },
                     text = {
-                        Text("Hemos enviado un correo a $email. Debes verificar tu cuenta antes de iniciar sesión.\n\n¿No recibiste el correo? Revisa tu carpeta de Spam o intenta reenviarlo.")
+                        Text(stringResource(R.string.auth_verification_required_message, email))
                     },
                     confirmButton = {
                         TextButton(onClick = { actions.onResendVerificationClick() }) {
-                            Text("Reenviar Correo")
+                            Text(stringResource(R.string.auth_resend_email))
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { actions.onDismissVerificationDialog() }) {
-                            Text("Entendido")
+                            Text(stringResource(R.string.auth_understood))
                         }
                     },
                     containerColor = Color.White,
@@ -564,10 +564,10 @@ fun PasswordRequirementsPanel(passwordText: String) {
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            RequirementRow("Al menos 8 caracteres", hasMinLength)
-            RequirementRow("Una letra mayúscula", hasUpper)
-            RequirementRow("Un número", hasNumber)
-            RequirementRow("Un carácter especial", hasSpecialChar)
+            RequirementRow(stringResource(R.string.password_requirement_min_length), hasMinLength)
+            RequirementRow(stringResource(R.string.password_requirement_uppercase), hasUpper)
+            RequirementRow(stringResource(R.string.password_requirement_number), hasNumber)
+            RequirementRow(stringResource(R.string.password_requirement_special), hasSpecialChar)
         }
     }
 }

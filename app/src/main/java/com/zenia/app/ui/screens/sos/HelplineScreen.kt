@@ -43,9 +43,9 @@ import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.ZenIATheme
 
-private val ColorLifeline = Color(0xFFE91E63) // Rosa/Rojo
-private val ColorFriend = Color(0xFF009688)   // Verde azulado (Teal)
-private val ColorChat = Color(0xFF9C27B0)     // Morado
+private val ColorLifeline = Color(0xFFE91E63)
+private val ColorFriend = Color(0xFF009688)
+private val ColorChat = Color(0xFF9C27B0)
 private val ColorCalm = Color(0xFFFF9800)
 
 @Composable
@@ -86,7 +86,6 @@ fun HelplineScreen(
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Black,
                         textAlign = TextAlign.Center,
-                        // fontFamily = RobotoFlex,
                         color = MaterialTheme.colorScheme.onBackground
                     )
 

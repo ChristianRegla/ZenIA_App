@@ -3,8 +3,10 @@ package com.zenia.app.ui.screens.auth
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,32 +41,39 @@ fun VerificationScreen(
     isLoading: Boolean,
     isResending: Boolean
 ) {
-
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(Color.White),
+        contentAlignment = Alignment.Center
     ) {
         Image(
             painter = painterResource(id = R.drawable.background_login_signup),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize().alpha(0.1f)
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(0.1f)
         )
 
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
+                .fillMaxHeight()
+                .widthIn(max = 600.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+
+            // 🔹 Círculo adaptable
             Box(
                 modifier = Modifier
-                    .size(160.dp)
+                    .size(140.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
+                    .background(
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 val composition by rememberLottieComposition(
@@ -80,7 +89,7 @@ fun VerificationScreen(
                     composition = composition,
                     progress = { progress },
                     modifier = Modifier
-                        .size(120.dp)
+                        .size(100.dp)
                         .padding(8.dp),
                     contentScale = ContentScale.Fit
                 )
@@ -91,7 +100,7 @@ fun VerificationScreen(
             Text(
                 text = stringResource(id = R.string.verification_title),
                 fontFamily = Lobster,
-                fontSize = 32.sp,
+                fontSize = 30.sp,
                 color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center
             )
@@ -125,7 +134,7 @@ fun VerificationScreen(
                 modifier = Modifier.padding(top = 16.dp)
             )
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -145,12 +154,13 @@ fun VerificationScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             Button(
                 onClick = onResendClick,
                 enabled = resendTimer == 0 && !isResending,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth(0.9f), // 🔥 no full width absoluto
                 shape = RoundedCornerShape(12.dp)
             ) {
                 if (isResending) {
@@ -162,7 +172,10 @@ fun VerificationScreen(
                 } else {
                     Text(
                         text = if (resendTimer > 0) {
-                            stringResource(id = R.string.verification_resend_timer, resendTimer)
+                            stringResource(
+                                id = R.string.verification_resend_timer,
+                                resendTimer
+                            )
                         } else {
                             stringResource(id = R.string.verification_resend_btn)
                         },
@@ -174,7 +187,7 @@ fun VerificationScreen(
 
             TextButton(
                 onClick = onCancelClick,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(0.9f)
             ) {
                 Text(
                     text = stringResource(id = R.string.verification_cancel_btn),

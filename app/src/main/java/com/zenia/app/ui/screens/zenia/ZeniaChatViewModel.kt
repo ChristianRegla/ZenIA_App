@@ -77,6 +77,18 @@ class ZeniaChatViewModel @Inject constructor(
         }
     }
 
+    fun eliminarMensajesSeleccionados(ids: Set<String>) {
+        viewModelScope.launch {
+            try {
+                chatRepository.deleteMessagesByIds(ids)
+            } catch (e: Exception) {
+                _uiEvent.send(
+                    ChatUiEvent.ShowError("No se pudieron eliminar los mensajes")
+                )
+            }
+        }
+    }
+
     private suspend fun obtenerRespuestaIA(mensaje: String) {
 
         val result = geminiRepository.generarRespuesta(mensaje)

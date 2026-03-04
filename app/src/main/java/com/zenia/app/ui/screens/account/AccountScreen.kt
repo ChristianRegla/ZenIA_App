@@ -1,12 +1,17 @@
 package com.zenia.app.ui.screens.account
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -62,73 +67,103 @@ fun AccountScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(paddingValues)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter
         ) {
-            Text(
-                text = stringResource(R.string.account_info_title),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(24.dp))
 
-            // Info del Usuario
-            InfoItem(
-                label = stringResource(R.string.account_email_label),
-                value = state.userEmail.ifEmpty { stringResource(R.string.common_not_available) }
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .widthIn(max = 600.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = stringResource(R.string.account_info_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
 
-            InfoItem(
-                label = stringResource(R.string.account_verified_label),
-                value = stringResource(if (state.isVerified) R.string.common_yes else R.string.common_no),
-                isPositive = state.isVerified
-            )
+                Spacer(modifier = Modifier.height(24.dp))
 
-            Spacer(modifier = Modifier.weight(1f))
-
-            if (state.isLoading) {
-                CircularProgressIndicator()
-            } else {
-                Button(
-                    onClick = actions.onChangePassword,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(stringResource(R.string.account_change_password_button))
-                }
-
-                if (!state.isVerified) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    OutlinedButton(
-                        onClick = actions.onResendVerification,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(stringResource(R.string.account_resend_verification_button))
+                // Info del Usuario
+                InfoItem(
+                    label = stringResource(R.string.account_email_label),
+                    value = state.userEmail.ifEmpty {
+                        stringResource(R.string.common_not_available)
                     }
-                }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                InfoItem(
+                    label = stringResource(R.string.account_verified_label),
+                    value = stringResource(
+                        if (state.isVerified) R.string.common_yes
+                        else R.string.common_no
+                    ),
+                    isPositive = state.isVerified
+                )
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                TextButton(
-                    onClick = actions.onDeleteAccountRequest,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text(stringResource(R.string.account_delete_button))
-                }
+                if (state.isLoading) {
 
-                Text(
-                    text = stringResource(R.string.account_delete_warning),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    CircularProgressIndicator()
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                } else {
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    Button(
+                        onClick = actions.onChangePassword,
+                        modifier = Modifier.fillMaxWidth(0.9f)
+                    ) {
+                        Text(stringResource(R.string.account_change_password_button))
+                    }
+
+                    if (!state.isVerified) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        OutlinedButton(
+                            onClick = actions.onResendVerification,
+                            modifier = Modifier.fillMaxWidth(0.9f)
+                        ) {
+                            Text(stringResource(R.string.account_resend_verification_button))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    TextButton(
+                        onClick = actions.onDeleteAccountRequest,
+                        modifier = Modifier.fillMaxWidth(0.9f),
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text(stringResource(R.string.account_delete_button))
+                    }
+
+                    Text(
+                        text = stringResource(R.string.account_delete_warning),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .fillMaxWidth(0.9f)
+                    )
+                }
             }
         }
     }
@@ -141,7 +176,9 @@ fun AccountScreen(
             confirmButton = {
                 Button(
                     onClick = actions.onConfirmDeleteAccount,
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
                 ) {
                     Text(stringResource(R.string.common_delete))
                 }
