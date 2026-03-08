@@ -3,11 +3,10 @@ package com.zenia.app.ui.screens.zenia
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.ChatRepository
-import com.zenia.app.data.GeminiRepository
+import com.zenia.app.data.NiaApiRepository
 import com.zenia.app.model.MensajeChatbot
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -32,7 +31,7 @@ sealed interface ChatUiEvent {
 @HiltViewModel
 class ZeniaChatViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
-    private val geminiRepository: GeminiRepository
+    private val niaRepository: NiaApiRepository
 ) : ViewModel() {
 
     private val _uiEvent = Channel<ChatUiEvent>()
@@ -91,23 +90,43 @@ class ZeniaChatViewModel @Inject constructor(
 
     private suspend fun obtenerRespuestaIA(mensaje: String) {
 
-        val result = geminiRepository.generarRespuesta(mensaje)
+        val result = niaRepository.enviarMensaje(mensaje)
 
         _isTyping.value = false
 
-        result.onSuccess { textoIA ->
-
+        result.onSuccess { response ->
             val mensajeIA = MensajeChatbot(
                 emisor = "ia",
-                texto = textoIA
+                texto = response.mensaje_nia
             )
 
             chatRepository.addChatMessage(mensajeIA)
 
+            manejarTrigger(response.trigger)
         }.onFailure {
             _uiEvent.send(
-                ChatUiEvent.ShowError("Error al conectar con ZenIA")
+                ChatUiEvent.ShowError("Error al conectar con Nia")
             )
+        }
+    }
+
+    private fun manejarTrigger(trigger: String?) {
+
+        when(trigger){
+
+            "breathing" -> {
+                // iniciar ejercicio respiración
+            }
+
+            "grounding" -> {
+                // ejercicio grounding
+            }
+
+            "emergency" -> {
+                // mostrar ayuda urgente
+            }
+
+            else -> {}
         }
     }
 }

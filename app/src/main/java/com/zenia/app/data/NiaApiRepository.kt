@@ -1,0 +1,60 @@
+package com.zenia.app.data
+
+import android.util.Log
+import com.zenia.app.model.NiaResponse
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import javax.inject.Inject
+
+class NiaApiRepository @Inject constructor() {
+
+    private val client = OkHttpClient()
+
+    private val url =
+        "http://10.0.2.2:8000/chat"
+
+    suspend fun enviarMensaje(mensaje: String): Result<NiaResponse> =
+        withContext(Dispatchers.IO) {
+
+            try {
+                val json = JSONObject().apply {
+                    put("message", mensaje)
+                }
+
+                val body = json.toString()
+                    .toRequestBody("application/json".toMediaType())
+
+                val request = Request.Builder()
+                    .url(url)
+                    .post(body)
+                    .build()
+
+                val response = client.newCall(request).execute()
+
+                val responseBody = response.body?.string() ?: "{}"
+
+                Log.d("NIA_API", responseBody)
+
+                val jsonResponse = JSONObject(responseBody)
+
+                val mensajeNia = jsonResponse.getString("mensaje_nia")
+                val trigger = jsonResponse.optString("trigger", "none")
+
+                val niaResponse = NiaResponse(
+                    mensaje_nia = mensajeNia,
+                    trigger = trigger
+                )
+
+                Result.success(niaResponse)
+
+            } catch (e: Exception) {
+                Log.e("NIA_API", "Error llamando Worker", e)
+                Result.failure(e)
+            }
+        }
+}
