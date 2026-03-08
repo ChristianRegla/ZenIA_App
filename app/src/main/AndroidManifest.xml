@@ -24,7 +24,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ZenIA"
         android:localeConfig="@xml/locales_config"
-        android:usesCleartextTraffic="true"
         tools:targetApi="33">
         <activity
             android:name=".MainActivity"

@@ -114,16 +114,8 @@ class ZeniaChatViewModel @Inject constructor(
 
         when(trigger){
 
-            "breathing" -> {
+            "mental_health_emergency" -> {
                 // iniciar ejercicio respiración
-            }
-
-            "grounding" -> {
-                // ejercicio grounding
-            }
-
-            "emergency" -> {
-                // mostrar ayuda urgente
             }
 
             else -> {}

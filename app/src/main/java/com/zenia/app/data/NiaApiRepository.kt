@@ -13,10 +13,14 @@ import javax.inject.Inject
 
 class NiaApiRepository @Inject constructor() {
 
-    private val client = OkHttpClient()
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+        .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+        .build()
 
     private val url =
-        "http://10.0.2.2:8000/chat"
+        "https://api-zenia.onrender.com/chat"
 
     suspend fun enviarMensaje(mensaje: String): Result<NiaResponse> =
         withContext(Dispatchers.IO) {

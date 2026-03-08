@@ -231,7 +231,7 @@ fun ZeniaBotScreen(
                                     start = 16.dp,
                                     end = 16.dp,
                                     top = 16.dp,
-                                    bottom = 100.dp
+                                    bottom = 20.dp
                                 ),
                                 verticalArrangement = Arrangement.spacedBy(12.dp),
                                 modifier = Modifier.fillMaxSize()
@@ -276,7 +276,7 @@ fun ZeniaBotScreen(
                                 visible = !isAtBottom,
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
-                                    .padding(bottom = 100.dp)
+                                    .padding(bottom = 20.dp)
                             ) {
                                 FloatingActionButton(
                                     onClick = {
