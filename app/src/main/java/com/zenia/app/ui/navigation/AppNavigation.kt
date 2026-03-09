@@ -135,13 +135,19 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
             HelplineRoute(
                 onNavigateToChat = {
                     navController.navigate(Destinations.homeWithTab(BottomNavItem.Zenia.route)) {
-                        popUpTo(Destinations.SOS) { inclusive = true }
+                        popUpTo(0) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
                     }
                 },
                 onNavigateToContacts = { },
                 onNavigateToExercises = {
                     navController.navigate(Destinations.homeWithTab(BottomNavItem.Relajacion.route)) {
-                        popUpTo(Destinations.SOS) { inclusive = true }
+                        popUpTo(0) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
                     }
                 },
                 onNavigateBack = { navController.popBackStack() }

@@ -402,7 +402,6 @@ fun AddContactDialog(
     var phone by remember { mutableStateOf("") }
     val context = LocalContext.current
 
-    // 2. Lanzador para abrir la libreta de contactos
     val contactLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickContact()
     ) { uri ->
@@ -415,7 +414,6 @@ fun AddContactDialog(
         }
     }
 
-    // 1. Lanzador para pedir el permiso de lectura de contactos
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
