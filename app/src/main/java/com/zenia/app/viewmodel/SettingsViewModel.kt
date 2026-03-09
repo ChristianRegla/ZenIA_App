@@ -14,11 +14,14 @@ import com.zenia.app.data.UserPreferencesRepository
 import com.zenia.app.model.Usuario
 import com.zenia.app.pdf.PdfExportConfig
 import com.zenia.app.pdf.PdfGenerator
+import com.zenia.app.worker.NotificationScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -30,7 +33,8 @@ class SettingsViewModel @Inject constructor(
     private val billingRepository: BillingRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val authRepository: AuthRepository,
-    private val diaryRepository: DiaryRepository
+    private val diaryRepository: DiaryRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     val isUserPremium: StateFlow<Boolean> = authRepository.isPremium
@@ -45,6 +49,44 @@ class SettingsViewModel @Inject constructor(
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = false
             )
+
+    val isNotificationsEnabled = userPreferencesRepository.notificationsEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val isStreakEnabled = userPreferencesRepository.streakReminderEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val isAdviceEnabled = userPreferencesRepository.morningAdviceEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setNotificationsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setNotificationsEnabled(enabled)
+            if (!enabled) {
+                NotificationScheduler.cancelStreakReminder(context)
+            } else {
+                val isStreakEnabled = userPreferencesRepository.streakReminderEnabled.first()
+                if (isStreakEnabled) NotificationScheduler.scheduleStreakReminder(context)
+            }
+        }
+    }
+
+    fun setStreakReminderEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setStreakReminderEnabled(enabled)
+            if (enabled) {
+                NotificationScheduler.scheduleStreakReminder(context)
+            } else {
+                NotificationScheduler.cancelStreakReminder(context)
+            }
+        }
+    }
+
+    fun setMorningAdviceEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setMorningAdviceEnabled(enabled)
+        }
+    }
 
     fun donar(activity: Activity) {
         viewModelScope.launch {

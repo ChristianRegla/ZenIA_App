@@ -131,7 +131,13 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
             )
         }
 
-        composable(Destinations.SOS) {
+        composable(
+            route = Destinations.SOS,
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
+        ) {
             HelplineRoute(
                 onNavigateToChat = {
                     navController.navigate(Destinations.homeWithTab(BottomNavItem.Zenia.route)) {

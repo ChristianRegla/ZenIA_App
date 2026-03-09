@@ -48,7 +48,13 @@ fun MoreSettingsScreen(
     onToggleWeakBiometric: (Boolean) -> Unit,
     onLanguageChange: (String) -> Unit,
     onNavigateBack: () -> Unit,
-    onNavigateToExport: () -> Unit
+    onNavigateToExport: () -> Unit,
+    isNotificationsEnabled: Boolean,
+    isStreakEnabled: Boolean,
+    isAdviceEnabled: Boolean,
+    onToggleNotifications: (Boolean) -> Unit,
+    onToggleStreak: (Boolean) -> Unit,
+    onToggleAdvice: (Boolean) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -162,6 +168,47 @@ fun MoreSettingsScreen(
                     }
                 }
 
+                Spacer(modifier = Modifier.height(32.dp))
+
+                SettingsSectionTitle(text = "Notificaciones")
+                Spacer(modifier = Modifier.height(16.dp))
+
+                SettingsCard {
+                    Column {
+                        SettingsSwitchRow(
+                            label = "Permitir notificaciones",
+                            checked = isNotificationsEnabled,
+                            onCheckedChange = onToggleNotifications
+                        )
+
+                        if (isNotificationsEnabled) {
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                            SettingsSwitchRow(
+                                label = "Recordatorio de racha (8:00 PM)",
+                                checked = isStreakEnabled,
+                                onCheckedChange = onToggleStreak,
+                                isSecondary = true
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            SettingsSwitchRow(
+                                label = "Consejo matutino",
+                                checked = isAdviceEnabled,
+                                onCheckedChange = onToggleAdvice,
+                                isSecondary = true
+                            )
+
+                            Text(
+                                text = "Recibe un tip basado en tu entrada del día anterior.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
+                            )
+                        }
+                    }
+                }
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
@@ -370,7 +417,13 @@ fun MoreSettingsPhonePreview() {
             onToggleWeakBiometric = {},
             onLanguageChange = {},
             onNavigateBack = {},
-            onNavigateToExport = {}
+            onNavigateToExport = {},
+            isNotificationsEnabled = true,
+            isStreakEnabled = true,
+            isAdviceEnabled = true,
+            onToggleNotifications = {},
+            onToggleStreak = {},
+            onToggleAdvice = {}
         )
     }
 }

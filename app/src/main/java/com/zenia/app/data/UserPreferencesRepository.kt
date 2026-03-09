@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.intPreferencesKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -28,6 +29,11 @@ class UserPreferencesRepository @Inject constructor(
         val IS_BIOMETRIC_ENABLED = booleanPreferencesKey("is_biometric_enabled")
         val ALLOW_WEAK_BIOMETRICS = booleanPreferencesKey("allow_weak_biometrics")
         val HAS_SEEN_EXPORT_TUTORIAL = booleanPreferencesKey("has_seen_export_tutorial")
+        val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
+        val STREAK_REMINDER_ENABLED = booleanPreferencesKey("streak_reminder_enabled")
+        val MORNING_ADVICE_ENABLED = booleanPreferencesKey("morning_advice_enabled")
+        val STREAK_REMINDER_HOUR = intPreferencesKey("streak_reminder_hour")
+        val STREAK_REMINDER_MINUTE = intPreferencesKey("streak_reminder_minute")
     }
 
     private val safeData = dataStore.data
@@ -48,6 +54,21 @@ class UserPreferencesRepository @Inject constructor(
     val hasSeenExportTutorial: Flow<Boolean> =
         safeData.map { it[Keys.HAS_SEEN_EXPORT_TUTORIAL] ?: false }
 
+    val notificationsEnabled: Flow<Boolean> =
+        safeData.map { it[Keys.NOTIFICATIONS_ENABLED] ?: false }
+
+    val streakReminderEnabled: Flow<Boolean> =
+        safeData.map { it[Keys.STREAK_REMINDER_ENABLED] ?: true }
+
+    val morningAdviceEnabled: Flow<Boolean> =
+        safeData.map { it[Keys.MORNING_ADVICE_ENABLED] ?: true }
+
+    val streakReminderHour: Flow<Int> =
+        safeData.map { it[Keys.STREAK_REMINDER_HOUR] ?: 20 }
+
+    val streakReminderMinute: Flow<Int> =
+        safeData.map { it[Keys.STREAK_REMINDER_MINUTE] ?: 0 }
+
     suspend fun setOnboardingCompleted(completed: Boolean) {
         dataStore.edit { it[Keys.ONBOARDING_COMPLETED] = completed }
     }
@@ -62,5 +83,24 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setExportTutorialSeen() {
         dataStore.edit { it[Keys.HAS_SEEN_EXPORT_TUTORIAL] = true }
+    }
+
+    suspend fun setNotificationsEnabled(enabled: Boolean) {
+        dataStore.edit { it[Keys.NOTIFICATIONS_ENABLED] = enabled }
+    }
+
+    suspend fun setStreakReminderEnabled(enabled: Boolean) {
+        dataStore.edit { it[Keys.STREAK_REMINDER_ENABLED] = enabled }
+    }
+
+    suspend fun setMorningAdviceEnabled(enabled: Boolean) {
+        dataStore.edit { it[Keys.MORNING_ADVICE_ENABLED] = enabled }
+    }
+
+    suspend fun setStreakReminderTime(hour: Int, minute: Int) {
+        dataStore.edit { preferences ->
+            preferences[Keys.STREAK_REMINDER_HOUR] = hour
+            preferences[Keys.STREAK_REMINDER_MINUTE] = minute
+        }
     }
 }

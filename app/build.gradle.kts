@@ -140,6 +140,10 @@ dependencies {
 
     implementation(libs.lottie.compose)
 
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
+
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
