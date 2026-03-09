@@ -14,4 +14,7 @@ object FirestoreCollections {
     const val FIELD_DATE = "fecha"
     const val NOTIFICATIONS = "notifications"
     const val POSTS = "comunidad_posts"
+
+    const val EMERGENCY_CONTACTS = "emergencyContacts"
+
 }

@@ -234,7 +234,7 @@
     <string name="sos_body_html">We know this is a difficult time. <b>You don\'t have to go through this alone.</b> There are people willing to listen and support you. <b>Please, reach out to someone.</b></string>
 
     <string name="sos_btn_lifeline">Lifeline</string>
-    <string name="sos_btn_friend">Call a friend</string>
+    <string name="sos_btn_friend">Emergency contacts</string>
     <string name="sos_btn_support_chat">Support chat</string>
     <string name="sos_btn_calm_exercises">Calm exercises</string>
     <string name="sos_close_desc">Close SOS screen</string>

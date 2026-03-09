@@ -231,7 +231,7 @@
     <string name="sos_body_html">Sabemos que este es un momento difícil. <b>No tienes que pasar por esto en soledad.</b> Hay personas dispuestas a escucharte y apoyarte. <b>Por favor, contacta a alguien.</b></string>
 
     <string name="sos_btn_lifeline">Línea de la vida</string>
-    <string name="sos_btn_friend">Llamar a un amigo</string>
+    <string name="sos_btn_friend">Contactos de emergencia</string>
     <string name="sos_btn_support_chat">Chat de apoyo</string>
     <string name="sos_btn_calm_exercises">Ejercicios de calma</string>
     <string name="sos_close_desc">Cerrar pantalla SOS</string>
