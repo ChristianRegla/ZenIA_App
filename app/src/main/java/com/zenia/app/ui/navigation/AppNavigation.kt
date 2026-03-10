@@ -24,6 +24,7 @@ import com.zenia.app.ui.screens.diary.DiarioRoute
 import com.zenia.app.ui.screens.diary.DiaryEntryScreen
 import com.zenia.app.ui.screens.lock.LockRoute
 import com.zenia.app.ui.screens.notifications.NotificationsRoute
+import com.zenia.app.ui.screens.recursos.RecursoDetailRoute
 import com.zenia.app.ui.screens.recursos.RecursosRoute
 import com.zenia.app.ui.screens.relax.RelaxRoute
 import com.zenia.app.ui.screens.sos.HelplineRoute
@@ -127,7 +128,10 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
                 },
                 onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) },
                 onNavigateToAnalytics = { navController.safeNavigate(Destinations.ANALYTICS_ROUTE) },
-                onNavigateToCommunity = { navController.safeNavigate(Destinations.COMMUNITY_ROUTE) }
+                onNavigateToCommunity = { navController.safeNavigate(Destinations.COMMUNITY_ROUTE) },
+                onNavigateToRecursoDetail = { recursoId ->
+                    navController.safeNavigate(Destinations.createRecursoDetailRoute(recursoId))
+                }
             )
         }
 
@@ -255,6 +259,22 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
             popExitTransition = { popSlideOut() }
         ) {
             CommunityRoute(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Destinations.RECURSO_DETAIL_ROUTE,
+            arguments = listOf(navArgument(NavArgs.RECURSO_ID) { type = NavType.StringType }),
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
+        ) { backStackEntry ->
+            val recursoId = backStackEntry.arguments?.getString(NavArgs.RECURSO_ID) ?: return@composable
+
+            RecursoDetailRoute(
+                recursoId = recursoId,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

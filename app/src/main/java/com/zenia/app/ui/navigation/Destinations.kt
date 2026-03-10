@@ -32,10 +32,14 @@ object Destinations {
     const val COMMUNITY_ROUTE = "community_route"
     const val EXPORT_SETTINGS_ROUTE = "export_settings_route"
 
+    const val RECURSO_DETAIL_ROUTE = "recurso_detail/{recursoId}"
+
     fun createDiaryEntryRoute(date: LocalDate) = "diary_entry/${date}"
     fun homeWithTab(tabRoute: String) = "$HOME_ROUTE?tab=$tabRoute"
+    fun createRecursoDetailRoute(recursoId: String) = "recurso_detail/$recursoId"
 }
 
 object NavArgs {
     const val DATE = "date"
+    const val RECURSO_ID = "recursoId"
 }

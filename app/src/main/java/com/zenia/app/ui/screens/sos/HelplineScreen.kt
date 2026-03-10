@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material3.AlertDialog
@@ -143,7 +144,6 @@ fun HelplineScreen(
                         text = stringResource(R.string.sos_body_html),
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
-                        // fontFamily = RobotoFlex,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 24.sp
                     )
@@ -163,6 +163,7 @@ fun HelplineScreen(
                                 text = stringResource(R.string.sos_btn_lifeline),
                                 subText = "Gratis, anónimo y disponible 24/7",
                                 accentColor = ColorLifeline,
+                                isPrimary = true,
                                 onClick = onCallLifeline
                             )
 
@@ -211,13 +212,20 @@ private fun SosButton(
     text: String,
     accentColor: Color,
     subText: String? = null,
+    isPrimary: Boolean = false,
     onClick: () -> Unit
 ) {
+    val containerColor = if (isPrimary) accentColor else MaterialTheme.colorScheme.surfaceContainerLow
+    val textColor = if (isPrimary) Color.White else MaterialTheme.colorScheme.onSurface
+    val subTextColor = if (isPrimary) Color.White.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurfaceVariant
+    val iconBgColor = if (isPrimary) Color.White.copy(alpha = 0.25f) else accentColor.copy(alpha = 0.15f)
+    val iconTintColor = if (isPrimary) Color.White else accentColor
+
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shadowElevation = 4.dp,
+        color = containerColor,
+        shadowElevation = if (isPrimary) 8.dp else 4.dp,
         modifier = Modifier
             .fillMaxWidth()
             .height(85.dp)
@@ -231,13 +239,13 @@ private fun SosButton(
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)
-                    .background(accentColor.copy(alpha = 0.15f)),
+                    .background(iconBgColor),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = accentColor,
+                    tint = iconTintColor,
                     modifier = Modifier.size(26.dp)
                 )
             }
@@ -247,22 +255,19 @@ private fun SosButton(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-
                 Text(
                     text = text,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = textColor
                 )
 
                 if (subText != null) {
-
                     Spacer(modifier = Modifier.height(2.dp))
-
                     Text(
                         text = subText,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = subTextColor
                     )
                 }
             }
@@ -309,8 +314,24 @@ fun EmergencyContactsSheet(
             )
 
             if (contacts.isEmpty()) {
-                Box(modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp), contentAlignment = Alignment.Center) {
-                    Text("No tienes contactos guardados.", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.GroupAdd,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "No tienes contactos guardados.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -357,6 +378,8 @@ fun ContactCard(
     onCall: () -> Unit,
     onDelete: () -> Unit
 ) {
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+
     androidx.compose.material3.Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -380,7 +403,7 @@ fun ContactCard(
                 Text(contact.name, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 Text(contact.phone, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            IconButton(onClick = onDelete) {
+            IconButton(onClick = { showDeleteConfirm = true }) {
                 Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.error)
             }
             IconButton(
@@ -390,6 +413,31 @@ fun ContactCard(
                 Icon(Icons.Default.Call, contentDescription = "Llamar", tint = Color.White)
             }
         }
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("Eliminar Contacto", fontWeight = FontWeight.Bold) },
+            text = { Text("¿Estás seguro de que quieres eliminar a ${contact.name} de tus contactos de emergencia?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDelete()
+                        showDeleteConfirm = false
+                    },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Eliminar", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text("Cancelar")
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     }
 }
 

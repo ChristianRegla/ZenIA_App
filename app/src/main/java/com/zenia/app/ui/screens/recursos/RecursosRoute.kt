@@ -8,15 +8,20 @@ import com.zenia.app.viewmodel.SettingsViewModel
 
 @Composable
 fun RecursosRoute(
-    onNavigateToDetail: (Int) -> Unit,
+    onNavigateToDetail: (String) -> Unit,
     onNavigateToPremium: () -> Unit
 ) {
     val settingsViewModel: SettingsViewModel = hiltViewModel()
+    val recursosViewModel: RecursosViewModel = hiltViewModel()
+
     val isPremium by settingsViewModel.isUserPremium.collectAsState()
+    val uiState by recursosViewModel.uiState.collectAsState()
 
     RecursosScreen(
+        uiState = uiState,
+        isUserPremium = isPremium,
         onNavigateToDetail = onNavigateToDetail,
         onNavigateToPremium = onNavigateToPremium,
-        isUserPremium = isPremium
+        onToggleFavorite = { id, status -> recursosViewModel.toggleFavorite(id, status) }
     )
 }

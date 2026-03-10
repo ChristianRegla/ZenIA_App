@@ -45,7 +45,8 @@ fun MainScreen(
     onNavigateToSOS: () -> Unit,
     onNavigateToDiaryEntry: (LocalDate) -> Unit,
     onNavigateToAnalytics: () -> Unit,
-    onNavigateToCommunity: () -> Unit
+    onNavigateToCommunity: () -> Unit,
+    onNavigateToRecursoDetail: (String) -> Unit
 ) {
     val bottomNavController = rememberNavController()
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
@@ -151,7 +152,9 @@ fun MainScreen(
 
                     composable(BottomNavItem.Recursos.route) {
                         RecursosRoute(
-                            onNavigateToDetail = { /* TODO */ },
+                            onNavigateToDetail = { id ->
+                                onNavigateToRecursoDetail(id)
+                            },
                             onNavigateToPremium = onNavigateToPremium
                         )
                     }

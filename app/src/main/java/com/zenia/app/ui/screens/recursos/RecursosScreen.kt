@@ -2,84 +2,216 @@ package com.zenia.app.ui.screens.recursos
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.RobotoFlex
-import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaTeal
 import com.zenia.app.ui.theme.ZeniaWhite
-
-data class RecursoUiModel(
-    val id: Int,
-    val title: String,
-    val description: String,
-    val category: String,
-    val imageRes: Int,
-    val isPremium: Boolean
-)
-
-val mockRecursos = listOf(
-    RecursoUiModel(1, "Guía Básica de Ansiedad", "Entiende los síntomas y aprende técnicas rápidas.", "Guía", R.drawable.placeholder_resource_1, false),
-    RecursoUiModel(2, "Masterclass: Dormir Mejor", "Curso completo de higiene del sueño por expertos.", "Curso", R.drawable.placeholder_resource_1, true),
-    RecursoUiModel(3, "Técnicas de Grounding", "Ejercicios para volver al presente en crisis.", "Artículo", R.drawable.placeholder_resource_1, false),
-    RecursoUiModel(4, "Nutrición y Salud Mental", "Cómo lo que comes afecta tu estado de ánimo.", "Artículo", R.drawable.placeholder_resource_1, true),
-    RecursoUiModel(5, "Diario de Gratitud", "Plantillas y beneficios de agradecer diariamente.", "Herramienta", R.drawable.placeholder_resource_1, false)
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecursosScreen(
-    onNavigateToDetail: (Int) -> Unit,
+    uiState: RecursosUiState,
+    isUserPremium: Boolean,
+    onNavigateToDetail: (String) -> Unit,
     onNavigateToPremium: () -> Unit,
-    isUserPremium: Boolean = false
+    onToggleFavorite: (String, Boolean) -> Unit
 ) {
+    var selectedRecurso by remember { mutableStateOf<RecursoUiModel?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     Scaffold(
         topBar = {
             ZeniaTopBar(title = "Recursos")
         },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { paddingValues ->
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 340.dp),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(top = 16.dp, bottom = 24.dp)
-        ) {
-            items(mockRecursos) { recurso ->
-                RecursoCard(
-                    recurso = recurso,
-                    isLocked = recurso.isPremium && !isUserPremium,
-                    onClick = {
-                        if (recurso.isPremium && !isUserPremium) {
-                            onNavigateToPremium()
-                        } else {
-                            onNavigateToDetail(recurso.id)
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            when (uiState) {
+                is RecursosUiState.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+                is RecursosUiState.Error -> {
+                    Text(
+                        text = "Error al cargar recursos: ${uiState.message}",
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.align(Alignment.Center).padding(16.dp)
+                    )
+                }
+                is RecursosUiState.Success -> {
+                    val recursos = uiState.recursos
+
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(minSize = 340.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(top = 16.dp, bottom = 24.dp)
+                    ) {
+                        items(recursos) { recurso ->
+                            RecursoCard(
+                                recurso = recurso,
+                                isLocked = recurso.isPremium && !isUserPremium,
+                                onClick = {
+                                    if (recurso.isPremium && !isUserPremium) {
+                                        onNavigateToPremium()
+                                    } else {
+                                        // En lugar de navegar directo, abrimos el Bottom Sheet
+                                        selectedRecurso = recurso
+                                    }
+                                }
+                            )
                         }
                     }
+                }
+            }
+        }
+    }
+    if (selectedRecurso != null) {
+        ModalBottomSheet(
+            onDismissRequest = { selectedRecurso = null },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            val recurso = selectedRecurso!!
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 8.dp)
+                    .padding(bottom = 32.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                ) {
+                    Image(
+                        painter = painterResource(id = recurso.imageRes),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(12.dp)
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.9f))
+                            .clickable {
+                                onToggleFavorite(recurso.id, recurso.isFavorite)
+                                selectedRecurso = recurso.copy(isFavorite = !recurso.isFavorite)
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = if (recurso.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Favorito",
+                            tint = if (recurso.isFavorite) Color(0xFFE91E63) else Color.Gray,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    text = recurso.category.uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = ZeniaTeal,
+                    fontWeight = FontWeight.Bold
                 )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = recurso.title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = recurso.description,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = MaterialTheme.typography.bodyLarge.lineHeight
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                if (recurso.progress > 0) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Progreso", style = MaterialTheme.typography.labelMedium)
+                            Text("${recurso.progress}%", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LinearProgressIndicator(
+                            progress = { recurso.progress / 100f },
+                            modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                            color = ZeniaTeal,
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
+                // Botón de Acción Principal
+                Button(
+                    onClick = {
+                        selectedRecurso = null
+                        onNavigateToDetail(recurso.id)
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal)
+                ) {
+                    Icon(Icons.Default.PlayArrow, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (recurso.progress > 0) "Continuar" else "Comenzar",
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }
@@ -140,7 +272,6 @@ fun RecursoCard(
                     .weight(1f)
                     .padding(12.dp)
             ) {
-                // Categoría y Premium Badge
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
@@ -186,13 +317,5 @@ fun RecursoCard(
                 )
             }
         }
-    }
-}
-
-@Preview
-@Composable
-fun RecursosScreenPhonePreview() {
-    ZenIATheme {
-        RecursosScreen(onNavigateToDetail = {}, onNavigateToPremium = {}, isUserPremium = false)
     }
 }

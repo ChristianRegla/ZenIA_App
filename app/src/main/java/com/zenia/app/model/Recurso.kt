@@ -9,6 +9,8 @@ data class Recurso(
     val tipo: String = "",
     val validado: Boolean = false,
     val esPremium: Boolean = false,
+    val urlImagen: String? = null,
+    val duracionEstimada: String? = null,
     val telefono: String? = null,
     val sitioWeb: String? = null,
     val urlAudio: String? = null
