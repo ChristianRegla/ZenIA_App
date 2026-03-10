@@ -79,7 +79,10 @@ val availableAvatars = listOf(
     R.drawable.avatar_2,
     R.drawable.avatar_3,
     R.drawable.avatar_4,
-    R.drawable.avatar_5
+    R.drawable.avatar_5,
+    R.drawable.avatar_6,
+    R.drawable.avatar_7,
+    R.drawable.avatar_8
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

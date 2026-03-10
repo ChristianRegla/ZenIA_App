@@ -144,6 +144,10 @@ dependencies {
     implementation(libs.androidx.hilt.work)
     ksp(libs.androidx.hilt.compiler)
 
+    // --- Glance (Widgets) ---
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.material3)
+
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
