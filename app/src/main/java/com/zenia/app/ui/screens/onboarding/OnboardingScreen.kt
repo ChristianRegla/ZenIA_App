@@ -16,8 +16,10 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Language
@@ -35,11 +37,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import com.airbnb.lottie.compose.*
 import com.zenia.app.R
+import com.zenia.app.ui.theme.ZeniaExercise
+import com.zenia.app.ui.theme.ZeniaFeelings
+import com.zenia.app.ui.theme.ZeniaPremiumBackground
+import com.zenia.app.ui.theme.ZeniaPremiumPurple
 import com.zenia.app.util.LightStatusIconsEffect
 import kotlin.math.absoluteValue
 
@@ -86,6 +94,7 @@ fun OnboardingScreen(
                 modifier = Modifier
                     .fillMaxHeight()
                     .widthIn(max = 600.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
                 Row(
                     modifier = Modifier
@@ -255,9 +264,10 @@ fun OnboardingScreen(
                             enter = scaleIn() + fadeIn(),
                             exit = scaleOut() + fadeOut()
                         ) {
+                            val isTablet = LocalWindowInfo.current.containerSize.width > 700
                             Button(
                                 onClick = onFinish,
-                                modifier = Modifier.fillMaxWidth(0.9f),
+                                modifier = Modifier.fillMaxWidth(if (isTablet) 0.6f else 0.9f),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = pages.last().color
                                 ),
@@ -284,90 +294,152 @@ fun OnboardingPageContent(
     titleColor: Color,
     descriptionColor: Color
 ) {
-    val windowInfo = LocalWindowInfo.current
-    val density = LocalDensity.current
-
-    val containerHeight = with(density) {
-        windowInfo.containerSize.height.toDp()
-    }
-
-    val outerSize = containerHeight * 0.32f
-    val innerSize = outerSize * 0.7f
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .widthIn(max = 500.dp)
-            .padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxSize()
     ) {
 
-        Box(
-            modifier = Modifier
-                .size(outerSize)
-                .clip(CircleShape)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            page.color.copy(alpha = 0.2f),
-                            Color.Transparent
-                        )
-                    )
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
+        val isTablet = maxWidth >= 900.dp
+
+        val windowInfo = LocalWindowInfo.current
+        val density = LocalDensity.current
+
+        val containerHeight = with(density) {
+            windowInfo.containerSize.height.toDp()
+        }
+
+        val outerSize = containerHeight * if (isTablet) 0.4f else 0.32f
+        val innerSize = outerSize * 0.7f
+
+        if (isTablet) {
+
+            // 🔥 Layout dividido horizontal
+            Row(
                 modifier = Modifier
-                    .size(innerSize)
-                    .clip(CircleShape)
-                    .background(Color.White)
-                    .padding(innerSize * 0.15f),
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .padding(horizontal = 48.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                if (page.lottieRes != null) {
-                    val composition by rememberLottieComposition(
-                        LottieCompositionSpec.RawRes(page.lottieRes)
-                    )
-                    val progress by animateLottieCompositionAsState(
-                        composition = composition,
-                        iterations = LottieConstants.IterateForever
+
+                // 🔹 Lado izquierdo → Animación / Icono
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    OnboardingVisual(page, outerSize, innerSize)
+                }
+
+                // 🔹 Lado derecho → Texto
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 32.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = stringResource(page.titleRes),
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = titleColor,
+                        fontWeight = FontWeight.Bold
                     )
 
-                    LottieAnimation(
-                        composition = composition,
-                        progress = { progress }
-                    )
-                } else if (page.iconRes != null) {
-                    Icon(
-                        painter = painterResource(page.iconRes),
-                        contentDescription = stringResource(page.titleRes),
-                        tint = page.color,
-                        modifier = Modifier.fillMaxSize()
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Text(
+                        text = stringResource(page.descriptionRes),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = descriptionColor,
+                        lineHeight = 26.sp
                     )
                 }
             }
+
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 500.dp)
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+
+                OnboardingVisual(page, outerSize, innerSize)
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                Text(
+                    text = stringResource(page.titleRes),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = titleColor,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = stringResource(page.descriptionRes),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = descriptionColor,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 24.sp
+                )
+            }
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(40.dp))
+@Composable
+private fun OnboardingVisual(
+    page: OnboardingPage,
+    outerSize: Dp,
+    innerSize: Dp
+) {
+    Box(
+        modifier = Modifier
+            .size(outerSize)
+            .clip(CircleShape)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        page.color.copy(alpha = 0.2f),
+                        Color.Transparent
+                    )
+                )
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(innerSize)
+                .clip(CircleShape)
+                .background(Color.White)
+                .padding(innerSize * 0.15f),
+            contentAlignment = Alignment.Center
+        ) {
+            if (page.lottieRes != null) {
+                val composition by rememberLottieComposition(
+                    LottieCompositionSpec.RawRes(page.lottieRes)
+                )
+                val progress by animateLottieCompositionAsState(
+                    composition = composition,
+                    iterations = LottieConstants.IterateForever
+                )
 
-        Text(
-            text = stringResource(page.titleRes),
-            style = MaterialTheme.typography.headlineMedium,
-            color = titleColor,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = stringResource(page.descriptionRes),
-            style = MaterialTheme.typography.bodyLarge,
-            color = descriptionColor,
-            textAlign = TextAlign.Center,
-            lineHeight = 24.sp
-        )
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progress }
+                )
+            } else if (page.iconRes != null) {
+                Icon(
+                    painter = painterResource(page.iconRes),
+                    contentDescription = stringResource(page.titleRes),
+                    tint = page.color,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
     }
 }
 
@@ -440,4 +512,51 @@ fun LanguageDropdownItem(
             }
         }
     )
+}
+
+@Preview
+@Composable
+fun OnboardingResponsivePreview() {
+
+    val samplePages = listOf(
+        OnboardingPage(
+            titleRes = R.string.onboarding_title_welcome,
+            descriptionRes = R.string.onboarding_desc_welcome,
+            iconRes = R.drawable.ic_nube_feli,
+            color = ZeniaFeelings
+        ),
+        OnboardingPage(
+            titleRes = R.string.onboarding_title_diary,
+            descriptionRes = R.string.onboarding_desc_diary,
+            lottieRes = R.raw.notepad,
+            color = ZeniaPremiumBackground
+        ),
+        OnboardingPage(
+            titleRes = R.string.onboarding_title_chat,
+            descriptionRes = R.string.onboarding_desc_chat,
+            lottieRes = R.raw.chatbot_animation,
+            color = ZeniaPremiumPurple
+        ),
+        OnboardingPage(
+            titleRes = R.string.onboarding_title_resources,
+            descriptionRes = R.string.onboarding_desc_resources,
+            lottieRes = R.raw.breathe,
+            color = ZeniaExercise
+        ),
+        OnboardingPage(
+            titleRes = R.string.onboarding_title_biometrics,
+            descriptionRes = R.string.onboarding_desc_biometrics,
+            lottieRes = R.raw.biometrics,
+            color = Color(0xFF69E56E)
+        )
+    )
+
+    MaterialTheme {
+        OnboardingScreen(
+            currentLanguage = "es",
+            pages = samplePages,
+            onLanguageChange = {},
+            onFinish = {}
+        )
+    }
 }

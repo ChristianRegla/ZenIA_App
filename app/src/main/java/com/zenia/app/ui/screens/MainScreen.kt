@@ -119,9 +119,6 @@ fun MainScreen(
                 ) {
                     composable(BottomNavItem.Inicio.route) {
                         HomeRoute(
-                            onSignOut = onSignOut,
-                            onNavigateToAccount = onNavigateToAccount,
-                            onNavigateToPremium = onNavigateToPremium,
                             onNavigateToSettings = onNavigateToSettings,
                             onNotificationClick = onNotificationClick,
                             onNavigateToSOS = onNavigateToSOS,

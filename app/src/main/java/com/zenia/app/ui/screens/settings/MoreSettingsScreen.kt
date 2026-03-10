@@ -14,23 +14,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PictureAsPdf
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,10 +48,14 @@ fun MoreSettingsScreen(
     onToggleWeakBiometric: (Boolean) -> Unit,
     onLanguageChange: (String) -> Unit,
     onNavigateBack: () -> Unit,
-    onExportPdf: (Boolean) -> Unit
+    onNavigateToExport: () -> Unit,
+    isNotificationsEnabled: Boolean,
+    isStreakEnabled: Boolean,
+    isAdviceEnabled: Boolean,
+    onToggleNotifications: (Boolean) -> Unit,
+    onToggleStreak: (Boolean) -> Unit,
+    onToggleAdvice: (Boolean) -> Unit
 ) {
-
-    var showExportDialog by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             ZeniaTopBar(
@@ -156,7 +154,7 @@ fun MoreSettingsScreen(
                             icon = Icons.Default.PictureAsPdf,
                             title = "Cápsula del Tiempo",
                             subtitle = "Exportar tu diario a PDF",
-                            onClick = { showExportDialog = true },
+                            onClick = { onNavigateToExport() },
                             showDivider = true
                         )
 
@@ -171,16 +169,47 @@ fun MoreSettingsScreen(
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
-            }
 
-            if (showExportDialog) {
-                ExportPdfDialog(
-                    onDismiss = { showExportDialog = false },
-                    onExport = { includeLogo ->
-                        showExportDialog = false
-                        onExportPdf(includeLogo)
+                SettingsSectionTitle(text = "Notificaciones")
+                Spacer(modifier = Modifier.height(16.dp))
+
+                SettingsCard {
+                    Column {
+                        SettingsSwitchRow(
+                            label = "Permitir notificaciones",
+                            checked = isNotificationsEnabled,
+                            onCheckedChange = onToggleNotifications
+                        )
+
+                        if (isNotificationsEnabled) {
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                            SettingsSwitchRow(
+                                label = "Recordatorio de racha (8:00 PM)",
+                                checked = isStreakEnabled,
+                                onCheckedChange = onToggleStreak,
+                                isSecondary = true
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            SettingsSwitchRow(
+                                label = "Consejo matutino",
+                                checked = isAdviceEnabled,
+                                onCheckedChange = onToggleAdvice,
+                                isSecondary = true
+                            )
+
+                            Text(
+                                text = "Recibe un tip basado en tu entrada del día anterior.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
+                            )
+                        }
                     }
-                )
+                }
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
@@ -376,39 +405,6 @@ fun SettingsItem(
     }
 }
 
-@Composable
-fun ExportPdfDialog(
-    onDismiss: () -> Unit,
-    onExport: (Boolean) -> Unit
-) {
-    var includeLogo by remember { mutableStateOf(true) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Exportar Cápsula del Tiempo") },
-        text = {
-            Column {
-                Text("Crea un PDF con tus registros para guardarlos o compartirlos con un profesional.")
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Opción de personalización
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = includeLogo, onCheckedChange = { includeLogo = it })
-                    Text("Incluir logo de ZenIA en la cabecera")
-                }
-            }
-        },
-        confirmButton = {
-            Button(onClick = { onExport(includeLogo) }) {
-                Text("Generar PDF")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
-        }
-    )
-}
-
 @Preview
 @Composable
 fun MoreSettingsPhonePreview() {
@@ -421,7 +417,13 @@ fun MoreSettingsPhonePreview() {
             onToggleWeakBiometric = {},
             onLanguageChange = {},
             onNavigateBack = {},
-            onExportPdf = {}
+            onNavigateToExport = {},
+            isNotificationsEnabled = true,
+            isStreakEnabled = true,
+            isAdviceEnabled = true,
+            onToggleNotifications = {},
+            onToggleStreak = {},
+            onToggleAdvice = {}
         )
     }
 }

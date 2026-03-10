@@ -36,8 +36,8 @@ fun ZenLoadingOverlay() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(ZeniaTeal.copy(alpha = 0.8f)) // Fondo semi-transparente del color de la marca
-            .clickable(enabled = false) {}, // Bloquea los clicks traseros
+            .background(ZeniaTeal.copy(alpha = 0.8f))
+            .clickable(enabled = false) {},
         contentAlignment = Alignment.Center
     ) {
         Column(

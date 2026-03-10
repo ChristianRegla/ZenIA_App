@@ -38,6 +38,7 @@ fun AuthRoute(
 ) {
     val uiState by authViewModel.uiState.collectAsState()
     val resendTimer by authViewModel.resendTimer.collectAsState()
+    val isResending by authViewModel.isResending.collectAsState()
     val isUserLoggedIn by authViewModel.isUserLoggedIn.collectAsState()
 
     var email by rememberSaveable { mutableStateOf("") }
@@ -102,16 +103,15 @@ fun AuthRoute(
     }
 
     if (uiState is AuthUiState.VerificationRequired) {
-        // MODO 1: Pantalla de Verificación
         val verificationState = uiState as AuthUiState.VerificationRequired
 
         VerificationScreen(
             email = verificationState.email,
             resendTimer = resendTimer,
             isLoading = false,
+            isResending = isResending,
             onResendClick = {
-                // Usamos la contraseña guardada en el estado local para re-autenticar y reenviar
-                authViewModel.resendVerification(verificationState.email, password)
+                authViewModel.resendVerification()
             },
             onCancelClick = {
                 authViewModel.signOut()
@@ -190,7 +190,7 @@ fun AuthRoute(
                 uriHandler.openUri("https://zenia-official.me/privacidad/")
             },
             onResendVerificationClick = {
-                authViewModel.resendVerification(email, password)
+                authViewModel.resendVerification()
             },
             onDismissVerificationDialog = {
                 authViewModel.resetState()

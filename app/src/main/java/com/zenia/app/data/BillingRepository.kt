@@ -18,7 +18,7 @@ import javax.inject.Singleton
 @Singleton
 class BillingRepository @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val authRepository: AuthRepository // Inyectar AuthRepository
+    private val authRepository: AuthRepository
 ) : PurchasesUpdatedListener {
 
     private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

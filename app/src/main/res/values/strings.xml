@@ -86,7 +86,7 @@
 
     <string name="nav_home">Inicio</string>
     <string name="nav_relax">Relajación</string>
-    <string name="nav_bot">ZenIA</string>
+    <string name="nav_bot">Nia</string>
     <string name="nav_diary">Diario</string>
 
     <string name="nav_resources">Recursos</string>
@@ -231,7 +231,7 @@
     <string name="sos_body_html">Sabemos que este es un momento difícil. <b>No tienes que pasar por esto en soledad.</b> Hay personas dispuestas a escucharte y apoyarte. <b>Por favor, contacta a alguien.</b></string>
 
     <string name="sos_btn_lifeline">Línea de la vida</string>
-    <string name="sos_btn_friend">Llamar a un amigo</string>
+    <string name="sos_btn_friend">Contactos de emergencia</string>
     <string name="sos_btn_support_chat">Chat de apoyo</string>
     <string name="sos_btn_calm_exercises">Ejercicios de calma</string>
     <string name="sos_close_desc">Cerrar pantalla SOS</string>
@@ -322,7 +322,7 @@
 
     <string name="onboarding_title_chat">Chat con IA</string>
     <string name="onboarding_desc_chat">
-        Habla con ZenIA en cualquier momento. Un asistente inteligente diseñado para apoyarte.
+        Habla con Nia en cualquier momento. Un asistente inteligente diseñado para apoyarte.
     </string>
 
     <string name="onboarding_title_resources">Calma y recursos</string>
@@ -344,5 +344,19 @@
     <string name="verification_resend_timer">Reenviar en %1$ds</string>
     <string name="verification_resend_btn">Reenviar correo</string>
     <string name="verification_cancel_btn">Cambiar correo / Salir</string>
+
+    <string name="auth_verification_required_title">Verificación necesaria</string>
+
+    <string name="auth_verification_required_message">
+        Hemos enviado un correo a %1$s. Debes verificar tu cuenta antes de iniciar sesión.\n\n¿No recibiste el correo? Revisa tu carpeta de spam o intenta reenviarlo.
+    </string>
+
+    <string name="auth_resend_email">Reenviar correo</string>
+    <string name="auth_understood">Entendido</string>
+
+    <string name="password_requirement_min_length">Al menos 8 caracteres</string>
+    <string name="password_requirement_uppercase">Una letra mayúscula</string>
+    <string name="password_requirement_number">Un número</string>
+    <string name="password_requirement_special">Un carácter especial</string>
 
 </resources>

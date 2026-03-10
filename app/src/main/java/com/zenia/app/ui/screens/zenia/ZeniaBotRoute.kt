@@ -18,6 +18,9 @@ fun ZeniaBotRoute(
         isTyping = isTyping,
         onSendMessage = { viewModel.enviarMensaje(it) },
         onClearChat = { viewModel.eliminarHistorial() },
+        onDeleteSelected = { ids ->
+            viewModel.eliminarMensajesSeleccionados(ids)
+        },
         onNavigateBack = onNavigateBack
     )
 }

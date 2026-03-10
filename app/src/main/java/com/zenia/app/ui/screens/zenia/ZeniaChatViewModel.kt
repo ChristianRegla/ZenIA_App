@@ -3,10 +3,10 @@ package com.zenia.app.ui.screens.zenia
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.ChatRepository
+import com.zenia.app.data.NiaApiRepository
 import com.zenia.app.model.MensajeChatbot
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -30,7 +30,8 @@ sealed interface ChatUiEvent {
 
 @HiltViewModel
 class ZeniaChatViewModel @Inject constructor(
-    private val chatRepository: ChatRepository
+    private val chatRepository: ChatRepository,
+    private val niaRepository: NiaApiRepository
 ) : ViewModel() {
 
     private val _uiEvent = Channel<ChatUiEvent>()
@@ -57,7 +58,7 @@ class ZeniaChatViewModel @Inject constructor(
             try {
                 chatRepository.addChatMessage(mensajeUsuario)
                 _isTyping.value = true
-                simularRespuestaIA()
+                obtenerRespuestaIA(texto)
             } catch (e: Exception) {
                 _uiEvent.send(ChatUiEvent.ShowError("No se pudo enviar el mensaje"))
             }
@@ -75,19 +76,49 @@ class ZeniaChatViewModel @Inject constructor(
         }
     }
 
-    private suspend fun simularRespuestaIA() {
-        delay(2000)
-        val respuestasRandom = listOf(
-            "¡Qué interesante! Cuéntame más.",
-            "Entiendo cómo te sientes. Estoy aquí para apoyarte.",
-            "Esa es una excelente pregunta. En mi base de datos encuentro que...",
-            "Soy una versión temprana de ZenIA, pero pronto seré mucho más lista 🧠"
-        )
-        val mensajeIA = MensajeChatbot(
-            emisor = "ia",
-            texto = respuestasRandom.random()
-        )
+    fun eliminarMensajesSeleccionados(ids: Set<String>) {
+        viewModelScope.launch {
+            try {
+                chatRepository.deleteMessagesByIds(ids)
+            } catch (e: Exception) {
+                _uiEvent.send(
+                    ChatUiEvent.ShowError("No se pudieron eliminar los mensajes")
+                )
+            }
+        }
+    }
+
+    private suspend fun obtenerRespuestaIA(mensaje: String) {
+
+        val result = niaRepository.enviarMensaje(mensaje)
+
         _isTyping.value = false
-        chatRepository.addChatMessage(mensajeIA)
+
+        result.onSuccess { response ->
+            val mensajeIA = MensajeChatbot(
+                emisor = "ia",
+                texto = response.mensaje_nia
+            )
+
+            chatRepository.addChatMessage(mensajeIA)
+
+            manejarTrigger(response.trigger)
+        }.onFailure {
+            _uiEvent.send(
+                ChatUiEvent.ShowError("Error al conectar con Nia")
+            )
+        }
+    }
+
+    private fun manejarTrigger(trigger: String?) {
+
+        when(trigger){
+
+            "mental_health_emergency" -> {
+                // iniciar ejercicio respiración
+            }
+
+            else -> {}
+        }
     }
 }

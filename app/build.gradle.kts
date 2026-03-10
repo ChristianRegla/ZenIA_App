@@ -43,16 +43,20 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField(
+            "String",
+            "GEMINI_API_KEY",
+            "\"${localProperties.getProperty("GEMINI_API_KEY") ?: ""}\""
+        )
     }
 
     buildTypes {
-        getByName("release") { // <-- Se usa getByName("release") en .kts
+        getByName("release") {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Se usa '=' para la asignación
             signingConfig = signingConfigs.getByName("release")
         }
     }
@@ -65,6 +69,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -106,6 +111,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.material3)
 
     // --- Test ---
     testImplementation(libs.junit)
@@ -133,4 +139,16 @@ dependencies {
     implementation(libs.vico.core)
 
     implementation(libs.lottie.compose)
+
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
+
+    // --- Glance (Widgets) ---
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.material3)
+
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }

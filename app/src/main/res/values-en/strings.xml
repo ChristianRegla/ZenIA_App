@@ -90,7 +90,7 @@
 
     <string name="nav_home">Home</string>
     <string name="nav_relax">Relax</string>
-    <string name="nav_bot">ZenIA</string>
+    <string name="nav_bot">Nia</string>
     <string name="nav_diary">Journal</string>
     <string name="nav_resources">Resources</string>
 
@@ -234,7 +234,7 @@
     <string name="sos_body_html">We know this is a difficult time. <b>You don\'t have to go through this alone.</b> There are people willing to listen and support you. <b>Please, reach out to someone.</b></string>
 
     <string name="sos_btn_lifeline">Lifeline</string>
-    <string name="sos_btn_friend">Call a friend</string>
+    <string name="sos_btn_friend">Emergency contacts</string>
     <string name="sos_btn_support_chat">Support chat</string>
     <string name="sos_btn_calm_exercises">Calm exercises</string>
     <string name="sos_close_desc">Close SOS screen</string>
@@ -328,7 +328,7 @@
 
     <string name="onboarding_title_chat">AI chat</string>
     <string name="onboarding_desc_chat">
-        Talk to ZenIA anytime. An intelligent assistant designed to support you.
+        Talk to Nia anytime. An intelligent assistant designed to support you.
     </string>
 
     <string name="onboarding_title_resources">Calm &amp; resources</string>
@@ -351,5 +351,19 @@
     <string name="verification_resend_timer">Resend in %1$ds</string>
     <string name="verification_resend_btn">Resend email</string>
     <string name="verification_cancel_btn">Change email / Exit</string>
+
+    <string name="auth_verification_required_title">Verification required</string>
+
+    <string name="auth_verification_required_message">
+        We have emailed %1$s. You must verify your account before signing in.\n\nDidn’t receive the email? Check your spam folder or try resending it.
+    </string>
+
+    <string name="auth_resend_email">Resend email</string>
+    <string name="auth_understood">Got it</string>
+
+    <string name="password_requirement_min_length">At least 8 characters</string>
+    <string name="password_requirement_uppercase">One uppercase letter</string>
+    <string name="password_requirement_number">One number</string>
+    <string name="password_requirement_special">One special character</string>
 
 </resources>

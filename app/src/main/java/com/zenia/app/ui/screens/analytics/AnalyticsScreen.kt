@@ -57,7 +57,7 @@ fun AnalyticsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                TimeRange.values().forEach { range ->
+                TimeRange.entries.forEach { range ->
                     val isLocked = !isPremium && range != TimeRange.WEEK
 
                     FilterChip(
@@ -94,7 +94,6 @@ fun AnalyticsScreen(
                 )
             }
 
-            // 3. GRÁFICA DE EVOLUCIÓN (LINE CHART)
             Text("Tu evolución", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
 
             Card(

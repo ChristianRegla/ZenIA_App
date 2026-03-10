@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -24,8 +25,10 @@ fun AuthTextField(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     visualTransformation: androidx.compose.ui.text.input.VisualTransformation = androidx.compose.ui.text.input.VisualTransformation.None,
-    trailingIcon: @Composable (() -> Unit)? = null
+    trailingIcon: @Composable (() -> Unit)? = null,
+    shape: RoundedCornerShape = RoundedCornerShape(15.dp)
 ) {
     TextField(
         value = value,
@@ -33,7 +36,7 @@ fun AuthTextField(
         enabled = enabled,
         textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = Nunito),
         label = { Text(label, fontFamily = Nunito) },
-        shape = RoundedCornerShape(15.dp),
+        shape = shape,
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = Color.Black,
             unfocusedTextColor = Color.Black,
@@ -50,6 +53,7 @@ fun AuthTextField(
             cursorColor = Color.Black
         ),
         keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
         singleLine = true,
         visualTransformation = visualTransformation,
         trailingIcon = trailingIcon,

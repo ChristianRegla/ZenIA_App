@@ -8,6 +8,7 @@ import com.zenia.app.ui.screens.account.AccountRoute
 import com.zenia.app.ui.screens.auth.AuthViewModel
 import com.zenia.app.ui.screens.premium.PremiumRoute
 import com.zenia.app.ui.screens.settings.DonationsRoute
+import com.zenia.app.ui.screens.settings.ExportSettingsRoute
 import com.zenia.app.ui.screens.settings.HealthSyncRoute
 import com.zenia.app.ui.screens.settings.HelpCenterRoute
 import com.zenia.app.ui.screens.settings.MoreSettingsRoute
@@ -52,7 +53,8 @@ fun NavGraphBuilder.settingsGraph(navController: NavController, mainViewModel: M
         popExitTransition = { popSlideOut() }
     ) {
         MoreSettingsRoute(
-            onNavigateBack = { navController.popBackStack() }
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToExport = { navController.safeNavigate(Destinations.EXPORT_SETTINGS_ROUTE) }
         )
     }
 
@@ -133,6 +135,18 @@ fun NavGraphBuilder.settingsGraph(navController: NavController, mainViewModel: M
                     popUpTo(Destinations.HOME_ROUTE) { inclusive = true }
                 }
             }
+        )
+    }
+
+    composable(
+        route = Destinations.EXPORT_SETTINGS_ROUTE,
+        enterTransition = { slideIn() },
+        exitTransition = { slideOut() },
+        popEnterTransition = { popSlideIn() },
+        popExitTransition = { popSlideOut() }
+    ) {
+        ExportSettingsRoute(
+            onNavigateBack = { navController.popBackStack() },
         )
     }
 }

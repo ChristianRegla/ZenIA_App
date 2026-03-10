@@ -1,6 +1,5 @@
 package com.zenia.app.ui.screens.home
 
-import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
@@ -8,7 +7,6 @@ import com.patrykandpatrick.vico.core.entry.entryOf
 import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.ContentRepository
 import com.zenia.app.data.DiaryRepository
-import com.zenia.app.data.HealthConnectRepository
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.util.AnalysisUtils
 import com.zenia.app.util.ChartUtils
@@ -31,7 +29,6 @@ class HomeViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val contentRepository: ContentRepository,
     private val diaryRepository: DiaryRepository,
-    private val healthConnectRepository: HealthConnectRepository?,
 ) : ViewModel() {
 
     // --- ESTADO DE USUARIO ---
@@ -39,17 +36,14 @@ class HomeViewModel @Inject constructor(
         .map { it?.apodo ?: "Usuario" }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Cargando...")
 
-    val esPremium: StateFlow<Boolean> = authRepository.isPremium
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-
-    // --- DIARIO Y GRÁFICAS (Últimos 7 días) ---
     private val sevenDaysAgo = LocalDate.now().minusDays(7).toString()
 
-    // Solo cargamos los últimos 7 días para la gráfica y el estado de "hoy"
-    // Esto es muy ligero
     val registrosDiario = diaryRepository.getEntriesFromDate(sevenDaysAgo)
-        .onEach { entradas -> processChartData(entradas) }
+        .onEach { entradas ->
+            processChartData(entradas)
+            loadStreak()
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val hasEntryToday: StateFlow<Boolean> = registrosDiario.map { lista ->
@@ -59,31 +53,20 @@ class HomeViewModel @Inject constructor(
 
     val chartProducer = ChartEntryModelProducer()
 
-    // Para los Insights (Patrones), necesitamos un poco más de contexto (ej. 30 días)
-    // Pero lo hacemos en un Flow separado para no afectar la carga inicial de la UI
     val moodInsights = diaryRepository.getEntriesFromDate(
         LocalDate.now().minusDays(30).toString()
     ).map { entries ->
         AnalysisUtils.analyzePatterns(entries)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Pair(null, null))
 
-    // RACHA: Usamos un MutableStateFlow que actualizamos manualmente con la función eficiente del Repo
     private val _currentStreak = MutableStateFlow(0)
     val currentStreak = _currentStreak.asStateFlow()
 
-
-    // --- COMUNIDAD ---
     val communityActivities = contentRepository.getActividadesComunidad()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-
-    // --- UI STATE GENERAL ---
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Idle)
     val uiState = _uiState.asStateFlow()
-
-    init {
-        loadStreak()
-    }
 
     /**
      * Carga la racha usando la función eficiente del repositorio.
@@ -97,7 +80,6 @@ class HomeViewModel @Inject constructor(
                     val streak = diaryRepository.calculateCurrentStreak(userId)
                     _currentStreak.value = streak
                 } catch (e: Exception) {
-                    // Fallback silencioso o log
                     _currentStreak.value = 0
                 }
             }
@@ -123,13 +105,7 @@ class HomeViewModel @Inject constructor(
             .sortedBy { it.x }
             .takeLast(7)
 
-        if (entries.isNotEmpty()) {
-            chartProducer.setEntries(entries)
-        }
-    }
-
-    suspend fun checkPermissions(): Boolean {
-        return healthConnectRepository?.hasPermissions() ?: false
+        chartProducer.setEntries(entries)
     }
 
     fun resetState() {

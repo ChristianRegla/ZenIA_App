@@ -1,13 +1,14 @@
 package com.zenia.app.ui.screens.home
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -51,21 +54,27 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.patrykandpatrick.vico.compose.axis.horizontal.bottomAxis
-import com.patrykandpatrick.vico.compose.axis.vertical.startAxis
+import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
+import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.component.shape.shader.fromBrush
+import com.patrykandpatrick.vico.compose.component.shapeComponent
+import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.chart.line.LineChart
+import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders
 import com.zenia.app.R
 import com.zenia.app.model.ActividadComunidad
@@ -73,29 +82,12 @@ import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.components.HomeTopBar
 import com.zenia.app.ui.components.MoodPatternsCard
 import com.zenia.app.ui.theme.RobotoFlex
+import com.zenia.app.ui.theme.ZeniaDeepTeal
 import com.zenia.app.ui.theme.ZeniaTeal
 import com.zenia.app.util.AnalysisUtils
 import com.zenia.app.util.ChartUtils
 import java.time.LocalDate
 
-/**
- * Pantalla principal "tonta" (Stateless Composable).
- * No recibe el ViewModel. Solo recibe el estado actual y eventos (lambdas)
- * desde [HomeRoute].
- *
- * @param esPremium Indica si el usuario tiene suscripción premium.
- * @param hasPermission Indica si ya se concedieron permisos de Health Connect.
- * @param healthConnectStatus Estado del SDK (Disponible, No instalado, etc.).
- * @param onSignOut Acción al pulsar cerrar sesión.
- * @param onNavigateToAccount Acción al pulsar ir a cuenta.
- * @param onConnectSmartwatch Acción para solicitar permisos de Health Connect.
- * @param onNavigateToPremium Acción para ir a la pantalla de pago.
- * @param onNavigateToManualPermission Acción para abrir ajustes de la app en Android.
- * @param onInstallHealthConnect Acción para ir a la Play Store a instalar Health Connect.
- * @param onSettingsClick Acción al pulsar el engranaje en la barra superior.
- * @param onNotificationClick Acción al pulsar la campana en la barra superior.
- * @param onNavigateToSOS Acción al pulsar el botón flotante.
- */
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
@@ -105,12 +97,6 @@ fun HomeScreen(
     communityActivities: List<ActividadComunidad>,
     chartProducer: com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer,
     onNavigateToDiaryEntry: (LocalDate) -> Unit,
-    esPremium: Boolean,
-    onSignOut: () -> Unit,
-    onNavigateToAccount: () -> Unit,
-    onNavigateToPremium: () -> Unit,
-    onNavigateToManualPermission: () -> Unit,
-    onInstallHealthConnect: () -> Unit,
     onSettingsClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onResetState: () -> Unit,
@@ -168,7 +154,6 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
 
-                // 1. SALUDO
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -185,7 +170,6 @@ fun HomeScreen(
                     )
                 }
 
-                // 2. TARJETA DE "HOY"
                 item {
                     TodayEntryCard(
                         hasEntry = hasEntryToday,
@@ -194,7 +178,6 @@ fun HomeScreen(
                     )
                 }
 
-                // 3. GRÁFICA DE EMOCIONES
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -272,11 +255,35 @@ fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
         iterations = LottieConstants.IterateForever
     )
 
+    val containerColor by animateColorAsState(
+        targetValue = if (hasEntry) ZeniaTeal.copy(alpha = 0.15f) else MaterialTheme.colorScheme.primary,
+        animationSpec = tween(durationMillis = 500),
+        label = "containerColor"
+    )
+
+    val titleTextColor by animateColorAsState(
+        targetValue = if (hasEntry) MaterialTheme.colorScheme.primary else Color.White,
+        animationSpec = tween(durationMillis = 500),
+        label = "titleColor"
+    )
+
+    val subtitleTextColor by animateColorAsState(
+        targetValue = if (hasEntry) ZeniaTeal else Color.White.copy(alpha = 0.8f),
+        animationSpec = tween(durationMillis = 500),
+        label = "subtitleColor"
+    )
+
+    val iconBackgroundColor by animateColorAsState(
+        targetValue = if (hasEntry) ZeniaTeal.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.2f),
+        animationSpec = tween(durationMillis = 500),
+        label = "iconBgColor"
+    )
+
     Card(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (hasEntry) ZeniaTeal.copy(alpha = 0.15f) else MaterialTheme.colorScheme.primary
+            containerColor = containerColor
         ),
         modifier = Modifier
             .fillMaxWidth()
@@ -294,12 +301,12 @@ fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
                     text = if (hasEntry) stringResource(R.string.home_streak_active) else stringResource(R.string.home_log_day),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = if (hasEntry) ZeniaTeal else Color.White
+                    color = titleTextColor
                 )
                 Text(
                     text = if (streak > 0) stringResource(R.string.home_streak_counter, streak) else stringResource(R.string.home_start_streak),
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (hasEntry) ZeniaTeal.copy(alpha = 0.8f) else Color.White.copy(alpha = 0.8f)
+                    color = subtitleTextColor
                 )
             }
 
@@ -307,10 +314,7 @@ fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
                 modifier = Modifier
                     .size(56.dp)
                     .clip(CircleShape)
-                    .background(
-                        if (hasEntry) ZeniaTeal.copy(alpha = 0.2f)
-                        else Color.White.copy(alpha = 0.2f)
-                    ),
+                    .background(iconBackgroundColor),
                 contentAlignment = Alignment.Center
             ) {
                 if (hasEntry || streak > 0) {
@@ -342,7 +346,13 @@ fun EmotionChartCard(chartProducer: com.patrykandpatrick.vico.core.entry.ChartEn
             .height(250.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            val lineSpec = remember {
+
+            val point = shapeComponent(
+                shape = Shapes.pillShape,
+                color = ZeniaDeepTeal
+            )
+
+            val lineSpec = remember(point) {
                 LineChart.LineSpec(
                     lineColor = ZeniaTeal.toArgb(),
                     lineThicknessDp = 3f,
@@ -350,19 +360,21 @@ fun EmotionChartCard(chartProducer: com.patrykandpatrick.vico.core.entry.ChartEn
                         Brush.verticalGradient(
                             listOf(ZeniaTeal.copy(alpha = 0.4f), Color.Transparent)
                         )
-                    )
+                    ),
+                    point = point,
+                    pointSizeDp = 10f
                 )
             }
 
             Chart(
                 chart = lineChart(lines = listOf(lineSpec)),
                 chartModelProducer = chartProducer,
-                startAxis = startAxis(
+                startAxis = rememberStartAxis(
                     valueFormatter = ChartUtils.moodValueFormatter,
-                    maxLabelCount = 5,
+                    itemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 5),
                     guideline = null
                 ),
-                bottomAxis = bottomAxis(
+                bottomAxis = rememberBottomAxis(
                     valueFormatter = ChartUtils.dateAxisFormatter,
                     guideline = null
                 ),
@@ -375,23 +387,53 @@ fun EmotionChartCard(chartProducer: com.patrykandpatrick.vico.core.entry.ChartEn
 @Composable
 fun EmptyChartCard(onClick: () -> Unit) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp)
-            .clickable(onClick = onClick),
+            .height(200.dp),
         shape = RoundedCornerShape(20.dp)
     ) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(ZeniaTeal.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.TrendingUp,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(48.dp)
+                    tint = ZeniaTeal,
+                    modifier = Modifier.size(32.dp)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(stringResource(R.string.home_no_chart_data), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = stringResource(R.string.home_no_chart_data),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onClick,
+                colors = ButtonDefaults.buttonColors(containerColor = ZeniaDeepTeal),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.home_log_day),
+                    color = Color.White
+                )
             }
         }
     }
@@ -399,12 +441,20 @@ fun EmptyChartCard(onClick: () -> Unit) {
 
 @Composable
 fun CommunityCard(actividad: ActividadComunidad) {
+    val windowInfo = LocalWindowInfo.current
+    val density = LocalDensity.current
+    val screenWidth = with(density) { windowInfo.containerSize.width.toDp() }
+
+    val availableWidth = if (screenWidth > 600.dp) 600.dp else screenWidth
+    val cardWidth = (availableWidth - 40.dp) / 2.2f
+
     Card(
         modifier = Modifier
-            .width(160.dp)
+            .width(cardWidth)
             .height(180.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(2.dp, Color.Magenta)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Box(
@@ -435,6 +485,13 @@ fun CommunityCard(actividad: ActividadComunidad) {
 
 @Composable
 fun CommunityCardPlaceholder() {
+    val windowInfo = LocalWindowInfo.current
+    val density = LocalDensity.current
+    val screenWidth = with(density) { windowInfo.containerSize.width.toDp() }
+
+    val availableWidth = if (screenWidth > 600.dp) 600.dp else screenWidth
+    val cardWidth = (availableWidth - 40.dp) / 2.2f
+
     val transition = rememberInfiniteTransition(label = "shimmer")
     val translateAnim = transition.animateFloat(
         initialValue = 0f,
@@ -458,10 +515,11 @@ fun CommunityCardPlaceholder() {
 
     Card(
         modifier = Modifier
-            .width(160.dp)
+            .width(cardWidth)
             .height(180.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        border = BorderStroke(2.dp, Color.Red)
     ) {
         Spacer(modifier = Modifier
             .fillMaxSize()

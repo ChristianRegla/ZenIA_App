@@ -22,22 +22,17 @@ import java.time.LocalDate
  */
 @Composable
 fun HomeRoute(
-    onNavigateToAccount: () -> Unit,
-    onNavigateToPremium: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNotificationClick: () -> Unit,
     onNavigateToSOS: () -> Unit,
-    onSignOut: () -> Unit,
     onNavigateToDiaryEntry: (LocalDate) -> Unit,
     onNavigateToAnalytics: () -> Unit,
     onNavigateToCommunity: () -> Unit
 ) {
     val homeViewModel: HomeViewModel = hiltViewModel()
-    val context = LocalContext.current
 
     val uiState by homeViewModel.uiState.collectAsState()
     val registros by homeViewModel.registrosDiario.collectAsState()
-    val esPremium by homeViewModel.esPremium.collectAsState()
     val userName by homeViewModel.userName.collectAsState()
     val hasEntryToday by homeViewModel.hasEntryToday.collectAsState()
     val communityActivities by homeViewModel.communityActivities.collectAsState()
@@ -52,42 +47,6 @@ fun HomeRoute(
         communityActivities = communityActivities,
         chartProducer = homeViewModel.chartProducer,
         onNavigateToDiaryEntry = onNavigateToDiaryEntry,
-        esPremium = esPremium,
-        onSignOut = onSignOut,
-        onNavigateToAccount = onNavigateToAccount,
-        onNavigateToPremium = onNavigateToPremium,
-        onNavigateToManualPermission = {
-            val intent = Intent(HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS)
-
-            val oldPackage = "com.google.android.apps.healthdata"
-            val newPackage = "com.google.android.healthconnect.controller"
-
-            try {
-                intent.setPackage(oldPackage)
-                context.startActivity(intent)
-            } catch (e: Exception) {
-                Log.w("HomeRoute", "No se encontró el paquete antiguo de Health Connect. Intentando con el nuevo...")
-                try {
-                    intent.setPackage(newPackage)
-                    context.startActivity(intent)
-                } catch (e2: Exception) {
-                    Log.e("HomeRoute", "No se pudo abrir Health Connect con ninguno de los paquetes.", e2)
-                }
-            }
-        },
-        onInstallHealthConnect = {
-            try {
-                val intent = Intent(Intent.ACTION_VIEW).apply {
-                    data = "market://details?id=com.google.android.apps.healthdata".toUri()
-                    setPackage("com.android.vending")
-                }
-                context.startActivity(intent)
-            } catch (e: Exception) {
-                val webIntent = Intent(Intent.ACTION_VIEW,
-                    "https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata".toUri())
-                context.startActivity(webIntent)
-            }
-        },
         onSettingsClick = onNavigateToSettings,
         onNotificationClick = onNotificationClick,
         onResetState = { homeViewModel.resetState() },

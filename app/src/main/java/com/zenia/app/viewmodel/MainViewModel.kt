@@ -24,6 +24,9 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
     private val _authTrigger = MutableStateFlow(0)
 
+    private val _pendingRouteAfterUnlock = MutableStateFlow<String?>(null)
+    val pendingRouteAfterUnlock: StateFlow<String?> = _pendingRouteAfterUnlock
+
     val startDestinationState: StateFlow<String?> = combine(
         authRepository.getUsuarioFlow(),
         userPreferencesRepository.isBiometricEnabled,
@@ -47,6 +50,16 @@ class MainViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = null
     )
+
+    fun setPendingRoute(route: String) {
+        _pendingRouteAfterUnlock.value = route
+    }
+
+    fun consumePendingRoute(): String? {
+        val route = _pendingRouteAfterUnlock.value
+        _pendingRouteAfterUnlock.value = null
+        return route
+    }
 
     fun checkAuthStatus() {
         viewModelScope.launch {
