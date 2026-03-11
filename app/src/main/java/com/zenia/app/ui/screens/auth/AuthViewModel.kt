@@ -157,10 +157,14 @@ class AuthViewModel @Inject constructor(
             if (newUser != null) {
                 authRepository.createUserIfNew(newUser.uid, cleanEmail, isNewUser = true)
 
-                newUser.sendEmailVerification().await()
+                val result = authRepository.sendEmailVerification()
 
-                _uiState.value = AuthUiState.VerificationRequired(cleanEmail)
-                startVerificationCheck()
+                if (result.isSuccess) {
+                    _uiState.value = AuthUiState.VerificationRequired(cleanEmail)
+                    startVerificationCheck()
+                } else {
+                    _uiState.value = AuthUiState.Error("Cuenta creada, pero falló el envío del correo.")
+                }
             }
         }
     }
@@ -171,16 +175,18 @@ class AuthViewModel @Inject constructor(
         val user = auth.currentUser ?: return
 
         viewModelScope.launch {
-            try {
-                _uiState.value = AuthUiState.VerificationRequired(user.email ?: "")
+            _uiState.value = AuthUiState.VerificationRequired(user.email ?: "")
+            _isResending.value = true
 
-                _isResending.value = true
-                user.sendEmailVerification().await()
-                _isResending.value = false
+            val result = authRepository.sendEmailVerification()
 
+            _isResending.value = false
+
+            if (result.isSuccess) {
                 startResendTimer()
-            } catch (e: Exception) {
-                _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
+            } else {
+                val exception = result.exceptionOrNull()
+                _uiState.value = AuthUiState.Error(exception?.message ?: "Error al reenviar")
             }
         }
     }
@@ -260,52 +266,30 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    // Limpia el estado cuando salimos de la pantalla
     fun resetForgotPasswordState() {
         _resendTimer.value = 0
         _emailSentSuccess.value = false
         _uiState.value = AuthUiState.Idle
     }
 
-    /**
-     * Reenvía el correo de verificación al usuario actual (si no está verificado).
-     */
-    fun resendVerificationEmail() {
-        if (_uiState.value == AuthUiState.Loading) return
-
-        _uiState.value = AuthUiState.Loading
-        viewModelScope.launch {
-            try {
-                authRepository.sendEmailVerification()
-                _uiState.value = AuthUiState.VerificationSent
-            } catch (e: Exception) {
-                _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
-            }
-        }
-    }
-
-    /**
-     * Elimina permanentemente la cuenta del usuario actual de Firebase Authentication.
-     * Las reglas de Firestore (o Cloud Functions) deberían encargarse de limpiar sus datos.
-     */
     fun deleteAccount() {
         if (_uiState.value == AuthUiState.Loading) return
 
         _uiState.value = AuthUiState.Loading
         viewModelScope.launch {
-            try {
-                val user = auth.currentUser
-                val userId = user?.uid
+            val user = auth.currentUser
+            val userId = user?.uid
 
-                if (userId != null) {
-                    authRepository.deleteUserData(userId)
+            if (userId != null) {
+                val result = authRepository.deleteUserData(userId)
+
+                if (result.isSuccess) {
+                    _uiState.value = AuthUiState.AccountDeleted
+                } else {
+                    _uiState.value = AuthUiState.Error("No se pudo eliminar la cuenta.")
                 }
-
-                user?.delete()?.await()
-
-                _uiState.value = AuthUiState.AccountDeleted
-            } catch (e: Exception) {
-                _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
+            } else {
+                _uiState.value = AuthUiState.Error("No hay usuario activo")
             }
         }
     }

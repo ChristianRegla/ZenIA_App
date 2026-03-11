@@ -67,7 +67,7 @@ fun AccountRoute(
     val actions = AccountScreenActions(
         onNavigateBack = onNavigateBack,
         onResendVerification = {
-            authViewModel.resendVerificationEmail()
+            authViewModel.resendVerification()
         },
         onChangePassword = {
             if (userEmail.isNotBlank()) {

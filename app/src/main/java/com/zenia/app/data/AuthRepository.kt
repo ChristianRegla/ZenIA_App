@@ -19,6 +19,12 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,6 +40,14 @@ class AuthRepository @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore
 ) {
+
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .build()
+
+    private val baseUrl = "https://api-zenia.onrender.com"
 
     // Scope para mantener vivos los Flows compartidos mientras la app viva.
     private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -154,8 +168,44 @@ class AuthRepository @Inject constructor(
     /**
      * Envía un correo electrónico de verificación al usuario actual mediante Firebase Auth.
      */
-    suspend fun sendEmailVerification() {
-        auth.currentUser?.sendEmailVerification()?.await()
+    suspend fun sendEmailVerification(): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val currentUser = auth.currentUser ?: throw Exception("No hay usuario autenticado")
+            val email = currentUser.email ?: throw Exception("El usuario no tiene correo electrónico")
+
+            var nombre = "Usuario"
+            try {
+                val snapshot = db.collection(FirestoreCollections.USERS).document(currentUser.uid).get().await()
+                nombre = snapshot.getString("apodo") ?: "Usuario"
+            } catch (e: Exception) {
+                Log.e("AuthRepository", "Error al obtener apodo del usuario", e)
+            }
+
+            val json = JSONObject().apply {
+                put("email", email)
+                put("nombre", nombre)
+            }
+            val body = json.toString().toRequestBody("application/json".toMediaType())
+
+            val request = Request.Builder()
+                .url("$baseUrl/send-custom-verification")
+                .post(body)
+                .build()
+
+            val response = client.newCall(request).execute()
+
+            if (response.isSuccessful) {
+                Log.d("AuthRepository", "Correo de ZenIA enviado exitosamente")
+                Result.success(Unit)
+            } else {
+                val errorBody = response.body?.string()
+                Log.e("AuthRepository", "Error en Render: ${response.code} - $errorBody")
+                Result.failure(Exception("Error del servidor: ${response.code}"))
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error al enviar correo de verificación", e)
+            Result.failure(e)
+        }
     }
 
     /**
@@ -175,13 +225,30 @@ class AuthRepository @Inject constructor(
     /**
      * Elimina permanentemente los datos del usuario de Firestore.
      */
-    suspend fun deleteUserData(userId: String) {
-        // Esta función ahora solo registra una advertencia. La lógica real debe estar en el backend.
-        Log.w(
-            "AuthRepository",
-            "La eliminación de datos de Firestore ($userId) debe ser manejada por una Cloud Function. " +
-            "La implementación del lado del cliente ha sido deshabilitada para evitar la pérdida de datos o crashes."
-        )
+    suspend fun deleteUserData(userId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            db.collection(FirestoreCollections.USERS).document(userId).delete().await()
+
+            val request = Request.Builder()
+                .url("$baseUrl/delete-account/$userId")
+                .delete()
+                .build()
+
+            val response = client.newCall(request).execute()
+
+            if (response.isSuccessful) {
+                Log.d("AuthRepository", "Cuenta $userId eliminada de Firebase Auth")
+                auth.signOut()
+                Result.success(Unit)
+            } else {
+                val errorBody = response.body?.string()
+                Log.e("AuthRepository", "Error borrando en Render: ${response.code} - $errorBody")
+                Result.failure(Exception("Error al borrar cuenta: ${response.code}"))
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error eliminando usuario", e)
+            Result.failure(e)
+        }
     }
 
     /**
