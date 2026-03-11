@@ -32,7 +32,7 @@ fun OnboardingRoute(
         OnboardingPage(
             titleRes = R.string.onboarding_title_welcome,
             descriptionRes = R.string.onboarding_desc_welcome,
-            iconRes = R.drawable.ic_nube_feli,
+            iconRes = R.drawable.logo_zenia,
             color = ZeniaFeelings
         ),
         OnboardingPage(
