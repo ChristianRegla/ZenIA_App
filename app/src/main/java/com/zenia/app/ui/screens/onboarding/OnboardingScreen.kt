@@ -3,12 +3,12 @@ package com.zenia.app.ui.screens.onboarding
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,6 +26,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -64,10 +65,10 @@ fun OnboardingScreen(
 
     val pagerState = rememberPagerState(pageCount = { pages.size })
 
-    val backgroundColor by animateColorAsState(
-        targetValue = pages[pagerState.currentPage].color.copy(alpha = 0.08f),
-        animationSpec = tween(600),
-        label = "backgroundColor"
+    val targetColor by animateColorAsState(
+        targetValue = pages[pagerState.currentPage].color,
+        animationSpec = tween(800, easing = FastOutSlowInEasing),
+        label = "pageColorTransition"
     )
 
     val primaryTextColor = Color.White
@@ -75,7 +76,7 @@ fun OnboardingScreen(
     val hintTextColor = Color.White.copy(alpha = 0.6f)
 
     Scaffold(
-        containerColor = backgroundColor,
+        containerColor = Color.Transparent,
         topBar = {
             OnboardingTopBar(
                 currentLanguage = currentLanguage,
@@ -94,14 +95,15 @@ fun OnboardingScreen(
             )
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+
+            AnimatedFluidBackground(targetColor = targetColor)
+
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
                 contentPadding = PaddingValues(horizontal = 32.dp)
             ) { pageIndex ->
                 OnboardingPageAnimated(
@@ -113,6 +115,73 @@ fun OnboardingScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun AnimatedFluidBackground(targetColor: Color) {
+    val infiniteTransition = rememberInfiniteTransition(label = "fluidBackground")
+
+    val offsetX1 by infiniteTransition.animateFloat(
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(12000, easing = LinearEasing), RepeatMode.Reverse),
+        label = "offsetX1"
+    )
+    val offsetY1 by infiniteTransition.animateFloat(
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(8000, easing = LinearEasing), RepeatMode.Reverse),
+        label = "offsetY1"
+    )
+    val offsetX2 by infiniteTransition.animateFloat(
+        initialValue = 1f, targetValue = 0f,
+        animationSpec = infiniteRepeatable(tween(15000, easing = LinearEasing), RepeatMode.Reverse),
+        label = "offsetX2"
+    )
+    val offsetY2 by infiniteTransition.animateFloat(
+        initialValue = 1f, targetValue = 0f,
+        animationSpec = infiniteRepeatable(tween(10000, easing = LinearEasing), RepeatMode.Reverse),
+        label = "offsetY2"
+    )
+
+    val baseDarkColor = Color(0xFF141414)
+
+    Canvas(modifier = Modifier.fillMaxSize().background(baseDarkColor)) {
+        val width = size.width
+        val height = size.height
+        val maxDimension = maxOf(width, height)
+
+        drawRect(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    targetColor.copy(alpha = 0.25f),
+                    Color.Transparent
+                ),
+                center = Offset(offsetX1 * width, offsetY1 * height * 0.6f),
+                radius = maxDimension * 0.8f
+            )
+        )
+
+        drawRect(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    targetColor.copy(alpha = 0.15f),
+                    Color.Transparent
+                ),
+                center = Offset(offsetX2 * width, height * 0.4f + (offsetY2 * height * 0.6f)),
+                radius = maxDimension * 0.9f
+            )
+        )
+
+        drawRect(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    targetColor.copy(alpha = 0.10f),
+                    Color.Transparent
+                ),
+                center = Offset(width * 0.5f, height * 0.5f),
+                radius = maxDimension * (0.5f + (offsetX1 * 0.2f))
+            )
+        )
     }
 }
 
@@ -215,7 +284,6 @@ private fun OnboardingBottomBar(
             .padding(bottom = 24.dp, start = 24.dp, end = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Indicador de Puntos (Dots)
         Row(
             modifier = Modifier.height(24.dp),
             horizontalArrangement = Arrangement.Center,
@@ -295,7 +363,6 @@ fun OnboardingPageAnimated(
     titleColor: Color,
     descriptionColor: Color
 ) {
-    // Calculamos el offset de esta página respecto a la actual
     val pageOffset = (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
 
     val scale = lerp(
