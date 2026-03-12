@@ -151,4 +151,6 @@ dependencies {
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    implementation("com.mikepenz:multiplatform-markdown-renderer-m3:0.27.0")
 }

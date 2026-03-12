@@ -27,11 +27,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.ZeniaTeal
+import com.mikepenz.markdown.m3.Markdown
+import com.mikepenz.markdown.m3.markdownColor
+import com.mikepenz.markdown.m3.markdownTypography
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -111,11 +115,30 @@ fun RecursoDetailScreen(
 
                             Spacer(modifier = Modifier.height(24.dp))
 
-                            Text(
-                                text = recurso.contenido,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.5f
+                            val customTypography = markdownTypography(
+                                text = MaterialTheme.typography.bodyLarge.copy(
+                                    lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.5f,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                ),
+                                h1 = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Black),
+                                h2 = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                                h3 = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                quote = MaterialTheme.typography.bodyLarge.copy(
+                                    fontStyle = FontStyle.Italic,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            )
+
+                            val customColors = markdownColor(
+                                text = MaterialTheme.colorScheme.onBackground,
+                                dividerColor = ZeniaTeal.copy(alpha = 0.2f)
+                            )
+
+                            Markdown(
+                                content = recurso.contenido,
+                                modifier = Modifier.fillMaxWidth(),
+                                typography = customTypography,
+                                colors = customColors
                             )
 
                             Spacer(modifier = Modifier.height(48.dp))

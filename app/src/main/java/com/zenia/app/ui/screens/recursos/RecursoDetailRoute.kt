@@ -18,7 +18,7 @@ fun RecursoDetailRoute(
         onNavigateBack = onNavigateBack,
         onMarkAsCompleted = {
             viewModel.markAsCompleted()
-            onNavigateBack() // Opcional: lo sacamos a la lista después de terminar
+            onNavigateBack()
         }
     )
 }

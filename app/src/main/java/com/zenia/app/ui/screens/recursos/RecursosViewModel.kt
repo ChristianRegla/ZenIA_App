@@ -53,9 +53,11 @@ class RecursosViewModel @Inject constructor(
                     val uiModels = listaPares.map { (recurso, interaccion) ->
                         RecursoUiModel(
                             id = recurso.id,
-                            title = recurso.titulo ?: "Sin título",
-                            description = recurso.contenido ?: "Sin descripción",
-                            category = recurso.tipo ?: "Recurso",
+                            title = recurso.titulo,
+                            description = recurso.descripcion.takeIf { it.isNotBlank() }
+                                ?: (recurso.contenido.take(80).replace("#", "")
+                                    .replace("*", "") + "..."),
+                            category = recurso.tipo,
                             imageRes = R.drawable.placeholder_resource_1,
                             isPremium = recurso.esPremium ?: false,
                             isFavorite = interaccion?.isFavorite ?: false,

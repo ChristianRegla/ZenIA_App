@@ -6,6 +6,7 @@ data class Recurso(
     @DocumentId val id: String = "",
     val titulo: String = "",
     val contenido: String = "",
+    val descripcion: String = "",
     val tipo: String = "",
     val validado: Boolean = false,
     val esPremium: Boolean = false,
