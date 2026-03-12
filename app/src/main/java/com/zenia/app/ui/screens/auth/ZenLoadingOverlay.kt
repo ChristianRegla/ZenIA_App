@@ -6,9 +6,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,65 +20,78 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.zenia.app.R
 import com.zenia.app.ui.theme.Nunito
 import com.zenia.app.ui.theme.ZeniaTeal
 
 @Composable
 fun ZenLoadingOverlay() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(ZeniaTeal.copy(alpha = 0.8f))
-            .clickable(enabled = false) {},
-        contentAlignment = Alignment.Center
+    Dialog(
+        onDismissRequest = {  },
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false
+        )
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(ZeniaTeal.copy(alpha = 0.90f)),
+            contentAlignment = Alignment.Center
         ) {
-            val infiniteTransition = rememberInfiniteTransition(label = "breathing")
-            val scale by infiniteTransition.animateFloat(
-                initialValue = 1f,
-                targetValue = 1.1f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(1500, easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse
-                ),
-                label = "scale"
-            )
-            val alpha by infiniteTransition.animateFloat(
-                initialValue = 0.7f,
-                targetValue = 1f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(1500, easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse
-                ),
-                label = "alpha"
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
 
-            Image(
-                painter = painterResource(id = R.drawable.ic_nube_feli), // Usamos tu recurso
-                contentDescription = "Cargando",
-                modifier = Modifier
-                    .size(120.dp)
-                    .scale(scale)
-                    .alpha(alpha)
-            )
+                val composition by rememberLottieComposition(
+                    LottieCompositionSpec.RawRes(R.raw.loading)
+                )
+                val progress by animateLottieCompositionAsState(
+                    composition = composition,
+                    iterations = LottieConstants.IterateForever
+                )
 
-            Spacer(modifier = Modifier.height(24.dp))
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progress },
+                    modifier = Modifier.size(150.dp)
+                )
 
-            Text(
-                text = "Respirando...",
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White,
-                fontFamily = Nunito,
-                fontWeight = FontWeight.Bold
-            )
+                Spacer(modifier = Modifier.height(32.dp))
+
+                val infiniteTransition = rememberInfiniteTransition(label = "breathing_text")
+                val textAlpha by infiniteTransition.animateFloat(
+                    initialValue = 0.5f,
+                    targetValue = 1f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(1200, easing = LinearEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "text_alpha"
+                )
+
+                Text(
+                    text = "Respirando...",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.White,
+                    fontFamily = Nunito,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 2.sp,
+                    modifier = Modifier.alpha(textAlpha)
+                )
+            }
         }
     }
 }
