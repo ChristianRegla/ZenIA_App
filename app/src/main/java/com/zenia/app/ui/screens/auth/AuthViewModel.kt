@@ -255,13 +255,15 @@ class AuthViewModel @Inject constructor(
 
         _uiState.value = AuthUiState.Loading
         viewModelScope.launch {
-            try {
-                auth.sendPasswordResetEmail(cleanEmail).await()
+            val result = authRepository.sendPasswordResetEmail(cleanEmail)
+
+            if (result.isSuccess) {
                 _uiState.value = AuthUiState.PasswordResetSent
                 _emailSentSuccess.value = true
                 startResendTimer()
-            } catch (e: Exception) {
-                _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
+            } else {
+                val exception = result.exceptionOrNull()
+                _uiState.value = AuthUiState.Error(exception?.message ?: "Error al enviar el correo de recuperación")
             }
         }
     }

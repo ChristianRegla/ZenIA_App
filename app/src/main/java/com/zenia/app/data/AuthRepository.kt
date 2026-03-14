@@ -208,6 +208,34 @@ class AuthRepository @Inject constructor(
         }
     }
 
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val json = JSONObject().apply {
+                put("email", email)
+            }
+            val body = json.toString().toRequestBody("application/json".toMediaType())
+
+            val request = Request.Builder()
+                .url("$baseUrl/send-password-reset")
+                .post(body)
+                .build()
+
+            val response = client.newCall(request).execute()
+
+            if (response.isSuccessful) {
+                Log.d("AuthRepository", "Correo de recuperación enviado exitosamente")
+                Result.success(Unit)
+            } else {
+                val errorBody = response.body?.string()
+                Log.e("AuthRepository", "Error en Render al recuperar: ${response.code} - $errorBody")
+                Result.failure(Exception("Error del servidor: ${response.code}"))
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error al enviar correo de recuperación", e)
+            Result.failure(e)
+        }
+    }
+
     /**
      * Obtiene el flujo observable del usuario actual.
      * @return Un [Flow] que emite objetos [Usuario] o null si no hay sesión.
