@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -153,7 +154,7 @@ fun RecursoDetailScreen(
                             ) {
                                 Icon(Icons.Default.CheckCircle, contentDescription = null)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Marcar como completado", fontWeight = FontWeight.Bold)
+                                Text(text = stringResource(R.string.resource_detail_mark_completed), fontWeight = FontWeight.Bold)
                             }
                             Spacer(modifier = Modifier.height(32.dp))
                         }

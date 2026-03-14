@@ -48,7 +48,6 @@ class NiaApiRepository @Inject constructor() {
 
                 if (!jsonResponse.has("mensaje_nia")) {
                     Log.e("NIA_API", "¡ERROR! El JSON no trae la llave 'mensaje_nia'. Trae esto: $responseBody")
-                    // Opcional:  el servidor mandó un mensaje de error de Python, lo atrapamos
                     val errorServidor = jsonResponse.optString("error", "Error desconocido en el servidor")
                     return@withContext Result.failure(Exception(errorServidor))
                 }

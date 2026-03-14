@@ -366,4 +366,6 @@
     <string name="password_requirement_number">One number</string>
     <string name="password_requirement_special">One special character</string>
 
+    <string name="resource_detail_mark_completed">Mark as completed</string>
+
 </resources>

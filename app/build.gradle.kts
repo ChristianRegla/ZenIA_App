@@ -148,9 +148,7 @@ dependencies {
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
 
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
-
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
-    implementation("com.mikepenz:multiplatform-markdown-renderer-m3:0.27.0")
+    implementation(libs.google.generativeai)
+    implementation(libs.okhttp)
+    implementation(libs.mikepenz.markdown.renderer)
 }

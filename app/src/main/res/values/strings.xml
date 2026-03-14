@@ -359,4 +359,6 @@
     <string name="password_requirement_number">Un número</string>
     <string name="password_requirement_special">Un carácter especial</string>
 
+    <string name="resource_detail_mark_completed">Marcar como completado</string>
+
 </resources>

@@ -86,7 +86,6 @@ fun RecursosScreen(
                                     if (recurso.isPremium && !isUserPremium) {
                                         onNavigateToPremium()
                                     } else {
-                                        // En lugar de navegar directo, abrimos el Bottom Sheet
                                         selectedRecurso = recurso
                                     }
                                 }
@@ -194,7 +193,6 @@ fun RecursosScreen(
                     Spacer(modifier = Modifier.height(24.dp))
                 }
 
-                // Botón de Acción Principal
                 Button(
                     onClick = {
                         selectedRecurso = null
