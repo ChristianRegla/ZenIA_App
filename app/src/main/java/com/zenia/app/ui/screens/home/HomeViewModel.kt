@@ -77,7 +77,7 @@ class HomeViewModel @Inject constructor(
             val userId = authRepository.currentUserId
             if (userId != null) {
                 try {
-                    val streak = diaryRepository.calculateCurrentStreak(userId)
+                    val streak = diaryRepository.calculateCurrentStreak()
                     _currentStreak.value = streak
                 } catch (e: Exception) {
                     _currentStreak.value = 0

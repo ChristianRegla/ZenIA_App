@@ -48,6 +48,11 @@ android {
             "GEMINI_API_KEY",
             "\"${localProperties.getProperty("GEMINI_API_KEY") ?: ""}\""
         )
+        buildConfigField(
+            "String",
+            "API_BASE_URL",
+            "\"https://api-zenia.onrender.com\""
+        )
     }
 
     buildTypes {

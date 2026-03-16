@@ -139,17 +139,11 @@ class DiaryEntryViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = DiaryEntryUiState.Loading
 
-            val currentUserId = diaryRepository.getCurrentUserId() ?: ""
-            if (currentUserId.isBlank()) {
-                _uiState.value = DiaryEntryUiState.Error(R.string.diary_error_user_id)
-                return@launch
-            }
-
             val categoriasBase = listOf("estadoAnimo", "calidadSueno", "estadoMental", "ejercicio")
             val extras = selecciones.filterKeys { it !in categoriasBase }
 
             val nuevaEntrada = DiarioEntrada(
-                userId = currentUserId,
+                userId = "",
                 fecha = date.toString(),
                 estadoAnimo = selecciones["estadoAnimo"],
                 calidadSueno = selecciones["calidadSueno"],

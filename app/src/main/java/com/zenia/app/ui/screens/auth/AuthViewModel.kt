@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.zenia.app.R
 import com.zenia.app.data.AuthRepository
+import com.zenia.app.data.session.UserSessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -31,22 +32,21 @@ import javax.inject.Inject
 class AuthViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val authRepository: AuthRepository,
+    private val session: UserSessionManager,
     private val application: Application
 ) : AndroidViewModel(application) {
     /**
      * Expone el email del usuario actualmente autenticado.
      */
-    val userEmail: String?
-        get() = auth.currentUser?.email
+    val userEmail = session.email
+
+    val isUserLoggedIn = session.isLoggedIn
 
     val isUserVerified: Boolean
         get() = auth.currentUser?.isEmailVerified ?: false
 
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
     val uiState = _uiState.asStateFlow()
-
-    private val _isUserLoggedIn = MutableStateFlow(false)
-    val isUserLoggedIn = _isUserLoggedIn.asStateFlow()
 
     private val _resendTimer = MutableStateFlow(0)
     val resendTimer = _resendTimer.asStateFlow()
@@ -59,25 +59,10 @@ class AuthViewModel @Inject constructor(
 
     private var timerJob: Job? = null
 
-    private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-        val user = firebaseAuth.currentUser
-        _isUserLoggedIn.value = (user != null && user.isEmailVerified)
-    }
+    private var verificationPollJob: Job? = null
 
-    /**
-     * Bloque de inicialización. Se registra el [authStateListener] cuando el ViewModel se crea.
-     */
-    init {
-        auth.addAuthStateListener(authStateListener)
-    }
-
-    /**
-     * Se llama cuando el ViewModel está a punto de ser destruido.
-     * Limpia él [authStateListener] para evitar memory leaks.
-     */
     override fun onCleared() {
         super.onCleared()
-        auth.removeAuthStateListener(authStateListener)
         timerJob?.cancel()
         stopVerificationCheck()
     }
@@ -191,8 +176,6 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    private var verificationPollJob: Job? = null
-
     fun startVerificationCheck() {
         if (verificationPollJob?.isActive == true) return
 
@@ -203,10 +186,9 @@ class AuthViewModel @Inject constructor(
 
                 if (user?.isEmailVerified == true) {
                     _uiState.value = AuthUiState.Idle
-                    _isUserLoggedIn.value = true
-
                     break
                 }
+
                 delay(3000)
             }
         }
@@ -328,8 +310,7 @@ class AuthViewModel @Inject constructor(
     }
 
     fun signOut() {
-        auth.signOut()
-        _isUserLoggedIn.value = false
+        authRepository.signOut()
     }
 
     /**

@@ -15,11 +15,12 @@ import javax.inject.Singleton
 
 @Singleton
 class DiaryRepository @Inject constructor(
-    private val auth: FirebaseAuth,
+    private val authRepository: AuthRepository,
     private val db: FirebaseFirestore
 ) {
     private val userId: String
-        get() = auth.currentUser?.uid ?: throw IllegalStateException("Usuario no autenticado")
+        get() = authRepository.currentUserId
+            ?: throw IllegalStateException("Usuario no autenticado")
 
     /**
      * Función de ayuda genérica para crear un Flow que escucha una subcolección del usuario.
@@ -34,34 +35,33 @@ class DiaryRepository @Inject constructor(
         subcollection: String,
         crossinline queryBuilder: (Query) -> Query = { it }
     ): Flow<List<T>> = callbackFlow {
-        var firestoreListener: ListenerRegistration? = null
 
-        val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-            val currentUserId = firebaseAuth.currentUser?.uid
-            firestoreListener?.remove()
+        val currentUserId = authRepository.currentUserId
 
-            if (currentUserId.isNullOrBlank()) {
-                trySend(emptyList())
-            } else {
-                val baseQuery = db.collection(FirestoreCollections.USERS)
-                    .document(currentUserId)
-                    .collection(subcollection)
-
-                firestoreListener = queryBuilder(baseQuery).addSnapshotListener { snapshot, e ->
-                    if (e != null) {
-                        trySend(emptyList())
-                        return@addSnapshotListener
-                    }
-                    val items = snapshot?.toObjects(T::class.java) ?: emptyList()
-                    trySend(items)
-                }
-            }
+        if (currentUserId.isNullOrBlank()) {
+            trySend(emptyList())
+            close()
+            return@callbackFlow
         }
 
-        auth.addAuthStateListener(authListener)
+        val baseQuery = db.collection(FirestoreCollections.USERS)
+            .document(currentUserId)
+            .collection(subcollection)
+
+        val listener = queryBuilder(baseQuery)
+            .addSnapshotListener { snapshot, e ->
+
+                if (e != null) {
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+
+                val items = snapshot?.toObjects(T::class.java) ?: emptyList()
+                trySend(items)
+            }
+
         awaitClose {
-            auth.removeAuthStateListener(authListener)
-            firestoreListener?.remove()
+            listener.remove()
         }
     }
 
@@ -123,7 +123,7 @@ class DiaryRepository @Inject constructor(
      * Calcula la racha actual de forma eficiente.
      * Descarga todas las fechas ordenadas, pero no el contenido pesado.
      */
-    suspend fun calculateCurrentStreak(userId: String): Int {
+    suspend fun calculateCurrentStreak(): Int {
         return try {
             val snapshot = db.collection(FirestoreCollections.USERS)
                 .document(userId)
@@ -172,10 +172,5 @@ class DiaryRepository @Inject constructor(
             e.printStackTrace()
             0
         }
-    }
-
-
-    fun getCurrentUserId(): String? {
-        return auth.currentUser?.uid
     }
 }

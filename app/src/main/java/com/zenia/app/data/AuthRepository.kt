@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.zenia.app.BuildConfig
 import com.zenia.app.model.SubscriptionType
 import com.zenia.app.model.Usuario
 import kotlinx.coroutines.CoroutineScope
@@ -28,13 +29,6 @@ import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Repositorio central encargado de la autenticación y la gestión de datos del usuario en Firestore.
- * Sigue el patrón "Single Source of Truth" combinando Firebase Auth y Firestore.
- *
- * @property auth Instancia de FirebaseAuth para gestión de sesión.
- * @property db Instancia de Firestore para base de datos.
- */
 @Singleton
 class AuthRepository @Inject constructor(
     private val auth: FirebaseAuth,
@@ -49,7 +43,6 @@ class AuthRepository @Inject constructor(
 
     private val baseUrl = "https://api-zenia.onrender.com"
 
-    // Scope para mantener vivos los Flows compartidos mientras la app viva.
     private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /**

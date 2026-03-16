@@ -22,8 +22,7 @@ fun AccountRoute(
     val context = LocalContext.current
 
     val uiState by authViewModel.uiState.collectAsState()
-
-    val userEmail = authViewModel.userEmail ?: ""
+    val userEmail = authViewModel.userEmail.collectAsState().value ?: ""
     val isVerified = authViewModel.isUserVerified
 
     var showDeleteDialog by remember { mutableStateOf(false) }
