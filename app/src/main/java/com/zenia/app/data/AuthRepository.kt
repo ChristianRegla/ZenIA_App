@@ -41,7 +41,7 @@ class AuthRepository @Inject constructor(
         .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
         .build()
 
-    private val baseUrl = "https://api-zenia.onrender.com"
+    private val baseUrl = BuildConfig.API_BASE_URL
 
     private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
