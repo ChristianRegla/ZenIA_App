@@ -55,10 +55,17 @@ class ZeniaChatViewModel @Inject constructor(
         viewModelScope.launch {
             val mensajeUsuario = MensajeChatbot(emisor = "usuario", texto = texto)
 
+            val historialActual = (uiState.value as? ChatUiState.Success)?.mensajes ?: emptyList()
+
+            val historialCompleto = historialActual + mensajeUsuario
+
+            val historialParaMandar = historialCompleto.takeLast(20)
+
             try {
                 chatRepository.addChatMessage(mensajeUsuario)
                 _isTyping.value = true
-                obtenerRespuestaIA(texto)
+
+                obtenerRespuestaIA(historialParaMandar)
             } catch (e: Exception) {
                 _uiEvent.send(ChatUiEvent.ShowError("No se pudo enviar el mensaje"))
             }
@@ -88,9 +95,9 @@ class ZeniaChatViewModel @Inject constructor(
         }
     }
 
-    private suspend fun obtenerRespuestaIA(mensaje: String) {
+    private suspend fun obtenerRespuestaIA(historial: List<MensajeChatbot>) {
 
-        val result = niaRepository.enviarMensaje(mensaje)
+        val result = niaRepository.enviarMensaje(historial)
 
         _isTyping.value = false
 

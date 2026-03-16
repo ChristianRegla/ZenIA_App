@@ -1,6 +1,7 @@
 package com.zenia.app.data
 
 import android.util.Log
+import com.zenia.app.model.MensajeChatbot
 import com.zenia.app.model.NiaResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,12 +23,21 @@ class NiaApiRepository @Inject constructor() {
     private val url =
         "https://api-zenia.onrender.com/chat"
 
-    suspend fun enviarMensaje(mensaje: String): Result<NiaResponse> =
+    suspend fun enviarMensaje(historial: List<MensajeChatbot>): Result<NiaResponse> =
         withContext(Dispatchers.IO) {
 
             try {
+                val historyArray = org.json.JSONArray()
+                for (msg in historial) {
+                    val msgObject = JSONObject().apply {
+                        put("role", if (msg.emisor == "usuario") "user" else "model")
+                        put("text", msg.texto)
+                    }
+                    historyArray.put(msgObject)
+                }
+
                 val json = JSONObject().apply {
-                    put("message", mensaje)
+                    put("history", historyArray)
                 }
 
                 val body = json.toString()
