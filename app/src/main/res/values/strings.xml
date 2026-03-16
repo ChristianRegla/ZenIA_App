@@ -11,9 +11,6 @@
     <string name="cancel">Cancelar</string>
     <string name="common_back">Regresar</string>
     <string name="common_delete">Eliminar</string>
-    <string name="common_not_available">No disponible</string>
-    <string name="common_yes">Sí</string>
-    <string name="common_no">No</string>
 
     <string name="confirmPassword">Confirmar contraseña</string>
     <string name="forgotPassword">¿Olvidaste tu contraseña?</string>
@@ -23,17 +20,8 @@
     <string name="lock_waiting">Esperando autenticación…</string>
     <string name="lock_auth_failed">No se pudo verificar la identidad.</string>
 
-    <string name="account_title">Mi Cuenta</string>
-    <string name="account_info_title">Información de la Cuenta</string>
-    <string name="account_email_label">Correo: </string>
-    <string name="account_verified_label">Verificado: </string>
     <string name="account_biometrics_label">Bloquear app con huella/rostro</string>
     <string name="account_biometrics_not_available">No hay hardware biométrico disponible en este dispositivo.</string>
-    <string name="account_delete_button">Eliminar Mi Cuenta</string>
-    <string name="account_resend_verification_button">Reenviar correo de verificación</string>
-    <string name="account_change_password_button">Cambiar Contraseña</string>
-    <string name="account_delete_warning">Advertencia: La eliminación de la cuenta es permanente y no se puede deshacer.</string>
-    <string name="account_delete_dialog_title">¿Eliminar cuenta?</string>
     <string name="account_delete_dialog_text">¿Estás seguro de que deseas eliminar tu cuenta? Esta acción es irreversible.</string>
     <string name="account_language_label">Idioma</string>
 
@@ -360,5 +348,30 @@
     <string name="password_requirement_special">Un carácter especial</string>
 
     <string name="resource_detail_mark_completed">Marcar como completado</string>
+
+    <string name="account_title">Mi Cuenta</string>
+    <string name="account_info_title">Información de la cuenta</string>
+    <string name="account_email_label">Correo electrónico</string>
+    <string name="account_verified_label">Estado de verificación</string>
+    <string name="account_security_title">Seguridad</string>
+    <string name="account_danger_zone_title">Zona de peligro</string>
+    <string name="account_change_password_button">Cambiar contraseña</string>
+    <string name="account_resend_verification_button">Reenviar correo de verificación</string>
+    <string name="account_delete_button">Eliminar cuenta</string>
+    <string name="account_delete_warning">Al eliminar tu cuenta, se borrarán todos tus datos de forma permanente. Esta acción no se puede deshacer.</string>
+
+    <string name="account_delete_dialog_title">¿Eliminar cuenta?</string>
+    <string name="account_delete_dialog_step1_desc">Estás a punto de iniciar el proceso de eliminación. Todos tus progresos, chats y diarios se perderán para siempre.</string>
+    <string name="account_delete_dialog_final_title">Confirmación Final</string>
+    <string name="account_delete_dialog_final_desc">Esta acción es irreversible. Por seguridad, espera unos segundos antes de confirmar.</string>
+    <string name="account_delete_confirm_permanent">Eliminar definitivamente</string>
+    <string name="account_delete_enabling_in">Habilitando en %1$ds…</string>
+    <string name="account_delete_cancel_process">Cancelar proceso</string>
+
+    <string name="common_not_available">No disponible</string>
+    <string name="common_yes">Verificado</string>
+    <string name="common_no">No verificado</string>
+    <string name="common_cancel">Cancelar</string>
+    <string name="common_continue">Continuar</string>
 
 </resources>

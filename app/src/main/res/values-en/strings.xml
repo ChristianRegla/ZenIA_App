@@ -11,9 +11,6 @@
     <string name="cancel">Cancel</string>
     <string name="common_back">Back</string>
     <string name="common_delete">Delete</string>
-    <string name="common_not_available">Not available</string>
-    <string name="common_yes">Yes</string>
-    <string name="common_no">No</string>
 
     <!-- Pantalla: Autenticación (AuthScreen) -->
     <string name="confirmPassword">Confirm Password</string>
@@ -26,17 +23,8 @@
     <string name="lock_auth_failed">Could not verify identity.</string>
 
     <!-- Pantalla: Cuenta (AccountScreen) -->
-    <string name="account_title">My Account</string>
-    <string name="account_info_title">Account Information</string>
-    <string name="account_email_label">Email: </string>
-    <string name="account_verified_label">Verified: </string>
     <string name="account_biometrics_label">Lock app with fingerprint/face</string>
     <string name="account_biometrics_not_available">No biometric hardware available on this device.</string>
-    <string name="account_delete_button">Delete My Account</string>
-    <string name="account_resend_verification_button">Resend verification email</string>
-    <string name="account_change_password_button">Change Password</string>
-    <string name="account_delete_warning">Warning: Account deletion is permanent and cannot be undone.</string>
-    <string name="account_delete_dialog_title">Delete account?</string>
     <string name="account_delete_dialog_text">Are you sure you want to delete your account? This action is irreversible.</string>
     <string name="account_language_label">Language</string>
 
@@ -367,5 +355,30 @@
     <string name="password_requirement_special">One special character</string>
 
     <string name="resource_detail_mark_completed">Mark as completed</string>
+
+    <string name="account_title">My Account</string>
+    <string name="account_info_title">Account information</string>
+    <string name="account_email_label">Email address</string>
+    <string name="account_verified_label">Verification status</string>
+    <string name="account_security_title">Security</string>
+    <string name="account_danger_zone_title">Danger zone</string>
+    <string name="account_change_password_button">Change password</string>
+    <string name="account_resend_verification_button">Resend verification email</string>
+    <string name="account_delete_button">Delete account</string>
+    <string name="account_delete_warning">By deleting your account, all your data will be permanently removed. This action cannot be undone.</string>
+
+    <string name="account_delete_dialog_title">Delete account?</string>
+    <string name="account_delete_dialog_step1_desc">You are about to start the deletion process. All your progress, chats, and journals will be lost forever.</string>
+    <string name="account_delete_dialog_final_title">Final Confirmation</string>
+    <string name="account_delete_dialog_final_desc">This action is irreversible. For security reasons, please wait a few seconds before confirming.</string>
+    <string name="account_delete_confirm_permanent">Delete permanently</string>
+    <string name="account_delete_enabling_in">Enabling in %1$ds…</string>
+    <string name="account_delete_cancel_process">Cancel process</string>
+
+    <string name="common_not_available">Not available</string>
+    <string name="common_yes">Verified</string>
+    <string name="common_no">Not verified</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_continue">Continue</string>
 
 </resources>

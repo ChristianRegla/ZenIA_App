@@ -112,7 +112,7 @@ fun AccountScreen(
                 if (state.isLoading) {
                     CircularProgressIndicator(color = ZeniaTeal, modifier = Modifier.padding(32.dp))
                 } else {
-                    AccountSection(title = "Seguridad") {
+                    AccountSection(title = stringResource(R.string.account_security_title)) {
                         AccountActionItem(
                             icon = Icons.Default.Lock,
                             text = stringResource(R.string.account_change_password_button),
@@ -129,7 +129,7 @@ fun AccountScreen(
                         }
                     }
 
-                    AccountSection(title = "Zona de Peligro") {
+                    AccountSection(title = stringResource(R.string.account_danger_zone_title)) {
                         AccountActionItem(
                             icon = Icons.Default.DeleteForever,
                             text = stringResource(R.string.account_delete_button),
@@ -201,7 +201,7 @@ fun TwoStepDeleteDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = if (currentStep == 1) "¿Eliminar cuenta?" else "Confirmación Final",
+                    text = if (currentStep == 1) stringResource(R.string.account_delete_dialog_title) else stringResource(R.string.account_delete_dialog_final_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
@@ -211,9 +211,9 @@ fun TwoStepDeleteDialog(
 
                 Text(
                     text = if (currentStep == 1) {
-                        "Estás a punto de iniciar el proceso de eliminación. Todos tus progresos, chats y diarios se perderán para siempre."
+                        stringResource(R.string.account_delete_dialog_step1_desc)
                     } else {
-                        "Esta acción es irreversible. Por seguridad, espera unos segundos antes de confirmar."
+                        stringResource(R.string.account_delete_dialog_final_desc)
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = ZeniaSlateGrey,
@@ -233,7 +233,7 @@ fun TwoStepDeleteDialog(
                             shape = RoundedCornerShape(16.dp),
                             border = BorderStroke(1.dp, ZeniaSlateGrey)
                         ) {
-                            Text("Cancelar", color = ZeniaSlateGrey)
+                            Text(stringResource(R.string.common_cancel), color = ZeniaSlateGrey)
                         }
                         Button(
                             onClick = { currentStep = 2 },
@@ -241,18 +241,17 @@ fun TwoStepDeleteDialog(
                             shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))
                         ) {
-                            Text("Continuar")
+                            Text(stringResource(R.string.common_continue))
                         }
                     }
                 } else {
-                    // Paso 2: Botón animado
                     AnimatedTimerButton(
                         timerSeconds = 5,
                         onConfirm = onConfirm
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     TextButton(onClick = onDismiss) {
-                        Text("Cancelar proceso", color = ZeniaSlateGrey)
+                        Text(stringResource(R.string.account_delete_cancel_process), color = ZeniaSlateGrey)
                     }
                 }
             }
@@ -307,7 +306,11 @@ fun AnimatedTimerButton(
         )
 
         Text(
-            text = if (timeLeft > 0) "Habilitando en ${timeLeft}s..." else "Eliminar definitivamente",
+            text = if (timeLeft > 0) {
+                stringResource(R.string.account_delete_enabling_in, timeLeft)
+            } else {
+                stringResource(R.string.account_delete_confirm_permanent)
+            },
             color = animatedTextColor,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.Center)
