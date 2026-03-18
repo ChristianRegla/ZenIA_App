@@ -7,6 +7,7 @@ import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.entryOf
 import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.DiaryRepository
+import com.zenia.app.data.session.UserSessionManager
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.util.AnalysisUtils
 import com.zenia.app.util.ChartUtils
@@ -40,7 +41,7 @@ private data class ProcessedAnalytics(
 @HiltViewModel
 class AnalyticsViewModel @Inject constructor(
     private val diaryRepository: DiaryRepository,
-    private val authRepository: AuthRepository
+    sessionManager: UserSessionManager
 ): ViewModel() {
 
     private val _uiState = MutableStateFlow(AnalyticsUiState())
@@ -49,9 +50,7 @@ class AnalyticsViewModel @Inject constructor(
     private val _selectedRange = MutableStateFlow(TimeRange.WEEK)
     val selectedRange = _selectedRange.asStateFlow()
 
-    val isPremium = authRepository.getUsuarioFlow()
-        .map { it?.suscripcion == "premium"  }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    val isPremium = sessionManager.isPremium
 
     val lineChartProducer = ChartEntryModelProducer()
 

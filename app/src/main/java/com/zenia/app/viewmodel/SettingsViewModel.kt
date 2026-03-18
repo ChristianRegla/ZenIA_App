@@ -11,6 +11,7 @@ import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.BillingRepository
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.UserPreferencesRepository
+import com.zenia.app.data.session.UserSessionManager
 import com.zenia.app.model.Usuario
 import com.zenia.app.pdf.PdfExportConfig
 import com.zenia.app.pdf.PdfGenerator
@@ -34,11 +35,11 @@ class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val authRepository: AuthRepository,
     private val diaryRepository: DiaryRepository,
+    private val sessionManager: UserSessionManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
-    val isUserPremium: StateFlow<Boolean> = authRepository.isPremium
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    val isUserPremium = sessionManager.isPremium
 
     val billingConnectionState = billingRepository.billingConnectionState
 
@@ -118,7 +119,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    val currentUser: Flow<Usuario?> = authRepository.getUsuarioFlow()
+    val currentUser = sessionManager.user
 
     val isBiometricEnabled: StateFlow<Boolean?> = userPreferencesRepository.isBiometricEnabled
         .stateIn(
@@ -148,7 +149,7 @@ class SettingsViewModel @Inject constructor(
 
     fun updateProfile(nickname: String, avatarIndex: Int) {
         viewModelScope.launch {
-            val uid = authRepository.currentUserId
+            val uid = sessionManager.userId.value
             if(uid != null) {
                 try {
                     authRepository.updateProfile(uid, nickname, avatarIndex)
@@ -167,7 +168,7 @@ class SettingsViewModel @Inject constructor(
             try {
 
                 val allEntries = diaryRepository.getAllEntriesOnce()
-                val user = authRepository.getUsuarioFlow()
+                val user = sessionManager.user
                     .firstOrNull()
                     ?.apodo ?: "Usuario ZenIA"
 

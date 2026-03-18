@@ -15,7 +15,7 @@ import javax.inject.Singleton
 
 @Singleton
 class UserSessionManager @Inject constructor(
-    authRepository: AuthRepository
+    private val authRepository: AuthRepository
 ) {
 
     private val sessionScope = CoroutineScope(
@@ -37,22 +37,26 @@ class UserSessionManager @Inject constructor(
         user.map { it?.id }
             .stateIn(
                 scope = sessionScope,
-                started = SharingStarted.Eagerly,
+                started = SharingStarted.WhileSubscribed(5000),
                 initialValue = null
             )
 
-    val email = user.map { it?.email }
-        .stateIn(
-            scope = sessionScope,
-            started = SharingStarted.Eagerly,
-            initialValue = null
-        )
+    val currentUserId: String?
+        get() = authRepository.currentUserId
+
+    val email: StateFlow<String?> =
+        user.map { it?.email }
+            .stateIn(
+                scope = sessionScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = null
+            )
 
     val isLoggedIn: StateFlow<Boolean> =
         user.map { it != null }
             .stateIn(
                 scope = sessionScope,
-                started = SharingStarted.Eagerly,
+                started = SharingStarted.WhileSubscribed(5000),
                 initialValue = false
             )
 
@@ -60,23 +64,23 @@ class UserSessionManager @Inject constructor(
         user.map { it?.suscripcion == SubscriptionType.PREMIUM }
             .stateIn(
                 scope = sessionScope,
-                started = SharingStarted.Eagerly,
+                started = SharingStarted.WhileSubscribed(5000),
                 initialValue = false
             )
 
     val nickname: StateFlow<String> =
         user.map { it?.apodo ?: "Usuario" }
             .stateIn(
-                sessionScope,
-                SharingStarted.Eagerly,
-                "Usuario"
+                scope = sessionScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = "Usuario"
             )
 
     val avatarIndex: StateFlow<Int> =
         user.map { it?.avatarIndex ?: 0 }
             .stateIn(
-                sessionScope,
-                SharingStarted.Eagerly,
-                0
+                scope = sessionScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = 0
             )
 }

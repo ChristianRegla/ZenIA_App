@@ -45,10 +45,6 @@ class AuthRepository @Inject constructor(
 
     private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    /**
-     * Obtiene el ID único (UID) del usuario autenticado actualmente.
-     * Retorna null si no hay sesión iniciada.
-     */
     val currentUserId: String?
         get() = auth.currentUser?.uid
 
@@ -64,14 +60,6 @@ class AuthRepository @Inject constructor(
         awaitClose { auth.removeAuthStateListener(listener) }
     }
 
-    /**
-     * Flujo compartido (Hot Flow) que expone los datos del usuario en tiempo real.
-     *
-     * Características clave:
-     * 1. **Reactivo:** Usa [flatMapLatest] para cambiar la suscripción de Firestore automáticamente si cambia el UID.
-     * 2. **Optimizado:** Usa [shareIn] con `replay = 1` para mantener el último dato en memoria caché.
-     * 3. **Eficiente:** Evita lecturas redundantes a Firestore cuando múltiples pantallas observan al usuario.
-     */
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _sharedUserFlow: Flow<Usuario?> = _authState
         .flatMapLatest { uid ->
@@ -83,7 +71,8 @@ class AuthRepository @Inject constructor(
                         .document(uid)
                         .addSnapshotListener { snapshot, error ->
                             if (error != null) {
-                                close(error)
+                                Log.e("AuthRepository", "Error escuchando usuario en Firestore", error)
+                                trySend(null)
                                 return@addSnapshotListener
                             }
                             if (snapshot != null && snapshot.exists()) {
@@ -96,23 +85,6 @@ class AuthRepository @Inject constructor(
                 }
             }
         }
-        .shareIn(
-            scope = repositoryScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            replay = 1
-        )
-
-    /**
-     * Flujo compartido que expone si el usuario es premium o no.
-     * Se deriva de [_sharedUserFlow] para mantener una única fuente de verdad.
-     */
-    val isPremium: Flow<Boolean> = _sharedUserFlow
-        .map { it?.suscripcion == SubscriptionType.PREMIUM }
-        .shareIn(
-            scope = repositoryScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            replay = 1
-        )
 
     /**
      * Obtiene el documento del usuario actual una sola vez (Snapshot).
@@ -229,16 +201,8 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    /**
-     * Obtiene el flujo observable del usuario actual.
-     * @return Un [Flow] que emite objetos [Usuario] o null si no hay sesión.
-     */
     fun getUsuarioFlow(): Flow<Usuario?> = _sharedUserFlow
 
-    /**
-     * Cierra la sesión actual en Firebase Auth.
-     * Esto disparará automáticamente la actualización de [_sharedUserFlow] a null.
-     */
     fun signOut() {
         auth.signOut()
     }

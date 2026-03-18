@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.UserPreferencesRepository
+import com.zenia.app.data.session.UserSessionManager
 import com.zenia.app.ui.navigation.Destinations
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +21,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val sessionManager: UserSessionManager
 ) : ViewModel() {
     private val _authTrigger = MutableStateFlow(0)
 
@@ -28,7 +30,7 @@ class MainViewModel @Inject constructor(
     val pendingRouteAfterUnlock: StateFlow<String?> = _pendingRouteAfterUnlock
 
     val startDestinationState: StateFlow<String?> = combine(
-        authRepository.getUsuarioFlow(),
+        sessionManager.user,
         userPreferencesRepository.isBiometricEnabled,
         userPreferencesRepository.isOnboardingCompleted,
         _authTrigger
