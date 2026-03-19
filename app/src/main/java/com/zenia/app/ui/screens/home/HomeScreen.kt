@@ -105,7 +105,8 @@ fun HomeScreen(
     topBooster: AnalysisUtils.Insight?,
     topDrainer: AnalysisUtils.Insight?,
     onNavigateToAnalytics: () -> Unit,
-    onNavigateToCommunity: () -> Unit
+    onNavigateToCommunity: () -> Unit,
+    onNavigateToTest: (String) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -241,6 +242,52 @@ fun HomeScreen(
                             }
                         }
                     }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(
+                                text = "🧪 Pruebas de Evaluación (Temporal)",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                            Text(
+                                text = "Acceso rápido a los nuevos tests psicológicos.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Button(
+                                    onClick = { onNavigateToTest("GAD7") }, // TipoTest.GAD7.name
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Test Ansiedad")
+                                }
+                                Button(
+                                    onClick = { onNavigateToTest("PHQ9") }, // TipoTest.PHQ9.name
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Test Depresión")
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
             }
         }

@@ -22,6 +22,7 @@ import com.zenia.app.ui.screens.analytics.AnalyticsViewModel
 import com.zenia.app.ui.screens.community.CommunityRoute
 import com.zenia.app.ui.screens.diary.DiarioRoute
 import com.zenia.app.ui.screens.diary.DiaryEntryScreen
+import com.zenia.app.ui.screens.evaluacion.EvaluacionRoute
 import com.zenia.app.ui.screens.lock.LockRoute
 import com.zenia.app.ui.screens.notifications.NotificationsRoute
 import com.zenia.app.ui.screens.recursos.RecursoDetailRoute
@@ -131,6 +132,9 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
                 onNavigateToCommunity = { navController.safeNavigate(Destinations.COMMUNITY_ROUTE) },
                 onNavigateToRecursoDetail = { recursoId ->
                     navController.safeNavigate(Destinations.createRecursoDetailRoute(recursoId))
+                },
+                onNavigateToTest = { testId ->
+                    navController.safeNavigate(Destinations.createEvaluacionRoute(testId))
                 }
             )
         }
@@ -213,6 +217,22 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
             RecursosRoute(
                 onNavigateToDetail = { /* TODO: Detail */ },
                 onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) }
+            )
+        }
+
+        composable(
+            route = Destinations.EVALUACION_ROUTE,
+            arguments = listOf(navArgument(NavArgs.TIPO_TEST_ID) { type = NavType.StringType }),
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
+        ) { backStackEntry ->
+            val tipoTestId = backStackEntry.arguments?.getString(NavArgs.TIPO_TEST_ID) ?: return@composable
+
+            EvaluacionRoute(
+                tipoTestId = tipoTestId,
+                onBackClick = { navController.popBackStack() }
             )
         }
 

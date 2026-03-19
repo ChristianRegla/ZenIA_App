@@ -52,7 +52,6 @@ fun AnalyticsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 1. SELECTOR DE RANGO
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -118,7 +117,6 @@ fun AnalyticsScreen(
                 }
             }
 
-            // 4. DISTRIBUCIÓN
             Text("Distribución de Ánimo", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),

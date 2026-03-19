@@ -18,4 +18,6 @@ object FirestoreCollections {
 
     const val EMERGENCY_CONTACTS = "emergencyContacts"
 
+    const val EVALUACIONES = "evaluaciones"
+
 }

@@ -34,12 +34,16 @@ object Destinations {
 
     const val RECURSO_DETAIL_ROUTE = "recurso_detail/{recursoId}"
 
+    const val EVALUACION_ROUTE = "evaluacion/{tipoTestId}"
+
     fun createDiaryEntryRoute(date: LocalDate) = "diary_entry/${date}"
     fun homeWithTab(tabRoute: String) = "$HOME_ROUTE?tab=$tabRoute"
     fun createRecursoDetailRoute(recursoId: String) = "recurso_detail/$recursoId"
+    fun createEvaluacionRoute(tipoTestId: String) = "evaluacion/$tipoTestId"
 }
 
 object NavArgs {
     const val DATE = "date"
     const val RECURSO_ID = "recursoId"
+    const val TIPO_TEST_ID = "tipoTestId"
 }
