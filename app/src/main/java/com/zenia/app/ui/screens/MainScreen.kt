@@ -37,8 +37,6 @@ import java.time.LocalDate
 @Composable
 fun MainScreen(
     startTab: String? = null,
-    onSignOut: () -> Unit,
-    onNavigateToAccount: () -> Unit,
     onNavigateToPremium: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNotificationClick: () -> Unit,
@@ -47,7 +45,8 @@ fun MainScreen(
     onNavigateToAnalytics: () -> Unit,
     onNavigateToCommunity: () -> Unit,
     onNavigateToRecursoDetail: (String) -> Unit,
-    onNavigateToTest: (String) -> Unit
+    onNavigateToTest: (String) -> Unit,
+    onNavigateToBreathing: () -> Unit
 ) {
     val bottomNavController = rememberNavController()
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
@@ -135,6 +134,7 @@ fun MainScreen(
 
                     composable(BottomNavItem.Relajacion.route) {
                         RelaxRoute(
+                            onNavigateToBreathing = onNavigateToBreathing,
                             onNavigateToPlayer = { /* TODO */ },
                             onNavigateToPremium = onNavigateToPremium
                         )

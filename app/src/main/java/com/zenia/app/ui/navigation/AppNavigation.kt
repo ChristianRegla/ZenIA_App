@@ -27,11 +27,11 @@ import com.zenia.app.ui.screens.lock.LockRoute
 import com.zenia.app.ui.screens.notifications.NotificationsRoute
 import com.zenia.app.ui.screens.recursos.RecursoDetailRoute
 import com.zenia.app.ui.screens.recursos.RecursosRoute
+import com.zenia.app.ui.screens.relax.BreathingRoute
 import com.zenia.app.ui.screens.relax.RelaxRoute
 import com.zenia.app.ui.screens.sos.HelplineRoute
 import com.zenia.app.ui.screens.zenia.ZeniaBotRoute
 import com.zenia.app.viewmodel.MainViewModel
-import kotlinx.coroutines.delay
 import java.time.LocalDate
 
 /**
@@ -114,13 +114,6 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
 
             MainScreen(
                 startTab = tab,
-                onSignOut = {
-                    mainViewModel.signOut()
-                    navController.navigate(Destinations.AUTH_ROUTE) {
-                        popUpTo(Destinations.HOME_ROUTE) { inclusive = true }
-                    }
-                },
-                onNavigateToAccount = { navController.safeNavigate(Destinations.ACCOUNT_ROUTE) },
                 onNavigateToSettings = { navController.safeNavigate(Destinations.SETTINGS_ROUTE) },
                 onNotificationClick = { navController.safeNavigate(Destinations.NOTIFICATIONS_ROUTE) },
                 onNavigateToSOS = { navController.safeNavigate(Destinations.SOS) },
@@ -135,7 +128,8 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
                 },
                 onNavigateToTest = { testId ->
                     navController.safeNavigate(Destinations.createEvaluacionRoute(testId))
-                }
+                },
+                onNavigateToBreathing = { navController.safeNavigate(Destinations.BREATHING_ROUTE) }
             )
         }
 
@@ -208,7 +202,8 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
 
         composable(Destinations.RELAX_ROUTE) {
             RelaxRoute(
-                onNavigateToPlayer = { /* TODO: Player */ },
+                onNavigateToPlayer = { id -> },
+                onNavigateToBreathing = { navController.safeNavigate(Destinations.BREATHING_ROUTE) },
                 onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) }
             )
         }
@@ -295,6 +290,18 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
 
             RecursoDetailRoute(
                 recursoId = recursoId,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Destinations.BREATHING_ROUTE,
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
+            ) {
+            BreathingRoute(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

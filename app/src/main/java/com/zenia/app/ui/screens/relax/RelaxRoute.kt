@@ -8,6 +8,7 @@ import com.zenia.app.viewmodel.SettingsViewModel
 
 @Composable
 fun RelaxRoute(
+    onNavigateToBreathing: () -> Unit,
     onNavigateToPlayer: (Int) -> Unit,
     onNavigateToPremium: () -> Unit
 ) {
@@ -15,7 +16,13 @@ fun RelaxRoute(
     val isPremium by viewModel.isUserPremium.collectAsState()
 
     RelaxScreen(
-        onNavigateToPlayer = onNavigateToPlayer,
+        onNavigateToPlayer = { id ->
+            if (id == 1) {
+                onNavigateToBreathing()
+            } else {
+                onNavigateToPlayer(id)
+            }
+        },
         onNavigateToPremium = onNavigateToPremium,
         isUserPremium = isPremium
     )
