@@ -31,7 +31,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.glance.appwidget.lazy.LazyColumn
 import com.zenia.app.ui.components.ZeniaTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,7 +74,7 @@ fun EvaluacionScreen(
             LinearProgressIndicator(
                 progress = { progreso },
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .height(8.dp),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -145,7 +144,7 @@ fun EvaluacionScreen(
                 if (uiState.indiceActual < test.preguntas.size - 1) {
                     Button(
                         onClick = onSiguiente,
-                        enabled = respuestaSeleccionada != null // Obliga a responder
+                        enabled = respuestaSeleccionada != null
                     ) {
                         Text("Siguiente")
                     }

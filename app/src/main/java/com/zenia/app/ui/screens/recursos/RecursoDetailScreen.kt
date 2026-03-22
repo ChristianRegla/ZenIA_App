@@ -135,8 +135,10 @@ fun RecursoDetailScreen(
                                 dividerColor = ZeniaTeal.copy(alpha = 0.2f)
                             )
 
+                            val contenidoLimpio = recurso.contenido.replace("\\n", "\n")
+
                             Markdown(
-                                content = recurso.contenido,
+                                content = contenidoLimpio,
                                 modifier = Modifier.fillMaxWidth(),
                                 typography = customTypography,
                                 colors = customColors

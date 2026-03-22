@@ -156,4 +156,7 @@ dependencies {
     implementation(libs.google.generativeai)
     implementation(libs.okhttp)
     implementation(libs.mikepenz.markdown.renderer)
+
+    implementation("androidx.media3:media3-exoplayer:1.2.1")
+    implementation("androidx.media3:media3-ui:1.2.1")
 }

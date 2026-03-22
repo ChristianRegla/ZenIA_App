@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.ChatRepository
 import com.zenia.app.data.NiaApiRepository
+import com.zenia.app.di.ApplicationScope
 import com.zenia.app.model.MensajeChatbot
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,7 +33,8 @@ sealed interface ChatUiEvent {
 @HiltViewModel
 class ZeniaChatViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
-    private val niaRepository: NiaApiRepository
+    private val niaRepository: NiaApiRepository,
+    @ApplicationScope private val externalScope: CoroutineScope
 ) : ViewModel() {
 
     private val _uiEvent = Channel<ChatUiEvent>()
@@ -95,25 +98,26 @@ class ZeniaChatViewModel @Inject constructor(
         }
     }
 
-    private suspend fun obtenerRespuestaIA(historial: List<MensajeChatbot>) {
+    private fun obtenerRespuestaIA(historial: List<MensajeChatbot>) {
+        externalScope.launch {
+            val result = niaRepository.enviarMensaje(historial)
 
-        val result = niaRepository.enviarMensaje(historial)
+            _isTyping.value = false
 
-        _isTyping.value = false
+            result.onSuccess { response ->
+                val mensajeIA = MensajeChatbot(
+                    emisor = "ia",
+                    texto = response.mensaje_nia
+                )
 
-        result.onSuccess { response ->
-            val mensajeIA = MensajeChatbot(
-                emisor = "ia",
-                texto = response.mensaje_nia
-            )
+                chatRepository.addChatMessage(mensajeIA)
 
-            chatRepository.addChatMessage(mensajeIA)
-
-            manejarTrigger(response.trigger)
-        }.onFailure {
-            _uiEvent.send(
-                ChatUiEvent.ShowError("Error al conectar con Nia")
-            )
+                manejarTrigger(response.trigger)
+            }.onFailure {
+                _uiEvent.send(
+                    ChatUiEvent.ShowError("Error al conectar con Nia")
+                )
+            }
         }
     }
 
