@@ -14,7 +14,7 @@ fun RecursosRoute(
     val settingsViewModel: SettingsViewModel = hiltViewModel()
     val recursosViewModel: RecursosViewModel = hiltViewModel()
 
-    val isPremium by settingsViewModel.isUserPremium.collectAsState()
+    val isPremium by recursosViewModel.isPremium.collectAsState()
     val uiState by recursosViewModel.uiState.collectAsState()
 
     RecursosScreen(

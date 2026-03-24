@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.R
 import com.zenia.app.data.RecursosRepository
+import com.zenia.app.data.session.UserSessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,11 +32,14 @@ sealed interface RecursosUiState {
 
 @HiltViewModel
 class RecursosViewModel @Inject constructor(
-    private val recursosRepository: RecursosRepository
+    private val recursosRepository: RecursosRepository,
+    sessionManager: UserSessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<RecursosUiState>(RecursosUiState.Loading)
     val uiState: StateFlow<RecursosUiState> = _uiState.asStateFlow()
+
+    val isPremium = sessionManager.isPremium
 
     init {
         cargarRecursos()

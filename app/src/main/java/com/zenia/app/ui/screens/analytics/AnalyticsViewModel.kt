@@ -112,16 +112,29 @@ class AnalyticsViewModel @Inject constructor(
             }
             .eachCount()
 
-        val chartEntries = validMoodEntries
-            .mapNotNull { entry ->
-                try {
-                    val date = LocalDate.parse(entry.fecha)
-                    val xValue = date.toEpochDay().toFloat()
-                    val yValue = ChartUtils.mapMoodToValue(entry.estadoAnimo)
-                    if (yValue > 0) entryOf(xValue, yValue) else null
-                } catch (e: Exception) { null }
+        val chartEntries = if (_selectedRange.value == TimeRange.WEEK) {
+            val last7Days = (6 downTo 0).map { LocalDate.now().minusDays(it.toLong()) }
+            last7Days.mapNotNull { date ->
+                val entryForDate = validMoodEntries.find { it.fecha == date.toString() }
+                if (entryForDate != null) {
+                    val yValue = ChartUtils.mapMoodToValue(entryForDate.estadoAnimo)
+                    if (yValue > 0) entryOf(date.toEpochDay().toFloat(), yValue) else null
+                } else {
+                    null
+                }
             }
-            .sortedBy { it.x }
+        } else {
+            validMoodEntries
+                .mapNotNull { entry ->
+                    try {
+                        val date = LocalDate.parse(entry.fecha)
+                        val xValue = date.toEpochDay().toFloat()
+                        val yValue = ChartUtils.mapMoodToValue(entry.estadoAnimo)
+                        if (yValue > 0) entryOf(xValue, yValue) else null
+                    } catch (e: Exception) { null }
+                }
+                .sortedBy { it.x }
+        }
 
         val insightsPair = AnalysisUtils.analyzePatterns(entries)
         val insightsList = listOfNotNull(insightsPair.first, insightsPair.second)

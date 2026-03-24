@@ -39,4 +39,21 @@ object ChartUtils {
             ""
         }
     }
+
+    fun dynamicDateAxisFormatter(rangeDays: Int) = AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
+        try {
+            val date = LocalDate.ofEpochDay(value.toLong())
+            val spanishLocale = Locale.forLanguageTag("es-ES")
+
+            if (rangeDays <= 7) {
+                val formatter = DateTimeFormatter.ofPattern("EEE", spanishLocale)
+                formatter.format(date).replaceFirstChar { it.uppercase() }
+            } else {
+                val formatter = DateTimeFormatter.ofPattern("dd MMM", spanishLocale)
+                formatter.format(date)
+            }
+        } catch (e: Exception) {
+            ""
+        }
+    }
 }
