@@ -28,7 +28,7 @@ sealed interface DiaryEntryUiState {
 data class ActivityData(val labelRes: Int, val dbValue: String)
 
 data class HealthDataResult(
-    val pasos: Int? = null,
+    val pasos: Long? = null,
     val calorias: Int? = null,
     val minutosSueno: Int? = null,
     val minutosEjercicio: Int? = null
@@ -234,15 +234,17 @@ class DiaryEntryViewModel @Inject constructor(
     }
 
     private suspend fun obtenerDatosDeSaludDelDia(date: LocalDate) {
-        if (healthConnectRepository == null) return
+        val hc = healthConnectRepository ?: return
 
         try {
-            val pasos = healthConnectRepository.readStepsByDate(date)
-            val suenoMinutos = healthConnectRepository.readSleepMinutesByDate(date)
+            val pasos = hc.readStepsByDate(date)
+            val sueno = hc.readLastNightSleepDurationByDate(date)
+
+            val suenoMinutos = sueno.totalMinutes
 
             _healthConnectData.value = HealthDataResult(
-                pasos = if (pasos > 0) pasos else null,
-                minutosSueno = if (suenoMinutos > 0) suenoMinutos else null,
+                pasos = pasos.takeIf { it > 0 },
+                minutosSueno = suenoMinutos.takeIf { it > 0 },
                 calorias = null,
                 minutosEjercicio = null
             )

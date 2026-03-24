@@ -2,11 +2,13 @@ package com.zenia.app.ui.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.zenia.app.data.HealthConnectNextStep
 import com.zenia.app.data.HealthConnectRepository
 import com.zenia.app.data.HealthSummary
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -15,43 +17,42 @@ class HealthSyncViewModel @Inject constructor(
     private val healthRepo: HealthConnectRepository
 ) : ViewModel() {
 
-    val isAvailable = healthRepo.isAvailable
-
-    private val _hasPermissions = MutableStateFlow(false)
-    val hasPermissions: StateFlow<Boolean> = _hasPermissions
-
-    private val _healthSummary = MutableStateFlow<HealthSummary?>(null)
-    val healthSummary: StateFlow<HealthSummary?> = _healthSummary
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
+    // UI usa esto para lanzar el permission contract
     val permissions = healthRepo.permissions
-
-    val sdkStatus = healthRepo.sdkStatus
-
     fun permissionContract() = healthRepo.permissionContract()
 
-    fun refreshPermissions() = viewModelScope.launch {
-        _hasPermissions.value = healthRepo.hasPermissions()
-        if (_hasPermissions.value) {
+    private val _nextStep =
+        MutableStateFlow<HealthConnectNextStep>(HealthConnectNextStep.NotSupported)
+    val nextStep: StateFlow<HealthConnectNextStep> = _nextStep.asStateFlow()
+
+    private val _healthSummary = MutableStateFlow<HealthSummary?>(null)
+    val healthSummary: StateFlow<HealthSummary?> = _healthSummary.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    fun refreshState() = viewModelScope.launch {
+        _nextStep.value = healthRepo.getNextStep()
+
+        if (_nextStep.value == HealthConnectNextStep.Ready) {
             loadMetrics()
+        } else {
+            _healthSummary.value = null
         }
     }
 
     fun loadMetrics() = viewModelScope.launch {
-        if (!_hasPermissions.value) return@launch
+        if (_nextStep.value != HealthConnectNextStep.Ready) return@launch
 
         _isLoading.value = true
-        _healthSummary.value = healthRepo.getHealthSummary()
-        _isLoading.value = false
+        try {
+            _healthSummary.value = healthRepo.getHealthSummary()
+        } finally {
+            _isLoading.value = false
+        }
     }
 
-    fun onPermissionsResult(grantedPermissions: Set<String>) {
-        val granted = grantedPermissions.containsAll(permissions)
-        _hasPermissions.value = granted
-        if (granted) {
-            loadMetrics()
-        }
+    fun onPermissionsResult(@Suppress("UNUSED_PARAMETER") grantedPermissions: Set<String>) {
+        refreshState()
     }
 }

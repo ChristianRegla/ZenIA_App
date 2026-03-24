@@ -1,5 +1,9 @@
 package com.zenia.app.ui.navigation
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -16,6 +20,7 @@ import com.zenia.app.ui.screens.settings.PrivacyRoute
 import com.zenia.app.ui.screens.settings.SettingsRoute
 import com.zenia.app.viewmodel.MainViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
+import androidx.core.net.toUri
 
 fun NavGraphBuilder.settingsGraph(navController: NavController, mainViewModel: MainViewModel) {
     composable(
@@ -77,8 +82,25 @@ fun NavGraphBuilder.settingsGraph(navController: NavController, mainViewModel: M
         popEnterTransition = { popSlideIn() },
         popExitTransition = { popSlideOut() }
     ) {
+        val context = LocalContext.current
         HealthSyncRoute(
-            onNavigateBack = { navController.popBackStack() }
+            onNavigateBack = { navController.popBackStack() },
+            onInstallOrUpdateHealthConnect = {
+                val pkg = "com.google.android.apps.healthdata"
+
+                val marketUri = "market://details?id=$pkg".toUri()
+                val webUri = "https://play.google.com/store/apps/details?id=$pkg".toUri()
+
+                try {
+                    context.startActivity(
+                        Intent(Intent.ACTION_VIEW, marketUri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    )
+                } catch (_: ActivityNotFoundException) {
+                    context.startActivity(
+                        Intent(Intent.ACTION_VIEW, webUri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    )
+                }
+            }
         )
     }
 

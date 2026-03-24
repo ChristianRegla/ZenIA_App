@@ -15,8 +15,8 @@ import com.zenia.app.di.DefaultDispatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
@@ -28,22 +28,37 @@ data class HealthSummary(
     val stressLevel: String
 )
 
+data class SleepDuration(
+    val hours: Int,
+    val minutes: Int
+) {
+    val totalMinutes: Int get() = hours * 60 + minutes
+}
+
+sealed class HealthConnectAvailability {
+    data object Available : HealthConnectAvailability()
+    data object NotInstalledOrUpdateRequired : HealthConnectAvailability()
+    data object NotSupported : HealthConnectAvailability()
+}
+
+sealed class HealthConnectNextStep {
+    data object Ready : HealthConnectNextStep()
+    data object RequestPermissions : HealthConnectNextStep()
+    data object InstallOrUpdate : HealthConnectNextStep()
+    data object NotSupported : HealthConnectNextStep()
+}
+
 class HealthConnectRepository @Inject constructor(
     @param:ApplicationContext private val context: Context,
     @param:DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) {
 
-    val sdkStatus: Int = HealthConnectClient.getSdkStatus(context)
+    val sdkStatus: Int
+        get() = HealthConnectClient.getSdkStatus(context)
 
-    private val client: HealthConnectClient? =
-        when (sdkStatus) {
-            HealthConnectClient.SDK_AVAILABLE ->
-                HealthConnectClient.getOrCreate(context)
-
-            HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED -> {
-                null
-            }
-
+    private val client: HealthConnectClient?
+        get() = when (sdkStatus) {
+            HealthConnectClient.SDK_AVAILABLE -> HealthConnectClient.getOrCreate(context)
             else -> null
         }
 
@@ -60,6 +75,30 @@ class HealthConnectRepository @Inject constructor(
     fun permissionContract(): ActivityResultContract<Set<String>, Set<String>> =
         PermissionController.createRequestPermissionResultContract()
 
+    fun availability(): HealthConnectAvailability {
+        return when (sdkStatus) {
+            HealthConnectClient.SDK_AVAILABLE -> HealthConnectAvailability.Available
+            HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED ->
+                HealthConnectAvailability.NotInstalledOrUpdateRequired
+            else -> HealthConnectAvailability.NotSupported
+        }
+    }
+
+    suspend fun getNextStep(): HealthConnectNextStep {
+        return when (availability()) {
+            HealthConnectAvailability.Available -> {
+                if (hasPermissions()) HealthConnectNextStep.Ready
+                else HealthConnectNextStep.RequestPermissions
+            }
+
+            HealthConnectAvailability.NotInstalledOrUpdateRequired ->
+                HealthConnectNextStep.InstallOrUpdate
+
+            HealthConnectAvailability.NotSupported ->
+                HealthConnectNextStep.NotSupported
+        }
+    }
+
     private fun getTimeRangeForDate(date: LocalDate): TimeRangeFilter {
         val zoneId = ZoneId.systemDefault()
         val startOfDay = date.atStartOfDay(zoneId).toInstant()
@@ -67,47 +106,52 @@ class HealthConnectRepository @Inject constructor(
         return TimeRangeFilter.between(startOfDay, endOfDay)
     }
 
-    suspend fun readStepsByDate(date: LocalDate): Int = withContext(defaultDispatcher) {
-        if (client == null || !hasPermissions()) return@withContext 0
+    private fun getTimeRangeForLastNightSleep(
+        date: LocalDate,
+        zoneId: ZoneId = ZoneId.systemDefault(),
+        startTime: LocalTime = LocalTime.of(18, 0),
+        endTime: LocalTime = LocalTime.of(12, 0)
+    ): TimeRangeFilter {
+        val start = date.minusDays(1).atTime(startTime).atZone(zoneId).toInstant()
+        val end = date.atTime(endTime).atZone(zoneId).toInstant()
+        return TimeRangeFilter.between(start, end)
+    }
 
-        val records = client.readRecords(
+    suspend fun readStepsByDate(date: LocalDate): Long = withContext(defaultDispatcher) {
+        val hc = client ?: return@withContext 0L
+        if (!hasPermissions(hc)) return@withContext 0L
+
+        val records = hc.readRecords(
             ReadRecordsRequest(
                 StepsRecord::class,
                 getTimeRangeForDate(date)
             )
         ).records
 
-        records.sumOf { it.count }.toInt()
+        records.sumOf { it.count }
     }
 
-    suspend fun readSleepMinutesByDate(date: LocalDate): Int = withContext(defaultDispatcher) {
-        if (client == null || !hasPermissions()) return@withContext 0
-
-        val records = client.readRecords(
-            ReadRecordsRequest(
-                SleepSessionRecord::class,
-                getTimeRangeForDate(date)
-            )
-        ).records
-
-        records.sumOf {
-            ChronoUnit.MINUTES.between(it.startTime, it.endTime)
-        }.toInt()
-    }
-
-    suspend fun hasPermissions(): Boolean {
-        val granted = client?.permissionController?.getGrantedPermissions() ?: emptySet()
+    private suspend fun hasPermissions(hc: HealthConnectClient): Boolean {
+        val granted = hc.permissionController.getGrantedPermissions()
         return granted.containsAll(permissions)
     }
 
+    suspend fun hasPermissions(): Boolean {
+        val hc = client ?: return false
+        return hasPermissions(hc)
+    }
+
     suspend fun readHeartRateAvg(): Int? = withContext(defaultDispatcher) {
-        val now = Instant.now()
-        val records = client?.readRecords(
+        val hc = client ?: return@withContext null
+        if (!hasPermissions(hc)) return@withContext null
+
+        val today = LocalDate.now()
+        val records = hc.readRecords(
             ReadRecordsRequest(
                 HeartRateRecord::class,
-                TimeRangeFilter.between(now.minus(1, ChronoUnit.DAYS), now)
+                getTimeRangeForDate(today)
             )
-        )?.records ?: return@withContext null
+        ).records
 
         val samples = records.flatMap { it.samples }
         if (samples.isEmpty()) null
@@ -115,46 +159,37 @@ class HealthConnectRepository @Inject constructor(
     }
 
     suspend fun readTodaySteps(): Long = withContext(defaultDispatcher) {
-        val now = Instant.now()
-        val records = client?.readRecords(
+        val hc = client ?: return@withContext 0L
+        if (!hasPermissions(hc)) return@withContext 0L
+
+        val today = LocalDate.now()
+        val records = hc.readRecords(
             ReadRecordsRequest(
                 StepsRecord::class,
-                TimeRangeFilter.between(now.minus(1, ChronoUnit.DAYS), now)
+                getTimeRangeForDate(today)
             )
-        )?.records ?: return@withContext 0L
+        ).records
 
         records.sumOf { it.count }
     }
 
-    suspend fun readSleepHours(): Float = withContext(defaultDispatcher) {
-        val now = Instant.now()
-        val records = client?.readRecords(
-            ReadRecordsRequest(
-                SleepSessionRecord::class,
-                TimeRangeFilter.between(now.minus(1, ChronoUnit.DAYS), now)
-            )
-        )?.records ?: return@withContext 0f
-
-        records.sumOf {
-            ChronoUnit.MINUTES.between(it.startTime, it.endTime)
-        } / 60f
-    }
-
     suspend fun readLatestHRV(): Double? = withContext(defaultDispatcher) {
-        val now = Instant.now()
-        val records = client?.readRecords(
+        val hc = client ?: return@withContext null
+        if (!hasPermissions(hc)) return@withContext null
+
+        val today = LocalDate.now()
+        val records = hc.readRecords(
             ReadRecordsRequest(
                 HeartRateVariabilityRmssdRecord::class,
-                TimeRangeFilter.between(now.minus(1, ChronoUnit.DAYS), now)
+                getTimeRangeForDate(today)
             )
-        )?.records ?: return@withContext null
+        ).records
 
         records.lastOrNull()?.heartRateVariabilityMillis
     }
 
     suspend fun estimateStressLevel(): String {
         val hrv = readLatestHRV() ?: return "Desconocido"
-
         return when {
             hrv > 50 -> "Bajo"
             hrv > 30 -> "Moderado"
@@ -162,15 +197,45 @@ class HealthConnectRepository @Inject constructor(
         }
     }
 
+    suspend fun readLastNightSleepDurationByDate(date: LocalDate): SleepDuration =
+        withContext(defaultDispatcher) {
+            val hc = client ?: return@withContext SleepDuration(0, 0)
+            if (!hasPermissions(hc)) return@withContext SleepDuration(0, 0)
+
+            val records = hc.readRecords(
+                ReadRecordsRequest(
+                    SleepSessionRecord::class,
+                    getTimeRangeForLastNightSleep(date = date)
+                )
+            ).records
+
+            val maxMinutes = records
+                .maxOfOrNull { ChronoUnit.MINUTES.between(it.startTime, it.endTime) }
+                ?.toInt()
+                ?: 0
+
+            SleepDuration(
+                hours = maxMinutes / 60,
+                minutes = maxMinutes % 60
+            )
+        }
+
+    suspend fun readLastNightSleepDuration(): SleepDuration {
+        return readLastNightSleepDurationByDate(LocalDate.now())
+    }
+
     suspend fun getHealthSummary(): HealthSummary = withContext(defaultDispatcher) {
         val heartRate = readHeartRateAvg()
-        val sleep = readSleepHours()
+
+        val sleepDuration = readLastNightSleepDuration()
+        val sleepHours = sleepDuration.totalMinutes / 60f
+
         val steps = readTodaySteps()
         val stress = estimateStressLevel()
 
         HealthSummary(
             heartRateAvg = heartRate,
-            sleepHours = sleep,
+            sleepHours = sleepHours,
             steps = steps,
             stressLevel = stress
         )
