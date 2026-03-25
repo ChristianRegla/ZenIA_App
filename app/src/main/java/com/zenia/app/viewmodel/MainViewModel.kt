@@ -8,6 +8,7 @@ import com.zenia.app.data.UserPreferencesRepository
 import com.zenia.app.data.session.UserSessionManager
 import com.zenia.app.ui.navigation.Destinations
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +16,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.net.HttpURLConnection
+import java.net.URL
 import javax.inject.Inject
 
 @HiltViewModel
@@ -52,6 +55,30 @@ class MainViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = null
     )
+
+    init {
+        wakeUpRenderServer()
+    }
+
+    private fun wakeUpRenderServer() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val url = URL("https://api-zenia.onrender.com/wakeup")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+
+                connection.connectTimeout = 60000
+                connection.readTimeout = 60000
+
+                val code = connection.responseCode
+                println("Render WakeUp Status: $code")
+
+                connection.disconnect()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     fun setPendingRoute(route: String) {
         _pendingRouteAfterUnlock.value = route
