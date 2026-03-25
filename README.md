@@ -21,7 +21,7 @@ Este proyecto aborda la alta prevalencia de ansiedad y la falta de cobertura en 
 
 ## ✨ Funcionalidades Principales
 
-* 🤖 **Chatbot de Apoyo Emocional (IA):** Asistente impulsado por **Gemini 1.5 Flash** (vía Vertex AI) que ofrece conversación empática y contextual en tiempo real, operando bajo guiones validados clínicamente.
+* 🤖 **Chatbot de Apoyo Emocional (IA):** Asistente impulsado por **Gemini 2.5 Flash** (vía Vertex AI) que ofrece conversación empática y contextual en tiempo real, operando bajo guiones validados clínicamente.
 * 📝 **Diario de Bienestar Inteligente:** Registro diario de estado de ánimo y notas personales con retroalimentación automatizada basada en patrones emocionales.
 * ❤️ **Integración Biométrica:** Sincronización con **Health Connect** para leer datos fisiológicos (como frecuencia cardíaca) de *wearables* compatibles y correlacionarlos con el estado de ánimo.
 * 🧘 **Módulo de Relajación:** Biblioteca curada de ejercicios de respiración guiada y *mindfulness*, apoyada con animaciones visuales (**Lottie**) para reducir la carga cognitiva.
@@ -49,7 +49,7 @@ El proyecto está construido sobre una arquitectura moderna, escalable y segura.
 * **Monitoreo:** Firebase Crashlytics
 
 ### 🧠 Inteligencia Artificial
-* **Modelo:** Gemini 1.5 Flash
+* **Modelo:** Gemini 2.5 Flash
 * **Plataforma:** Google Cloud Vertex AI
 
 ---
