@@ -32,18 +32,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -64,8 +64,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zenia.app.R
@@ -87,11 +91,14 @@ fun ZeniaBotScreen(
     var textState by rememberSaveable { mutableStateOf("") }
     val listState = rememberLazyListState()
     val haptic = LocalHapticFeedback.current
+    val clipboardManager = LocalClipboardManager.current
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
 
     var selectedMessages by rememberSaveable { mutableStateOf(setOf<String>()) }
     val selectionMode = selectedMessages.isNotEmpty()
     val coroutineScope = rememberCoroutineScope()
+
+    val mensajes = (uiState as? ChatUiState.Success)?.mensajes?.reversed() ?: emptyList()
 
     val animatedTopBarColor by animateColorAsState(
         targetValue = if (selectionMode)
@@ -108,7 +115,6 @@ fun ZeniaBotScreen(
     BackHandler(enabled = selectionMode) {
         selectedMessages = emptySet()
     }
-
 
     Scaffold(
         topBar = {
@@ -142,6 +148,24 @@ fun ZeniaBotScreen(
                 },
                 actions = {
                     if (selectionMode) {
+                        if (selectedMessages.size == 1) {
+                            IconButton(
+                                onClick = {
+                                    val msgId = selectedMessages.first()
+                                    val textToCopy = mensajes.find { it.id == msgId }?.texto
+                                    if (textToCopy != null) {
+                                        clipboardManager.setText(AnnotatedString(textToCopy))
+                                    }
+                                    selectedMessages = emptySet()
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Default.ContentCopy,
+                                    contentDescription = "Copiar",
+                                    tint = Color.White
+                                )
+                            }
+                        }
                         IconButton(
                             onClick = {
                                 onDeleteSelected(selectedMessages)
@@ -150,7 +174,7 @@ fun ZeniaBotScreen(
                         ) {
                             Icon(
                                 Icons.Default.Delete,
-                                contentDescription = null,
+                                contentDescription = "Eliminar",
                                 tint = Color.White
                             )
                         }
@@ -158,7 +182,7 @@ fun ZeniaBotScreen(
                         IconButton(onClick = { showDeleteDialog = true }) {
                             Icon(
                                 Icons.Default.Delete,
-                                contentDescription = null,
+                                contentDescription = "Borrar chat",
                                 tint = Color.White
                             )
                         }
@@ -192,7 +216,6 @@ fun ZeniaBotScreen(
                 ) {
 
                     when (uiState) {
-
                         is ChatUiState.Loading -> {
                             CircularProgressIndicator(
                                 modifier = Modifier.align(Alignment.Center)
@@ -209,8 +232,6 @@ fun ZeniaBotScreen(
 
                         is ChatUiState.Success -> {
 
-                            val mensajes = uiState.mensajes.reversed()
-
                             val isAtBottom by remember {
                                 derivedStateOf {
                                     listState.firstVisibleItemIndex == 0 &&
@@ -219,7 +240,7 @@ fun ZeniaBotScreen(
                             }
 
                             LaunchedEffect(mensajes.size, isTyping) {
-                                if (isAtBottom) {
+                                if (listState.firstVisibleItemIndex < 3) {
                                     listState.animateScrollToItem(0)
                                 }
                             }
@@ -275,15 +296,17 @@ fun ZeniaBotScreen(
                             androidx.compose.animation.AnimatedVisibility(
                                 visible = !isAtBottom,
                                 modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(bottom = 20.dp)
+                                    .align(Alignment.BottomEnd)
+                                    .padding(start = 16.dp, bottom = 16.dp)
                             ) {
-                                FloatingActionButton(
+                                SmallFloatingActionButton(
                                     onClick = {
                                         coroutineScope.launch {
                                             listState.animateScrollToItem(0)
                                         }
-                                    }
+                                    },
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                                 ) {
                                     Icon(Icons.Default.ArrowDownward, null)
                                 }
@@ -329,6 +352,9 @@ fun ZeniaBotScreen(
                                     HapticFeedbackType.TextHandleMove
                                 )
                                 textState = ""
+                                coroutineScope.launch {
+                                    listState.animateScrollToItem(0)
+                                }
                             },
                             modifier = Modifier
                                 .size(48.dp)
@@ -395,8 +421,10 @@ fun ChatBubble(
     onLongPress: () -> Unit,
     onClick: () -> Unit
 ) {
-
     val isUser = mensaje.emisor == "usuario"
+    val configuration = LocalConfiguration.current
+
+    val maxBubbleWidth = configuration.screenWidthDp.dp * 0.85f
 
     Box(
         modifier = Modifier
@@ -416,7 +444,9 @@ fun ChatBubble(
     ) {
 
         Surface(
-            modifier = Modifier.widthIn(max = 600.dp),
+            modifier = Modifier
+                .widthIn(max = maxBubbleWidth)
+                .padding(horizontal = 8.dp),
             shape = RoundedCornerShape(
                 topStart = 20.dp,
                 topEnd = 20.dp,
@@ -450,7 +480,7 @@ fun TypingBubble() {
                 bottomStart = 2.dp, bottomEnd = 16.dp
             ),
             color = ZeniaIceBlue,
-            modifier = Modifier.padding(vertical = 4.dp)
+            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
         ) {
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
