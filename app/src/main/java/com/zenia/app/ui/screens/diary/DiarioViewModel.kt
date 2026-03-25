@@ -129,7 +129,7 @@ class DiarioViewModel @Inject constructor(
         val firstDayOfMonth = yearMonth.atDay(1)
         val lastDayOfMonth = yearMonth.atEndOfMonth()
         val firstDayOfWeekVal = firstDayOfMonth.dayOfWeek.value
-        val emptyDaysCount = if (firstDayOfWeekVal == 7) 6 else firstDayOfWeekVal - 1
+        val emptyDaysCount = if (firstDayOfWeekVal == 7) 0 else firstDayOfWeekVal
 
         val days = mutableListOf<CalendarDayState>()
 
