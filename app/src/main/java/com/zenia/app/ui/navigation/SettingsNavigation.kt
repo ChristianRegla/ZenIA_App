@@ -87,17 +87,21 @@ fun NavGraphBuilder.settingsGraph(navController: NavController, mainViewModel: M
             onNavigateBack = { navController.popBackStack() },
             onInstallOrUpdateHealthConnect = {
                 val pkg = "com.google.android.apps.healthdata"
-
-                val marketUri = "market://details?id=$pkg".toUri()
-                val webUri = "https://play.google.com/store/apps/details?id=$pkg".toUri()
+                val uriString = "market://details?id=$pkg&url=healthconnect%3A%2F%2Fonboarding"
 
                 try {
                     context.startActivity(
-                        Intent(Intent.ACTION_VIEW, marketUri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        Intent(Intent.ACTION_VIEW).apply {
+                            setPackage("com.android.vending")
+                            data = uriString.toUri()
+                            putExtra("overlay", true)
+                            putExtra("callerId", context.packageName)
+                        }
                     )
-                } catch (_: ActivityNotFoundException) {
+                } catch (e: Exception) {
                     context.startActivity(
-                        Intent(Intent.ACTION_VIEW, webUri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        Intent(Intent.ACTION_VIEW,
+                            "https://play.google.com/store/apps/details?id=$pkg".toUri())
                     )
                 }
             }

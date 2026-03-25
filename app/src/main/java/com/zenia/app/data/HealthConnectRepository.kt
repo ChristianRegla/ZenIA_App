@@ -1,6 +1,8 @@
 package com.zenia.app.data
 
 import android.content.Context
+import android.content.pm.PackageManager
+import android.util.Log
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
@@ -52,9 +54,10 @@ class HealthConnectRepository @Inject constructor(
     @param:ApplicationContext private val context: Context,
     @param:DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) {
+    private val providerPackageName = "com.google.android.apps.healthdata"
 
     val sdkStatus: Int
-        get() = HealthConnectClient.getSdkStatus(context)
+        get() = HealthConnectClient.getSdkStatus(context, providerPackageName)
 
     private val client: HealthConnectClient?
         get() = when (sdkStatus) {
@@ -72,6 +75,34 @@ class HealthConnectRepository @Inject constructor(
         HealthPermission.getReadPermission(HeartRateVariabilityRmssdRecord::class)
     )
 
+    private fun logHealthPermissionsResource() {
+        val id = context.resources.getIdentifier("health_permissions", "xml", context.packageName)
+        Log.d("HC_DEBUG", "health_permissions.xml resource id=$id")
+    }
+    private fun logHealthConnectMetadata() {
+        try {
+            val ai = context.packageManager.getApplicationInfo(
+                context.packageName,
+                PackageManager.GET_META_DATA
+            )
+            val meta = ai.metaData
+            val value = meta?.getInt("androidx.health.connect.client.metadata", 0) ?: 0
+            Log.d("HC_DEBUG", "meta-data androidx.health.connect.client.metadata=$value")
+        } catch (e: Exception) {
+            Log.e("HC_DEBUG", "Error reading meta-data", e)
+        }
+    }
+
+    private fun logRequestedPermissions() {
+        val perms = permissions
+        Log.d("HC_DEBUG", "healthRepo.permissions=$perms")
+
+        perms.forEach { p ->
+            val ok = p.startsWith("android.permission.health.")
+            Log.d("HC_DEBUG", "perm=$p android.health.prefix=$ok")
+        }
+    }
+
     fun permissionContract(): ActivityResultContract<Set<String>, Set<String>> =
         PermissionController.createRequestPermissionResultContract()
 
@@ -85,6 +116,10 @@ class HealthConnectRepository @Inject constructor(
     }
 
     suspend fun getNextStep(): HealthConnectNextStep {
+        logHealthPermissionsResource()
+        logHealthConnectMetadata()
+        logRequestedPermissions()
+
         return when (availability()) {
             HealthConnectAvailability.Available -> {
                 if (hasPermissions()) HealthConnectNextStep.Ready
