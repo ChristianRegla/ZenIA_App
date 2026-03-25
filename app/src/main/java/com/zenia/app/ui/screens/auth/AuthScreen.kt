@@ -57,6 +57,9 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.zenia.app.R
+import com.zenia.app.ui.components.SnackbarState
+import com.zenia.app.ui.components.ZeniaSnackbarController
+import com.zenia.app.ui.components.ZeniaSnackbarData
 import com.zenia.app.ui.theme.*
 import kotlinx.coroutines.delay
 
@@ -66,7 +69,6 @@ data class AuthScreenState(
     val email: String,
     val password: String,
     val confirmPassword: String,
-    val snackbarHostState: SnackbarHostState,
     val termsAccepted: Boolean
 )
 
@@ -82,7 +84,8 @@ data class AuthScreenActions(
     val onTermsClick: () -> Unit,
     val onPrivacyPolicyClick: () -> Unit,
     val onResendVerificationClick: () -> Unit,
-    val onDismissVerificationDialog: () -> Unit
+    val onDismissVerificationDialog: () -> Unit,
+    val onResetState: () -> Unit
 )
 
 @Composable
@@ -90,9 +93,40 @@ fun AuthScreen(
     state: AuthScreenState,
     actions: AuthScreenActions
 ) {
+    LaunchedEffect(state.uiState) {
+        when (val uiState = state.uiState) {
+            is AuthUiState.Error -> {
+                ZeniaSnackbarController.showMessage(
+                    ZeniaSnackbarData(
+                        message = uiState.message,
+                        state = SnackbarState.ERROR
+                    )
+                )
+                actions.onResetState()
+            }
+            is AuthUiState.PasswordResetSent -> {
+                ZeniaSnackbarController.showMessage(
+                    ZeniaSnackbarData(
+                        message = "Correo de recuperación enviado exitosamente",
+                        state = SnackbarState.SUCCESS
+                    )
+                )
+                actions.onResetState()
+            }
+            is AuthUiState.AccountDeleted -> {
+                ZeniaSnackbarController.showMessage(
+                    ZeniaSnackbarData(
+                        message = "Cuenta eliminada correctamente",
+                        state = SnackbarState.INFO
+                    )
+                )
+                actions.onResetState()
+            }
+            else -> {}
+        }
+    }
     ZenIATheme {
         Scaffold(
-            snackbarHost = { SnackbarHost(hostState = state.snackbarHostState) },
             containerColor = Color.Transparent
         ) { paddingValues ->
             Box(
@@ -615,10 +649,9 @@ fun AuthScreenPreview_Login() {
         email = "",
         password = "",
         confirmPassword = "",
-        snackbarHostState = SnackbarHostState(),
         termsAccepted = false
     )
-    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})
+    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})
     ZenIATheme { AuthScreen(state = state, actions = actions) }
 }
 
@@ -631,9 +664,8 @@ fun AuthScreenPreview_Loading_Zen() {
         email = "test@zen.ia",
         password = "password",
         confirmPassword = "",
-        snackbarHostState = SnackbarHostState(),
         termsAccepted = false
     )
-    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})
+    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})
     ZenIATheme { AuthScreen(state = state, actions = actions) }
 }

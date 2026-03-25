@@ -1,8 +1,6 @@
 package com.zenia.app.ui.screens.auth
 
 import android.app.Activity
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -23,13 +21,12 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.GoogleAuthProvider
 import com.zenia.app.R
+// NUEVOS IMPORTS DEL SNACKBAR GLOBAL
+import com.zenia.app.ui.components.SnackbarState
+import com.zenia.app.ui.components.ZeniaSnackbarController
+import com.zenia.app.ui.components.ZeniaSnackbarData
 import kotlinx.coroutines.launch
 
-/**
- * Composable "inteligente" (Smart Composable) para la ruta de autenticación.
- * Obtiene el estado del ViewModel, maneja la lógica de UI (como Google Sign-In)
- * y pasa el estado y las acciones al Composable "tonto" [AuthScreen].
- */
 @Composable
 fun AuthRoute(
     authViewModel: AuthViewModel,
@@ -47,7 +44,6 @@ fun AuthRoute(
     var isRegisterMode by rememberSaveable { mutableStateOf(false) }
     var termsAccepted by rememberSaveable { mutableStateOf(false) }
 
-    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -75,33 +71,6 @@ fun AuthRoute(
         }
     }
 
-    LaunchedEffect(uiState) {
-        when (val state = uiState) {
-            is AuthUiState.VerificationSent -> {
-                snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.auth_verification_sent),
-                    duration = SnackbarDuration.Long
-                )
-                authViewModel.resetState()
-            }
-            is AuthUiState.PasswordResetSent -> {
-                snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.auth_password_reset_sent),
-                    duration = SnackbarDuration.Long
-                )
-                authViewModel.resetState()
-            }
-            is AuthUiState.Error -> {
-                snackbarHostState.showSnackbar(
-                    message = state.message,
-                    duration = SnackbarDuration.Short
-                )
-                authViewModel.resetState()
-            }
-            else -> {}
-        }
-    }
-
     if (uiState is AuthUiState.VerificationRequired) {
         val verificationState = uiState as AuthUiState.VerificationRequired
 
@@ -126,7 +95,6 @@ fun AuthRoute(
             email = email,
             password = password,
             confirmPassword = confirmPassword,
-            snackbarHostState = snackbarHostState,
             termsAccepted = termsAccepted
         )
 
@@ -139,7 +107,12 @@ fun AuthRoute(
             onLoginOrRegisterClick = {
                 if (isRegisterMode) {
                     if (!termsAccepted) {
-                        scope.launch { snackbarHostState.showSnackbar(termsNotAcceptedMessage) }
+                        ZeniaSnackbarController.showMessage(
+                            ZeniaSnackbarData(
+                                message = termsNotAcceptedMessage,
+                                state = SnackbarState.WARNING
+                            )
+                        )
                     } else {
                         authViewModel.createUser(email, password, confirmPassword)
                     }
@@ -168,15 +141,25 @@ fun AuthRoute(
                             )
                             authViewModel.signInWithGoogle(firebaseCredential)
                         } else {
-                            snackbarHostState.showSnackbar(context.getString(R.string.auth_error_not_google_credential))
+                            ZeniaSnackbarController.showMessage(
+                                ZeniaSnackbarData(
+                                    message = context.getString(R.string.auth_error_not_google_credential),
+                                    state = SnackbarState.ERROR
+                                )
+                            )
                         }
                     } catch (_: GetCredentialException) {
-                        snackbarHostState.showSnackbar(context.getString(R.string.auth_error_google_canceled))
+                        ZeniaSnackbarController.showMessage(
+                            ZeniaSnackbarData(
+                                message = context.getString(R.string.auth_error_google_canceled),
+                                state = SnackbarState.INFO
+                            )
+                        )
                     } catch (e: Exception) {
-                        snackbarHostState.showSnackbar(
-                            context.getString(
-                                R.string.auth_error_unexpected,
-                                e.message ?: "Unknown"
+                        ZeniaSnackbarController.showMessage(
+                            ZeniaSnackbarData(
+                                message = context.getString(R.string.auth_error_unexpected, e.message ?: "Unknown"),
+                                state = SnackbarState.ERROR
                             )
                         )
                     }
@@ -193,6 +176,9 @@ fun AuthRoute(
                 authViewModel.resendVerification()
             },
             onDismissVerificationDialog = {
+                authViewModel.resetState()
+            },
+            onResetState = {
                 authViewModel.resetState()
             }
         )

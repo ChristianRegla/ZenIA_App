@@ -48,11 +48,8 @@ fun HealthSyncRoute(
         healthSummary = healthSummary,
         isLoading = isLoading,
         onConnectClick = {
-            android.util.Log.d("HealthSync", "Click. nextStep=$nextStep")
-
             when (nextStep) {
                 HealthConnectNextStep.RequestPermissions -> {
-                    android.util.Log.d("HealthSync", "Launching permission contract: ${viewModel.permissions}") // <-- AQUÍ
                     permissionLauncher.launch(viewModel.permissions)
                 }
 

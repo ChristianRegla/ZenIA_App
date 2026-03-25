@@ -75,34 +75,6 @@ class HealthConnectRepository @Inject constructor(
         HealthPermission.getReadPermission(HeartRateVariabilityRmssdRecord::class)
     )
 
-    private fun logHealthPermissionsResource() {
-        val id = context.resources.getIdentifier("health_permissions", "xml", context.packageName)
-        Log.d("HC_DEBUG", "health_permissions.xml resource id=$id")
-    }
-    private fun logHealthConnectMetadata() {
-        try {
-            val ai = context.packageManager.getApplicationInfo(
-                context.packageName,
-                PackageManager.GET_META_DATA
-            )
-            val meta = ai.metaData
-            val value = meta?.getInt("androidx.health.connect.client.metadata", 0) ?: 0
-            Log.d("HC_DEBUG", "meta-data androidx.health.connect.client.metadata=$value")
-        } catch (e: Exception) {
-            Log.e("HC_DEBUG", "Error reading meta-data", e)
-        }
-    }
-
-    private fun logRequestedPermissions() {
-        val perms = permissions
-        Log.d("HC_DEBUG", "healthRepo.permissions=$perms")
-
-        perms.forEach { p ->
-            val ok = p.startsWith("android.permission.health.")
-            Log.d("HC_DEBUG", "perm=$p android.health.prefix=$ok")
-        }
-    }
-
     fun permissionContract(): ActivityResultContract<Set<String>, Set<String>> =
         PermissionController.createRequestPermissionResultContract()
 
@@ -116,10 +88,6 @@ class HealthConnectRepository @Inject constructor(
     }
 
     suspend fun getNextStep(): HealthConnectNextStep {
-        logHealthPermissionsResource()
-        logHealthConnectMetadata()
-        logRequestedPermissions()
-
         return when (availability()) {
             HealthConnectAvailability.Available -> {
                 if (hasPermissions()) HealthConnectNextStep.Ready

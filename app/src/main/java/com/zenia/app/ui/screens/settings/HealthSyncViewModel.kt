@@ -17,7 +17,6 @@ class HealthSyncViewModel @Inject constructor(
     private val healthRepo: HealthConnectRepository
 ) : ViewModel() {
 
-    // UI usa esto para lanzar el permission contract
     val permissions = healthRepo.permissions
     fun permissionContract() = healthRepo.permissionContract()
 
@@ -32,11 +31,7 @@ class HealthSyncViewModel @Inject constructor(
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     fun refreshState() = viewModelScope.launch {
-        android.util.Log.d("HealthSyncVM", "refreshState() called")
-
         _nextStep.value = healthRepo.getNextStep()
-        android.util.Log.d("HealthSyncVM", "nextStep=${_nextStep.value}")
-
 
         if (_nextStep.value == HealthConnectNextStep.Ready) {
             loadMetrics()
@@ -57,8 +52,6 @@ class HealthSyncViewModel @Inject constructor(
     }
 
     fun onPermissionsResult(@Suppress("UNUSED_PARAMETER") grantedPermissions: Set<String>) {
-        android.util.Log.d("HealthSyncVM", "onPermissionsResult(): $grantedPermissions")
-
         refreshState()
     }
 }

@@ -7,6 +7,8 @@ import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import com.zenia.app.data.UserPreferencesRepository
+import com.zenia.app.data.network.ConnectivityObserver
+import com.zenia.app.data.network.NetworkConnectivityObserver
 import com.zenia.app.util.ProfanityFilter
 import dagger.Module
 import dagger.Provides
@@ -39,5 +41,13 @@ object AppModule {
     @Singleton
     fun provideProfanityFilter(): ProfanityFilter {
         return ProfanityFilter
+    }
+
+    @Provides
+    @Singleton
+    fun provideConnectivityObserver(
+        @ApplicationContext context: Context
+    ): ConnectivityObserver {
+        return NetworkConnectivityObserver(context)
     }
 }
