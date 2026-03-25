@@ -11,7 +11,6 @@ fun RecursosRoute(
     onNavigateToDetail: (String) -> Unit,
     onNavigateToPremium: () -> Unit
 ) {
-    val settingsViewModel: SettingsViewModel = hiltViewModel()
     val recursosViewModel: RecursosViewModel = hiltViewModel()
 
     val isPremium by recursosViewModel.isPremium.collectAsState()
@@ -22,6 +21,7 @@ fun RecursosRoute(
         isUserPremium = isPremium,
         onNavigateToDetail = onNavigateToDetail,
         onNavigateToPremium = onNavigateToPremium,
-        onToggleFavorite = { id, status -> recursosViewModel.toggleFavorite(id, status) }
+        onToggleFavorite = { id, status -> recursosViewModel.toggleFavorite(id, status) },
+        onRetry = { recursosViewModel.cargarRecursos() }
     )
 }

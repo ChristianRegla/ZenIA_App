@@ -65,10 +65,14 @@ class MainViewModel @Inject constructor(
 
     fun checkAuthStatus() {
         viewModelScope.launch {
-            val user = auth.currentUser
-            user?.reload()?.await()
+            try {
+                val user = auth.currentUser
+                user?.reload()?.await()
+            } catch (e: Exception) {
 
-            _authTrigger.value += 1
+            } finally {
+                _authTrigger.value += 1
+            }
         }
     }
 

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.R
 import com.zenia.app.data.RecursosRepository
+import com.zenia.app.data.network.ConnectivityObserver
 import com.zenia.app.data.session.UserSessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +34,7 @@ sealed interface RecursosUiState {
 @HiltViewModel
 class RecursosViewModel @Inject constructor(
     private val recursosRepository: RecursosRepository,
+    private val connectivityObserver: ConnectivityObserver,
     sessionManager: UserSessionManager
 ) : ViewModel() {
 
@@ -49,11 +51,21 @@ class RecursosViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = RecursosUiState.Loading
 
+            if (!connectivityObserver.isConnected()) {
+                _uiState.value = RecursosUiState.Error("Sin conexión a internet")
+                return@launch
+            }
+
             recursosRepository.getRecursosConInteracciones()
                 .catch { e ->
                     _uiState.value = RecursosUiState.Error(e.message ?: "Error desconocido")
                 }
                 .collect { listaPares ->
+                    if (listaPares.isEmpty() && !connectivityObserver.isConnected()) {
+                        _uiState.value = RecursosUiState.Error("Sin conexión a internet")
+                        return@collect
+                    }
+
                     val uiModels = listaPares.map { (recurso, interaccion) ->
                         RecursoUiModel(
                             id = recurso.id,
@@ -63,7 +75,7 @@ class RecursosViewModel @Inject constructor(
                                     .replace("*", "") + "..."),
                             category = recurso.tipo,
                             imageRes = R.drawable.placeholder_resource_1,
-                            isPremium = recurso.esPremium ?: false,
+                            isPremium = recurso.esPremium,
                             isFavorite = interaccion?.isFavorite ?: false,
                             progress = interaccion?.progress ?: 0
                         )
