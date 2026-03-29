@@ -19,7 +19,7 @@ interface ConnectivityObserver {
     fun isConnected(): Boolean
 }
 class NetworkConnectivityObserver(
-    private val context: Context
+    context: Context
 ) : ConnectivityObserver {
     private val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

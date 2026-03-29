@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -32,18 +31,11 @@ import javax.inject.Singleton
 @Singleton
 class AuthRepository @Inject constructor(
     private val auth: FirebaseAuth,
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    private val client: OkHttpClient
 ) {
 
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-        .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-        .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-        .build()
-
     private val baseUrl = BuildConfig.API_BASE_URL
-
-    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     val currentUserId: String?
         get() = auth.currentUser?.uid
@@ -85,25 +77,11 @@ class AuthRepository @Inject constructor(
                 }
             }
         }
-
-    /**
-     * Obtiene el documento del usuario actual una sola vez (Snapshot).
-     * Útil para operaciones puntuales como "Crear Post" donde necesitamos los datos actuales.
-     */
-    suspend fun getCurrentUserSnapshot(): Usuario? {
-        val uid = currentUserId ?: return null
-        return try {
-            val snapshot = db.collection(FirestoreCollections.USERS)
-                .document(uid)
-                .get()
-                .await()
-
-            snapshot.toObject(Usuario::class.java)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
+        .shareIn(
+            scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+            started = SharingStarted.WhileSubscribed(5000),
+            replay = 1
+        )
 
     /**
      * Crea o actualiza el documento del usuario en Firestore tras el inicio de sesión.
@@ -157,15 +135,15 @@ class AuthRepository @Inject constructor(
                 .post(body)
                 .build()
 
-            val response = client.newCall(request).execute()
-
-            if (response.isSuccessful) {
-                Log.d("AuthRepository", "Correo de ZenIA enviado exitosamente")
-                Result.success(Unit)
-            } else {
-                val errorBody = response.body?.string()
-                Log.e("AuthRepository", "Error en Render: ${response.code} - $errorBody")
-                Result.failure(Exception("Error del servidor: ${response.code}"))
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    Log.d("AuthRepository", "Correo de ZenIA enviado exitosamente")
+                    Result.success(Unit)
+                } else {
+                    val errorBody = response.body?.string()
+                    Log.e("AuthRepository", "Error en Render: ${response.code} - $errorBody")
+                    Result.failure(Exception("Error del servidor: ${response.code}"))
+                }
             }
         } catch (e: Exception) {
             Log.e("AuthRepository", "Error al enviar correo de verificación", e)
@@ -185,15 +163,15 @@ class AuthRepository @Inject constructor(
                 .post(body)
                 .build()
 
-            val response = client.newCall(request).execute()
-
-            if (response.isSuccessful) {
-                Log.d("AuthRepository", "Correo de recuperación enviado exitosamente")
-                Result.success(Unit)
-            } else {
-                val errorBody = response.body?.string()
-                Log.e("AuthRepository", "Error en Render al recuperar: ${response.code} - $errorBody")
-                Result.failure(Exception("Error del servidor: ${response.code}"))
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    Log.d("AuthRepository", "Correo de recuperación enviado exitosamente")
+                    Result.success(Unit)
+                } else {
+                    val errorBody = response.body?.string()
+                    Log.e("AuthRepository", "Error en Render al recuperar: ${response.code} - $errorBody")
+                    Result.failure(Exception("Error del servidor: ${response.code}"))
+                }
             }
         } catch (e: Exception) {
             Log.e("AuthRepository", "Error al enviar correo de recuperación", e)
@@ -219,16 +197,16 @@ class AuthRepository @Inject constructor(
                 .delete()
                 .build()
 
-            val response = client.newCall(request).execute()
-
-            if (response.isSuccessful) {
-                Log.d("AuthRepository", "Cuenta $userId eliminada de Firebase Auth")
-                auth.signOut()
-                Result.success(Unit)
-            } else {
-                val errorBody = response.body?.string()
-                Log.e("AuthRepository", "Error borrando en Render: ${response.code} - $errorBody")
-                Result.failure(Exception("Error al borrar cuenta: ${response.code}"))
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    Log.d("AuthRepository", "Cuenta $userId eliminada de Firebase Auth")
+                    auth.signOut()
+                    Result.success(Unit)
+                } else {
+                    val errorBody = response.body?.string()
+                    Log.e("AuthRepository", "Error borrando en Render: ${response.code} - $errorBody")
+                    Result.failure(Exception("Error al borrar cuenta: ${response.code}"))
+                }
             }
         } catch (e: Exception) {
             Log.e("AuthRepository", "Error eliminando usuario", e)

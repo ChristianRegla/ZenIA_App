@@ -67,13 +67,14 @@ fun AuthButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    isLoading: Boolean = false,
     containerColor: Color = MaterialTheme.colorScheme.primary,
     textColor: Color = Color.White,
     icon: Painter? = null
 ) {
     Button(
         onClick = onClick,
-        enabled = enabled,
+        enabled = enabled && !isLoading,
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             disabledContainerColor = containerColor.copy(alpha = 0.6f)
@@ -83,6 +84,13 @@ fun AuthButton(
             .fillMaxWidth()
             .height(50.dp)
     ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                color = textColor,
+                strokeWidth = 2.5.dp
+            )
+        }
         if (icon != null) {
             Icon(
                 painter = icon,

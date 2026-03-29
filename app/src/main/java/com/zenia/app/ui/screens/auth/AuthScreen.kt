@@ -69,7 +69,8 @@ data class AuthScreenState(
     val email: String,
     val password: String,
     val confirmPassword: String,
-    val termsAccepted: Boolean
+    val termsAccepted: Boolean,
+    val isGoogleLoading: Boolean = false
 )
 
 data class AuthScreenActions(
@@ -206,6 +207,9 @@ private fun AuthContent(
     var showPasswordPanel by remember { mutableStateOf(false) }
 
     val isLoading = state.uiState == AuthUiState.Loading
+
+    val isGlobalLoading = state.uiState == AuthUiState.Loading || state.isGoogleLoading
+    val isEmailLoading = state.uiState == AuthUiState.Loading
 
     val isPasswordValid = state.password.length >= 8 &&
             state.password.any { it.isUpperCase() } &&
@@ -456,7 +460,8 @@ private fun AuthContent(
                 AuthButton(
                     text = if (state.isRegisterMode) stringResource(R.string.register) else stringResource(R.string.login),
                     onClick = actions.onLoginOrRegisterClick,
-                    enabled = !isLoading,
+                    enabled = !isGlobalLoading,
+                    isLoading = isEmailLoading,
                     modifier = Modifier.constrainAs(loginButton) {
                         bottom.linkTo(divider.top, margin = 16.dp)
                         centerHorizontallyTo(parent)
@@ -484,7 +489,8 @@ private fun AuthContent(
                 AuthButton(
                     text = stringResource(R.string.googleLogin),
                     onClick = actions.onGoogleSignInClick,
-                    enabled = !isLoading,
+                    enabled = !isGlobalLoading,
+                    isLoading = state.isGoogleLoading,
                     containerColor = colorResource(id = R.color.google),
                     textColor = Color.Black,
                     icon = painterResource(id = R.drawable.image_continuar_google_group),

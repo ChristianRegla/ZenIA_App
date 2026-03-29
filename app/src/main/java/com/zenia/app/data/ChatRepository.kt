@@ -1,18 +1,21 @@
 package com.zenia.app.data
 
-import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.WriteBatch
 import com.zenia.app.model.MensajeChatbot
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class ChatRepository @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore
@@ -71,49 +74,33 @@ class ChatRepository @Inject constructor(
         }
     }
 
-    suspend fun deleteMessagesByIds(ids: Set<String>): Result<Unit> {
+    suspend fun deleteMessagesByIds(ids: Set<String>): Result<Unit> = withContext(Dispatchers.IO) {
 
-        if (ids.isEmpty()) return Result.success(Unit)
+        if (ids.isEmpty()) return@withContext Result.success(Unit)
 
         val uid = getUserIdOrNull()
-            ?: return Result.failure(Exception("Usuario no autenticado"))
+            ?: return@withContext Result.failure(Exception("Usuario no autenticado"))
 
-        return try {
-
-            val batch: WriteBatch = db.batch()
-
+        return@withContext try {
             val collectionRef = db.collection(FirestoreCollections.USERS)
                 .document(uid)
                 .collection(FirestoreCollections.CHAT_HISTORY)
 
-            ids.forEach { id ->
-                val docRef = collectionRef.document(id)
-                batch.delete(docRef)
-            }
+            val chunkedIds = ids.chunked(500)
 
-            batch.commit().await()
+            chunkedIds.forEach { chunk ->
+                val batch: WriteBatch = db.batch()
+                chunk.forEach { id ->
+                    val docRef = collectionRef.document(id)
+                    batch.delete(docRef)
+                }
+                batch.commit().await()
+            }
 
             Result.success(Unit)
 
         } catch (e: Exception) {
             Result.failure(e)
         }
-    }
-
-    /**
-     * IMPORTANTE: La eliminación masiva del historial de chat desde el cliente es insegura.
-     * Ha sido deshabilitada para prevenir crashes por uso excesivo de memoria.
-     *
-     * SOLUCIÓN CORRECTA: Usar una Cloud Function que elimine la subcolección en el backend.
-     * Se puede llamar a esta función desde el cliente con un solo comando.
-     * @see https://firebase.google.com/docs/functions/callable
-     */
-    suspend fun deleteChatHistory() {
-        val currentUserId = auth.currentUser?.uid ?: return
-        Log.w(
-            "ChatRepository",
-            "La eliminación del historial de chat ($currentUserId) debe ser manejada por una Cloud Function. " +
-            "La implementación del lado del cliente ha sido deshabilitada."
-        )
     }
 }

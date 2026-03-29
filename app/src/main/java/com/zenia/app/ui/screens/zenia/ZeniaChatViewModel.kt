@@ -77,23 +77,28 @@ class ZeniaChatViewModel @Inject constructor(
 
     fun eliminarHistorial() {
         viewModelScope.launch {
-            try {
-                chatRepository.deleteChatHistory()
-            } catch (e: Exception) {
-                _uiEvent.send(ChatUiEvent.ShowError("No se pudo borrar el historial"))
-                android.util.Log.e("ZeniaChatVM", "Error deleting", e)
+            val currentState = uiState.value
+            if (currentState is ChatUiState.Success) {
+                val todosLosIds = currentState.mensajes.map { it.id }.toSet()
+
+                if (todosLosIds.isNotEmpty()) {
+                    val result = chatRepository.deleteMessagesByIds(todosLosIds)
+
+                    if (result.isFailure) {
+                        _uiEvent.send(ChatUiEvent.ShowError("No se pudo borrar el historial"))
+                        android.util.Log.e("ZeniaChatVM", "Error deleting history", result.exceptionOrNull())
+                    }
+                }
             }
         }
     }
 
     fun eliminarMensajesSeleccionados(ids: Set<String>) {
         viewModelScope.launch {
-            try {
-                chatRepository.deleteMessagesByIds(ids)
-            } catch (e: Exception) {
-                _uiEvent.send(
-                    ChatUiEvent.ShowError("No se pudieron eliminar los mensajes")
-                )
+            val result = chatRepository.deleteMessagesByIds(ids)
+
+            if (result.isFailure) {
+                _uiEvent.send(ChatUiEvent.ShowError("No se pudieron eliminar los mensajes"))
             }
         }
     }
