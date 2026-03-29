@@ -19,13 +19,15 @@ fun SettingsRoute(
     onNavigateToPrivacy: () -> Unit,
     onSignOut: () -> Unit
 ) {
-    val currentUser by settingsViewModel.currentUser.collectAsState(initial = null)
+    val nickname by settingsViewModel.nickname.collectAsState()
+    val email by settingsViewModel.email.collectAsState()
+    val avatarIndex by settingsViewModel.avatarIndex.collectAsState()
     val isPremium by settingsViewModel.isUserPremium.collectAsState()
 
     SettingsScreen(
-        name = currentUser?.apodo,
-        email = currentUser?.email ?: "",
-        avatarIndex = currentUser?.avatarIndex ?: 0,
+        name = if (nickname == "Usuario") null else nickname,
+        email = email ?: "",
+        avatarIndex = avatarIndex,
         isPremium = isPremium,
         onUpdateProfile = { newName, newAvatarIdx ->
             settingsViewModel.updateProfile(newName, newAvatarIdx)

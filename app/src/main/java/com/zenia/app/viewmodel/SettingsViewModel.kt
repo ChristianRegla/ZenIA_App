@@ -39,6 +39,9 @@ class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
+    val nickname: StateFlow<String> = sessionManager.nickname
+    val avatarIndex: StateFlow<Int> = sessionManager.avatarIndex
+    val email: StateFlow<String?> = sessionManager.email
     val isUserPremium = sessionManager.isPremium
 
     val billingConnectionState = billingRepository.billingConnectionState
@@ -149,7 +152,8 @@ class SettingsViewModel @Inject constructor(
 
     fun updateProfile(nickname: String, avatarIndex: Int) {
         viewModelScope.launch {
-            val uid = sessionManager.userId.value
+            val uid = sessionManager.currentUserId
+
             if(uid != null) {
                 try {
                     authRepository.updateProfile(uid, nickname, avatarIndex)
