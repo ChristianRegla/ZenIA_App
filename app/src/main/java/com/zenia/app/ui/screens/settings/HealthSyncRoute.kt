@@ -17,10 +17,13 @@ fun HealthSyncRoute(
     onNavigateBack: () -> Unit,
     onInstallOrUpdateHealthConnect: () -> Unit,
     viewModel: HealthSyncViewModel = hiltViewModel(),
+    onNavigateToPremium: () -> Unit,
+    onManagePermissionClick: () -> Unit
 ) {
     val nextStep by viewModel.nextStep.collectAsState()
     val healthSummary by viewModel.healthSummary.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isPremium by viewModel.isPremium.collectAsState()
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = viewModel.permissionContract()
@@ -44,6 +47,7 @@ fun HealthSyncRoute(
     }
 
     HealthSyncScreen(
+        isPremium = isPremium,
         nextStep = nextStep,
         healthSummary = healthSummary,
         isLoading = isLoading,
@@ -53,8 +57,7 @@ fun HealthSyncRoute(
                     permissionLauncher.launch(viewModel.permissions)
                 }
 
-                HealthConnectNextStep.InstallOrUpdate ->
-                    onInstallOrUpdateHealthConnect()
+                HealthConnectNextStep.InstallOrUpdate -> onInstallOrUpdateHealthConnect()
 
                 HealthConnectNextStep.Ready ->
                     viewModel.loadMetrics()
@@ -63,6 +66,8 @@ fun HealthSyncRoute(
                     Unit
             }
         },
-        onNavigateBack = onNavigateBack
+        onNavigateBack = onNavigateBack,
+        onNavigateToPremium = onNavigateToPremium,
+        onManagePermissionClick
     )
 }

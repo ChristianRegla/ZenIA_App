@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.HealthConnectNextStep
 import com.zenia.app.data.HealthConnectRepository
 import com.zenia.app.data.HealthSummary
+import com.zenia.app.data.session.UserSessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,8 +15,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HealthSyncViewModel @Inject constructor(
-    private val healthRepo: HealthConnectRepository
+    private val healthRepo: HealthConnectRepository,
+    sessionManager: UserSessionManager
 ) : ViewModel() {
+
+    val isPremium = sessionManager.isPremium
 
     val permissions = healthRepo.permissions
     fun permissionContract() = healthRepo.permissionContract()

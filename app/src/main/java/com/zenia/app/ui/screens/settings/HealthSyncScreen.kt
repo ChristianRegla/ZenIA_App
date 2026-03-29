@@ -23,6 +23,8 @@ import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.SettingsBackupRestore
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -31,6 +33,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -55,11 +58,14 @@ import com.zenia.app.ui.theme.ZeniaTeal
 
 @Composable
 fun HealthSyncScreen(
+    isPremium: Boolean,
     nextStep: HealthConnectNextStep,
     healthSummary: HealthSummary?,
     isLoading: Boolean,
     onConnectClick: () -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToPremium: () -> Unit,
+    onManagePermissionClick: () -> Unit
 ) {
     val connected = nextStep == HealthConnectNextStep.Ready
     val scrollState = rememberScrollState()
@@ -156,40 +162,54 @@ fun HealthSyncScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            val (buttonEnabled, buttonText, buttonColor, buttonIcon) = when (nextStep) {
-                HealthConnectNextStep.NotSupported -> {
-                    Quad(false, "No disponible", ZeniaLightGrey, Icons.Default.BrokenImage)
+            if (!isPremium) {
+                Button(
+                    onClick = onNavigateToPremium,
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD946EF),
+                        contentColor = Color.White
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.Star, contentDescription = null)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(text = "Desbloquear Sincronización", style = MaterialTheme.typography.titleMedium)
+                }
+            } else {
+                val (buttonEnabled, buttonText, buttonColor, buttonIcon) = when (nextStep) {
+                    HealthConnectNextStep.NotSupported -> Quad(false, "No disponible", ZeniaLightGrey, Icons.Default.BrokenImage)
+                    HealthConnectNextStep.InstallOrUpdate -> Quad(true, "Instalar / Actualizar Health Connect", ZeniaTeal, Icons.Default.Watch)
+                    HealthConnectNextStep.RequestPermissions -> Quad(true, "Conectar con Health Connect", ZeniaTeal, Icons.Default.Watch)
+                    HealthConnectNextStep.Ready -> Quad(true, "Actualizar datos", ZeniaSlateGrey, Icons.Default.CheckCircle)
                 }
 
-                HealthConnectNextStep.InstallOrUpdate -> {
-                    Quad(true, "Instalar / Actualizar Health Connect", ZeniaTeal, Icons.Default.Watch)
+                Button(
+                    onClick = onConnectClick,
+                    enabled = buttonEnabled,
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = buttonColor, contentColor = Color.White),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
+                ) {
+                    Icon(imageVector = buttonIcon, contentDescription = null)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(text = buttonText, style = MaterialTheme.typography.titleMedium)
                 }
 
-                HealthConnectNextStep.RequestPermissions -> {
-                    Quad(true, "Conectar con Health Connect", ZeniaTeal, Icons.Default.Watch)
+                if (connected) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedButton(
+                        onClick = onManagePermissionClick,
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                    ) {
+                        Icon(imageVector = Icons.Default.SettingsBackupRestore, contentDescription = null)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(text = "Gestionar permisos de salud")
+                    }
                 }
-
-                HealthConnectNextStep.Ready -> {
-                    Quad(true, "Actualizar datos", ZeniaSlateGrey, Icons.Default.CheckCircle)
-                }
-            }
-
-            Button(
-                onClick = onConnectClick,
-                enabled = buttonEnabled,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = buttonColor,
-                    contentColor = Color.White
-                ),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
-            ) {
-                Icon(imageVector = buttonIcon, contentDescription = null)
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(text = buttonText, style = MaterialTheme.typography.titleMedium)
             }
 
             Spacer(modifier = Modifier.height(24.dp))

@@ -19,6 +19,7 @@ import com.zenia.app.ui.screens.settings.SettingsRoute
 import com.zenia.app.viewmodel.MainViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
 import androidx.core.net.toUri
+import androidx.health.connect.client.HealthConnectClient
 
 fun NavGraphBuilder.settingsGraph(navController: NavController, mainViewModel: MainViewModel) {
     composable(
@@ -102,6 +103,11 @@ fun NavGraphBuilder.settingsGraph(navController: NavController, mainViewModel: M
                             "https://play.google.com/store/apps/details?id=$pkg".toUri())
                     )
                 }
+            },
+            onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) },
+            onManagePermissionClick = {
+                val intent = Intent(HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS)
+                context.startActivity(intent)
             }
         )
     }

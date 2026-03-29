@@ -186,13 +186,7 @@ fun SettingsScreen(
                             iconRes = R.drawable.ic_watch_outlined,
                             text = "Sincronización y Salud",
                             textColor = ZeniaSlateGrey,
-                            onClick = {
-                                if (isPremium) {
-                                    onNavigateToHealthSync()
-                                } else {
-                                    onNavigateToPremium()
-                                }
-                            }
+                            onClick = onNavigateToHealthSync
                         )
                         SettingsDivider()
                         SettingsItem(
