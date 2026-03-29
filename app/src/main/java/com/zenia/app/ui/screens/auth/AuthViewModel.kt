@@ -100,7 +100,7 @@ class AuthViewModel @Inject constructor(
             if (user != null) {
                 if (user.isEmailVerified) {
                     authRepository.createUserIfNew(user.uid, user.email, isNewUser = false)
-                    _uiState.value = AuthUiState.Idle
+                    _uiState.value = AuthUiState.Authenticated
                 } else {
                     _uiState.value = AuthUiState.VerificationRequired(cleanEmail)
                     startVerificationCheck()
@@ -185,7 +185,7 @@ class AuthViewModel @Inject constructor(
                 user?.reload()?.await()
 
                 if (user?.isEmailVerified == true) {
-                    _uiState.value = AuthUiState.Idle
+                    _uiState.value = AuthUiState.Authenticated
                     break
                 }
 
@@ -215,7 +215,7 @@ class AuthViewModel @Inject constructor(
                 if (user != null) {
                     authRepository.createUserIfNew(user.uid, user.email, isNewUser)
                 }
-                _uiState.value = AuthUiState.Idle
+                _uiState.value = AuthUiState.Authenticated
             } catch (e: Exception) {
                 _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
             }

@@ -58,10 +58,17 @@ fun AuthRoute(
     }
 
     LaunchedEffect(uiState) {
-        if (uiState is AuthUiState.VerificationRequired) {
-            authViewModel.startVerificationCheck()
-        } else {
-            authViewModel.stopVerificationCheck()
+        when (uiState) {
+            is AuthUiState.VerificationRequired -> {
+                authViewModel.startVerificationCheck()
+            }
+            is AuthUiState.Authenticated -> {
+                authViewModel.stopVerificationCheck()
+                onVerificationCompleted()
+            }
+            else -> {
+                authViewModel.stopVerificationCheck()
+            }
         }
     }
 
