@@ -1,7 +1,6 @@
 package com.zenia.app.ui.screens.zenia
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -35,7 +34,6 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,7 +42,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -415,7 +412,7 @@ fun ZeniaBotScreen(
 }
 
 @Composable
-fun ChatBubble(
+private fun ChatBubble(
     mensaje: MensajeChatbot,
     isSelected: Boolean,
     onLongPress: () -> Unit,
@@ -469,7 +466,7 @@ fun ChatBubble(
 }
 
 @Composable
-fun TypingBubble() {
+private fun TypingBubble() {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.CenterStart
@@ -496,7 +493,7 @@ fun TypingBubble() {
 }
 
 @Composable
-fun TypingDot(delayMillis: Int) {
+private fun TypingDot(delayMillis: Int) {
     val transition = rememberInfiniteTransition(label = "typing")
 
     val offsetY by transition.animateFloat(
@@ -514,57 +511,5 @@ fun TypingDot(delayMillis: Int) {
             .size(8.dp)
             .graphicsLayer { translationY = offsetY }
             .background(MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f), CircleShape)
-    )
-}
-
-@Composable
-fun ZeniaWelcomeCard(
-    onSuggestionClick: (String) -> Unit
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-
-        Surface(
-            shape = RoundedCornerShape(20.dp),
-            color = ZeniaIceBlue
-        ) {
-            Text(
-                text = "Hola 🌿 Soy ZenIA.\nEstoy aquí para escucharte.\n¿Cómo te sientes hoy?",
-                modifier = Modifier.padding(20.dp),
-                fontSize = 16.sp
-            )
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-
-            SuggestionChip(
-                onClick = { onSuggestionClick("Me siento ansioso") },
-                label = { Text("Ansioso") }
-            )
-
-            SuggestionChip(
-                onClick = { onSuggestionClick("Me siento triste") },
-                label = { Text("Triste") }
-            )
-
-            SuggestionChip(
-                onClick = { onSuggestionClick("Estoy estresado") },
-                label = { Text("Estrés") }
-            )
-        }
-    }
-}
-
-@Composable
-fun SupportDisclaimer() {
-    AssistChip(
-        onClick = {},
-        label = {
-            Text(
-                "Zenia es apoyo emocional, no reemplaza ayuda profesional.",
-                fontSize = 12.sp
-            )
-        }
     )
 }
