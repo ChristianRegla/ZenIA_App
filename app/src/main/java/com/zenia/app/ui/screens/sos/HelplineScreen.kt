@@ -1,12 +1,5 @@
 package com.zenia.app.ui.screens.sos
 
-import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Context
-import android.net.Uri
-import android.provider.ContactsContract
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -34,7 +27,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.ChatBubble
-import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.GroupAdd
@@ -44,7 +36,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -67,7 +58,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -448,49 +438,12 @@ fun AddContactDialog(
 ) {
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
-    val context = LocalContext.current
-
-    val contactLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickContact()
-    ) { uri ->
-        if (uri != null) {
-            val datos = obtenerDatosDeContacto(context, uri)
-            if (datos != null) {
-                name = datos.first
-                phone = datos.second
-            }
-        }
-    }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            contactLauncher.launch(null)
-        }
-    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.new_contact), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                OutlinedButton(
-                    onClick = { permissionLauncher.launch(Manifest.permission.READ_CONTACTS) },
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.Contacts, contentDescription = null, tint = ZeniaTeal)
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.choose_contact), color = ZeniaTeal, fontWeight = FontWeight.Bold)
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    HorizontalDivider(modifier = Modifier.weight(1f))
-                    Text(stringResource(R.string.or_separator), modifier = Modifier.padding(horizontal = 8.dp), style = MaterialTheme.typography.bodySmall)
-                    HorizontalDivider(modifier = Modifier.weight(1f))
-                }
-
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -523,39 +476,6 @@ fun AddContactDialog(
         },
         containerColor = MaterialTheme.colorScheme.surface
     )
-}
-
-@SuppressLint("Range")
-fun obtenerDatosDeContacto(context: Context, contactUri: Uri): Pair<String, String>? {
-    var nombre = ""
-    var telefono = ""
-    val contentResolver = context.contentResolver
-
-    val cursor = contentResolver.query(contactUri, null, null, null, null)
-    cursor?.use {
-        if (it.moveToFirst()) {
-            nombre = it.getString(it.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)) ?: ""
-            val id = it.getString(it.getColumnIndex(ContactsContract.Contacts._ID))
-            val hasPhone = it.getInt(it.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0
-
-            if (hasPhone) {
-                val phoneCursor = contentResolver.query(
-                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                    null,
-                    "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
-                    arrayOf(id),
-                    null
-                )
-                phoneCursor?.use { pc ->
-                    if (pc.moveToFirst()) {
-                        telefono = pc.getString(pc.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)) ?: ""
-                        telefono = telefono.replace(" ", "").replace("-", "")
-                    }
-                }
-            }
-        }
-    }
-    return if (nombre.isNotBlank() || telefono.isNotBlank()) Pair(nombre, telefono) else null
 }
 
 @Preview(showBackground = true, name = "SOS Screen Light", locale = "es")
