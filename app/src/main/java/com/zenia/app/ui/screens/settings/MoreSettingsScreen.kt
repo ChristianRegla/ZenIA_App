@@ -138,7 +138,7 @@ fun MoreSettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    "Tus Datos",
+                    text = stringResource(R.string.settings_data_section),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
@@ -152,16 +152,16 @@ fun MoreSettingsScreen(
                     Column {
                         SettingsItem(
                             icon = Icons.Default.PictureAsPdf,
-                            title = "Cápsula del Tiempo",
-                            subtitle = "Exportar tu diario a PDF",
+                            title = stringResource(R.string.settings_time_capsule),
+                            subtitle = stringResource(R.string.settings_export_pdf),
                             onClick = { onNavigateToExport() },
                             showDivider = true
                         )
 
                         SettingsItem(
                             icon = Icons.Default.History,
-                            title = "Historial de Cambios",
-                            subtitle = "Ver versiones de la app",
+                            title = stringResource(R.string.settings_changelog),
+                            subtitle = stringResource(R.string.settings_changelog_desc),
                             onClick = { /* TODO: Changelog */ },
                             showDivider = false
                         )
@@ -170,13 +170,13 @@ fun MoreSettingsScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                SettingsSectionTitle(text = "Notificaciones")
+                SettingsSectionTitle(text = stringResource(R.string.settings_notifications_title))
                 Spacer(modifier = Modifier.height(16.dp))
 
                 SettingsCard {
                     Column {
                         SettingsSwitchRow(
-                            label = "Permitir notificaciones",
+                            label = stringResource(R.string.settings_notifications_enable),
                             checked = isNotificationsEnabled,
                             onCheckedChange = onToggleNotifications
                         )
@@ -185,7 +185,7 @@ fun MoreSettingsScreen(
                             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
                             SettingsSwitchRow(
-                                label = "Recordatorio de racha (8:00 PM)",
+                                label = stringResource(R.string.settings_streak_reminder),
                                 checked = isStreakEnabled,
                                 onCheckedChange = onToggleStreak,
                                 isSecondary = true
@@ -194,14 +194,14 @@ fun MoreSettingsScreen(
                             Spacer(modifier = Modifier.height(8.dp))
 
                             SettingsSwitchRow(
-                                label = "Consejo matutino",
+                                label = stringResource(R.string.settings_morning_advice),
                                 checked = isAdviceEnabled,
                                 onCheckedChange = onToggleAdvice,
                                 isSecondary = true
                             )
 
                             Text(
-                                text = "Recibe un tip basado en tu entrada del día anterior.",
+                                text = stringResource(R.string.settings_advice_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)

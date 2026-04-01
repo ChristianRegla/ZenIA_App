@@ -45,7 +45,7 @@ fun DonationsScreen(
     Scaffold(
         topBar = {
             ZeniaTopBar(
-                title = "Apoya a ZenIA", // Usa stringResource en prod
+                title = stringResource(R.string.donations_title),
                 onNavigateBack = onNavigateBack
             )
         },
@@ -68,7 +68,7 @@ fun DonationsScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Tu apoyo mantiene a ZenIA viva",
+                    text = stringResource(R.string.donations_header),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = RobotoFlex,
@@ -76,7 +76,7 @@ fun DonationsScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Somos un equipo pequeño de estudiantes. Cada donación nos ayuda a pagar los servidores y seguir mejorando.",
+                    text = stringResource(R.string.donations_description),
                     fontSize = 14.sp,
                     color = Color.Gray,
                     textAlign = TextAlign.Center,
@@ -89,7 +89,7 @@ fun DonationsScreen(
             item {
                 DonationCard(
                     icon = Icons.Default.Coffee,
-                    title = "Invítanos un Café",
+                    title = stringResource(R.string.donation_coffee),
                     price = "$15.00 MXN",
                     color = Color(0xFF795548), // Café
                     onClick = { activity?.let { viewModel.donar(it) } }
@@ -100,7 +100,7 @@ fun DonationsScreen(
             item {
                 DonationCard(
                     icon = Icons.Default.LocalPizza,
-                    title = "Una Rebanada de Pizza",
+                    title = stringResource(R.string.donation_pizza),
                     price = "$45.00 MXN",
                     color = Color(0xFFFF9800), // Naranja
                     onClick = { activity?.let { viewModel.donar(it) } }
@@ -111,7 +111,7 @@ fun DonationsScreen(
             item {
                 DonationCard(
                     icon = Icons.Default.Favorite,
-                    title = "Patrocinador de Amor",
+                    title = stringResource(R.string.donation_sponsor),
                     price = "$100.00 MXN",
                     color = Color(0xFFE91E63), // Rosa
                     isHighlight = true,
@@ -159,7 +159,7 @@ fun DonationCard(
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = title, fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = RobotoFlex)
-                Text(text = "Pago único", fontSize = 12.sp, color = Color.Gray, fontFamily = RobotoFlex)
+                Text(text = stringResource(R.string.donation_one_time), fontSize = 12.sp, color = Color.Gray, fontFamily = RobotoFlex)
             }
             Text(
                 text = price,

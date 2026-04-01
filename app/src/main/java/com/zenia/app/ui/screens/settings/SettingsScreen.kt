@@ -184,7 +184,7 @@ fun SettingsScreen(
                         SettingsDivider()
                         SettingsItem(
                             iconRes = R.drawable.ic_watch_outlined,
-                            text = "Sincronización y Salud",
+                            text = stringResource(R.string.health_title),
                             textColor = ZeniaSlateGrey,
                             onClick = onNavigateToHealthSync
                         )

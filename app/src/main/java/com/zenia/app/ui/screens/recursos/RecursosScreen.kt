@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,7 +57,7 @@ fun RecursosScreen(
 
     Scaffold(
         topBar = {
-            ZeniaTopBar(title = "Recursos")
+            ZeniaTopBar(title = stringResource(R.string.recursos_title))
         },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { paddingValues ->
@@ -84,7 +85,7 @@ fun RecursosScreen(
                         Spacer(modifier = Modifier.height(24.dp))
 
                         Text(
-                            text = "¡Ups! Problemas de conexión",
+                            text = stringResource(R.string.error_connection_title),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -93,7 +94,7 @@ fun RecursosScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = "No pudimos cargar los recursos. Revisa tu conexión a internet e inténtalo de nuevo.",
+                            text = stringResource(R.string.error_connection_message),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
@@ -110,7 +111,7 @@ fun RecursosScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal)
                         ) {
                             Text(
-                                text = "Reintentar",
+                                text = stringResource(R.string.retry),
                                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                 fontWeight = FontWeight.Bold
                             )
@@ -189,7 +190,7 @@ fun RecursosScreen(
                     ) {
                         Icon(
                             imageVector = if (recurso.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Favorito",
+                            contentDescription = stringResource(R.string.favorite),
                             tint = if (recurso.isFavorite) Color(0xFFE91E63) else Color.Gray,
                             modifier = Modifier.size(24.dp)
                         )
@@ -231,7 +232,7 @@ fun RecursosScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Progreso", style = MaterialTheme.typography.labelMedium)
+                            Text(stringResource(R.string.progress), style = MaterialTheme.typography.labelMedium)
                             Text("${recurso.progress}%", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                         }
                         Spacer(modifier = Modifier.height(8.dp))
@@ -256,7 +257,10 @@ fun RecursosScreen(
                     Icon(Icons.Default.PlayArrow, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (recurso.progress > 0) "Continuar" else "Comenzar",
+                        text = if (recurso.progress > 0)
+                            stringResource(R.string.continue_resource)
+                        else
+                            stringResource(R.string.start),
                         fontSize = MaterialTheme.typography.titleMedium.fontSize,
                         fontWeight = FontWeight.Bold
                     )
@@ -308,7 +312,7 @@ fun RecursoCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Lock,
-                            contentDescription = "Bloqueado",
+                            contentDescription = stringResource(R.string.locked),
                             tint = ZeniaWhite,
                             modifier = Modifier.size(32.dp)
                         )
@@ -335,7 +339,7 @@ fun RecursoCard(
                     if (recurso.isPremium) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_crown),
-                            contentDescription = "Premium",
+                            contentDescription = stringResource(R.string.premium),
                             tint = Color(0xFFFFC107),
                             modifier = Modifier.size(16.dp)
                         )

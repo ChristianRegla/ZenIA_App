@@ -33,6 +33,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -94,6 +95,7 @@ fun AuthScreen(
     state: AuthScreenState,
     actions: AuthScreenActions
 ) {
+    val context = LocalContext.current
     LaunchedEffect(state.uiState) {
         when (val uiState = state.uiState) {
             is AuthUiState.Error -> {
@@ -108,7 +110,7 @@ fun AuthScreen(
             is AuthUiState.PasswordResetSent -> {
                 ZeniaSnackbarController.showMessage(
                     ZeniaSnackbarData(
-                        message = "Correo de recuperación enviado exitosamente",
+                        message = context.getString(R.string.auth_password_reset_sent),
                         state = SnackbarState.SUCCESS
                     )
                 )
@@ -117,7 +119,7 @@ fun AuthScreen(
             is AuthUiState.AccountDeleted -> {
                 ZeniaSnackbarController.showMessage(
                     ZeniaSnackbarData(
-                        message = "Cuenta eliminada correctamente",
+                        message = context.getString(R.string.auth_account_deleted),
                         state = SnackbarState.INFO
                     )
                 )

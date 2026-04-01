@@ -26,7 +26,6 @@
     <string name="account_language_label">Idioma</string>
 
     <string name="auth_verification_sent">¡Registro exitoso! Revisa tu correo para verificar tu cuenta.</string>
-    <string name="auth_password_reset_sent">Correo enviado. Revisa tu bandeja de entrada para restablecer la contraseña.</string>
     <string name="auth_error_not_google_credential">Error: La credencial recibida no es de Google.</string>
     <string name="auth_error_google_canceled">Inicio con Google cancelado o fallido.</string>
     <string name="auth_error_prefix">Error de autenticación: </string>
@@ -121,7 +120,6 @@
     <string name="help_center_btn_contact">Contactar Soporte</string>
     <string name="help_email_subject">Soporte ZenIA - Ayuda</string>
 
-    <string name="donations_title">Apoya a ZenIA</string>
     <string name="donations_desc">ZenIA es un proyecto independiente creado con amor para ayudarte a mejorar tu bienestar. Si la app te ha sido útil, considera hacer una donación para ayudarnos a seguir creciendo.</string>
     <string name="donations_btn_action">Hacer una Donación</string>
     <string name="donations_footer">¡Gracias por tu generosidad! ❤️</string>
@@ -373,5 +371,138 @@
     <string name="common_no">No verificado</string>
     <string name="common_cancel">Cancelar</string>
     <string name="common_continue">Continuar</string>
+
+    <string name="auth_password_reset_sent">Correo de recuperación enviado exitosamente</string>
+    <string name="auth_account_deleted">Cuenta eliminada correctamente</string>
+
+    <string name="loading_breathing">Respirando…</string>
+
+    <string name="recursos_title">Recursos</string>
+    <string name="error_connection_title">¡Ups! Problemas de conexión</string>
+    <string name="error_connection_message">No pudimos cargar los recursos. Revisa tu conexión a internet e inténtalo de nuevo.</string>
+    <string name="retry">Reintentar</string>
+    <string name="favorite">Favorito</string>
+    <string name="progress">Progreso</string>
+    <string name="continue_resource">Continuar</string>
+    <string name="start">Comenzar</string>
+    <string name="locked">Bloqueado</string>
+    <string name="premium">Premium</string>
+
+    <string name="donations_title">Apoya a ZenIA</string>
+    <string name="donations_header">Tu apoyo mantiene a ZenIA viva</string>
+    <string name="donations_description">Somos un equipo pequeño de estudiantes. Cada donación nos ayuda a pagar los servidores y seguir mejorando.</string>
+
+    <string name="donation_coffee">Invítanos un Café</string>
+    <string name="donation_pizza">Una Rebanada de Pizza</string>
+    <string name="donation_sponsor">Patrocinador de Amor</string>
+
+    <string name="donation_one_time">Pago único</string>
+
+    <string name="export_title">Cápsula del Tiempo</string>
+
+    <string name="export_tutorial_title">¿Qué es la Cápsula del Tiempo?</string>
+    <string name="export_tutorial_desc">Aquí puedes generar un PDF con tus registros emocionales. Tú decides qué compartir y en qué periodo.</string>
+    <string name="understood">Entendido</string>
+
+    <string name="export_period">Periodo</string>
+    <string name="export_today">Hoy</string>
+    <string name="export_last_week">Última semana</string>
+    <string name="export_last_month">Último mes</string>
+
+    <string name="export_include_pdf">Incluir en el PDF</string>
+    <string name="export_include_mood">Estado de ánimo</string>
+    <string name="export_include_activities">Actividades</string>
+    <string name="export_include_notes">Notas</string>
+    <string name="export_include_smartwatch">Datos del smartwatch</string>
+    <string name="export_include_logo">Mostrar logo ZenIA</string>
+
+    <string name="export_generate_pdf">Generar PDF</string>
+
+    <string name="health_title">Salud y Wearables</string>
+
+    <string name="health_not_supported">Health Connect no está disponible en este dispositivo.</string>
+    <string name="health_install_update">Para sincronizar, instala o actualiza Health Connect.</string>
+    <string name="health_android_note">Esto es necesario en Android 13 o inferior.</string>
+    <string name="health_return_after_install">Después de instalar, regresa aquí para continuar.</string>
+
+    <string name="health_heart_rate">Ritmo cardiaco:</string>
+    <string name="health_sleep">Sueño (anoche):</string>
+    <string name="health_steps">Pasos hoy:</string>
+    <string name="health_stress">Estrés:</string>
+    <string name="health_bpm">bpm</string>
+    <string name="health_hours">hrs</string>
+
+    <string name="health_metric_heart">Ritmo</string>
+    <string name="health_metric_sleep">Sueño</string>
+    <string name="health_metric_steps">Pasos</string>
+
+    <string name="health_why_title">¿Por qué conectar tu reloj?</string>
+    <string name="health_why_1">Mejora el análisis de tu estado de ánimo.</string>
+    <string name="health_why_2">Detecta patrones de sueño y estrés.</string>
+    <string name="health_why_3">Recibe recomendaciones personalizadas.</string>
+
+    <string name="health_unlock">Desbloquear Sincronización</string>
+    <string name="health_not_available">No disponible</string>
+    <string name="health_install_button">Instalar / Actualizar Health Connect</string>
+    <string name="health_connect">Conectar con Health Connect</string>
+    <string name="health_refresh">Actualizar datos</string>
+    <string name="health_manage_permissions">Gestionar permisos de salud</string>
+
+    <string name="health_connected">Conectado</string>
+    <string name="health_disconnected">Desconectado</string>
+    <string name="health_receiving_data">Recibiendo datos en tiempo real</string>
+    <string name="health_sync_prompt">Sincroniza para mejores resultados</string>
+
+    <string name="health_heart_rate_full">Ritmo cardiaco: %1$s bpm</string>
+    <string name="health_sleep_full">Sueño (anoche): %1$s hrs</string>
+    <string name="health_steps_full">Pasos hoy: %1$s</string>
+    <string name="health_stress_full">Estrés: %1$s</string>
+
+    <string name="settings_data_section">Tus Datos</string>
+
+    <string name="settings_time_capsule">Cápsula del Tiempo</string>
+    <string name="settings_export_pdf">Exportar tu diario a PDF</string>
+
+    <string name="settings_changelog">Historial de Cambios</string>
+    <string name="settings_changelog_desc">Ver versiones de la app</string>
+
+    <string name="settings_notifications_title">Notificaciones</string>
+    <string name="settings_notifications_enable">Permitir notificaciones</string>
+    <string name="settings_streak_reminder">Recordatorio de racha (8:00 PM)</string>
+    <string name="settings_morning_advice">Consejo matutino</string>
+    <string name="settings_advice_desc">Recibe un tip basado en tu entrada del día anterior.</string>
+
+    <string name="sos_lifeline_sub">Gratis, anónimo y disponible 24/7</string>
+    <string name="sos_contacts_sub">Añade hasta 3 contactos de confianza</string>
+    <string name="sos_disclaimer">ZenIA es una herramienta de apoyo emocional y no reemplaza la ayuda profesional.</string>
+
+    <string name="contacts_title">Contactos de Emergencia</string>
+    <string name="contacts_desc">Añade hasta 3 contactos de confianza para llamarlos rápidamente en caso de crisis.</string>
+    <string name="contacts_empty">No tienes contactos guardados.</string>
+    <string name="contacts_add">Añadir Contacto (%1$d/3)</string>
+
+    <string name="delete">Eliminar</string>
+    <string name="call">Llamar</string>
+
+    <string name="delete_contact_title">Eliminar Contacto</string>
+    <string name="delete_contact_message">¿Estás seguro de que quieres eliminar a %1$s de tus contactos de emergencia?</string>
+
+    <string name="new_contact">Nuevo Contacto</string>
+    <string name="choose_contact">Elegir de mis contactos</string>
+    <string name="or_separator">O</string>
+    <string name="name">Nombre</string>
+    <string name="phone">Teléfono</string>
+    <string name="save">Guardar</string>
+
+    <string name="chat_selected_count">%1$d seleccionados</string>
+
+    <string name="copy">Copiar</string>
+    <string name="delete_chat">Borrar chat</string>
+
+    <string name="chat_placeholder">Escribe cómo te sientes...</string>
+
+    <string name="delete_chat_title">Borrar conversación</string>
+    <string name="delete_chat_message">¿Estás seguro de borrar todo el historial?</string>
+    <string name="delete_action">Borrar</string>
 
 </resources>

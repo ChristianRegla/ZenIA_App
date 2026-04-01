@@ -161,7 +161,7 @@ fun HelplineScreen(
                             SosButton(
                                 icon = Icons.Default.Favorite,
                                 text = stringResource(R.string.sos_btn_lifeline),
-                                subText = "Gratis, anónimo y disponible 24/7",
+                                subText = stringResource(R.string.sos_lifeline_sub),
                                 accentColor = ColorLifeline,
                                 isPrimary = true,
                                 onClick = onCallLifeline
@@ -170,7 +170,7 @@ fun HelplineScreen(
                             SosButton(
                                 icon = Icons.Default.Person,
                                 text = stringResource(R.string.sos_btn_friend),
-                                subText = "Añade hasta 3 contactos de confianza",
+                                subText = stringResource(R.string.sos_contacts_sub),
                                 accentColor = ColorFriend,
                                 onClick = onNavigateToContacts
                             )
@@ -194,7 +194,7 @@ fun HelplineScreen(
                     Spacer(modifier = Modifier.height(32.dp))
 
                     Text(
-                        text = "ZenIA es una herramienta de apoyo emocional y no reemplaza la ayuda profesional.",
+                        text = stringResource(R.string.sos_disclaimer),
                         style = MaterialTheme.typography.bodySmall,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
@@ -300,7 +300,7 @@ fun EmergencyContactsSheet(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Contactos de Emergencia",
+                text = stringResource(R.string.contacts_title),
                 fontFamily = RobotoFlex,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
@@ -308,7 +308,7 @@ fun EmergencyContactsSheet(
             )
 
             Text(
-                text = "Añade hasta 3 contactos de confianza para llamarlos rápidamente en caso de crisis.",
+                text = stringResource(R.string.contacts_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -328,7 +328,7 @@ fun EmergencyContactsSheet(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "No tienes contactos guardados.",
+                        text = stringResource(R.string.contacts_empty),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         fontWeight = FontWeight.Medium
                     )
@@ -355,7 +355,7 @@ fun EmergencyContactsSheet(
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Añadir Contacto (${contacts.size}/3)", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.contacts_add, contacts.size), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -404,13 +404,13 @@ fun ContactCard(
                 Text(contact.phone, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = { showDeleteConfirm = true }) {
-                Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.error)
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error)
             }
             IconButton(
                 onClick = onCall,
                 modifier = Modifier.background(ColorFriend, CircleShape)
             ) {
-                Icon(Icons.Default.Call, contentDescription = "Llamar", tint = Color.White)
+                Icon(Icons.Default.Call, contentDescription = stringResource(R.string.call), tint = Color.White)
             }
         }
     }
@@ -418,8 +418,8 @@ fun ContactCard(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Eliminar Contacto", fontWeight = FontWeight.Bold) },
-            text = { Text("¿Estás seguro de que quieres eliminar a ${contact.name} de tus contactos de emergencia?") },
+            title = { Text(stringResource(R.string.delete_contact_title), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.delete_contact_message, contact.name)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -428,12 +428,12 @@ fun ContactCard(
                     },
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Eliminar", color = Color.White)
+                    Text(stringResource(R.string.delete), color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel))
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface
@@ -472,7 +472,7 @@ fun AddContactDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nuevo Contacto", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold) },
+        title = { Text(stringResource(R.string.new_contact), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 OutlinedButton(
@@ -482,19 +482,19 @@ fun AddContactDialog(
                 ) {
                     Icon(Icons.Default.Contacts, contentDescription = null, tint = ZeniaTeal)
                     Spacer(Modifier.width(8.dp))
-                    Text("Elegir de mis contactos", color = ZeniaTeal, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.choose_contact), color = ZeniaTeal, fontWeight = FontWeight.Bold)
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     HorizontalDivider(modifier = Modifier.weight(1f))
-                    Text(" O ", modifier = Modifier.padding(horizontal = 8.dp), style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.or_separator), modifier = Modifier.padding(horizontal = 8.dp), style = MaterialTheme.typography.bodySmall)
                     HorizontalDivider(modifier = Modifier.weight(1f))
                 }
 
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Nombre") },
+                    label = { Text(stringResource(R.string.name)) },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -502,7 +502,7 @@ fun AddContactDialog(
                 OutlinedTextField(
                     value = phone,
                     onValueChange = { phone = it },
-                    label = { Text("Teléfono") },
+                    label = { Text(stringResource(R.string.phone)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
@@ -515,11 +515,11 @@ fun AddContactDialog(
                 onClick = { onConfirm(name, phone) },
                 enabled = name.isNotBlank() && phone.isNotBlank()
             ) {
-                Text("Guardar")
+                Text(stringResource(R.string.save))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
         },
         containerColor = MaterialTheme.colorScheme.surface
     )

@@ -119,7 +119,7 @@ fun ZeniaBotScreen(
                 title = {
                     if (selectionMode) {
                         Text(
-                            "${selectedMessages.size} seleccionados",
+                            text = stringResource(R.string.chat_selected_count, selectedMessages.size),
                             color = Color.White
                         )
                     } else {
@@ -158,7 +158,7 @@ fun ZeniaBotScreen(
                             ) {
                                 Icon(
                                     Icons.Default.ContentCopy,
-                                    contentDescription = "Copiar",
+                                    contentDescription = stringResource(R.string.copy),
                                     tint = Color.White
                                 )
                             }
@@ -171,7 +171,7 @@ fun ZeniaBotScreen(
                         ) {
                             Icon(
                                 Icons.Default.Delete,
-                                contentDescription = "Eliminar",
+                                contentDescription = stringResource(R.string.delete),
                                 tint = Color.White
                             )
                         }
@@ -179,7 +179,7 @@ fun ZeniaBotScreen(
                         IconButton(onClick = { showDeleteDialog = true }) {
                             Icon(
                                 Icons.Default.Delete,
-                                contentDescription = "Borrar chat",
+                                contentDescription = stringResource(R.string.delete_chat),
                                 tint = Color.White
                             )
                         }
@@ -326,7 +326,7 @@ fun ZeniaBotScreen(
                             value = textState,
                             onValueChange = { textState = it },
                             placeholder = {
-                                Text("Escribe cómo te sientes...")
+                                Text(stringResource(R.string.chat_placeholder))
                             },
                             modifier = Modifier
                                 .weight(1f)
@@ -386,10 +386,8 @@ fun ZeniaBotScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Borrar conversación") },
-            text = {
-                Text("¿Estás seguro de borrar todo el historial?")
-            },
+            title = { Text(stringResource(R.string.delete_chat_title)) },
+            text = { Text(stringResource(R.string.delete_chat_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -397,14 +395,14 @@ fun ZeniaBotScreen(
                         showDeleteDialog = false
                     }
                 ) {
-                    Text("Borrar", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete_action), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showDeleteDialog = false }
                 ) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

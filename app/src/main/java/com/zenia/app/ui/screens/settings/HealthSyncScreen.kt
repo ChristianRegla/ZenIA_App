@@ -43,8 +43,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.zenia.app.R
 import com.zenia.app.data.HealthConnectNextStep
 import com.zenia.app.data.HealthSummary
 import com.zenia.app.ui.components.ZeniaTopBar
@@ -71,7 +73,7 @@ fun HealthSyncScreen(
     val scrollState = rememberScrollState()
 
     Scaffold(
-        topBar = { ZeniaTopBar(title = "Salud y Wearables", onNavigateBack = onNavigateBack) },
+        topBar = { ZeniaTopBar(title = stringResource(R.string.health_title), onNavigateBack = onNavigateBack) },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { padding ->
         Column(
@@ -93,7 +95,7 @@ fun HealthSyncScreen(
             when {
                 nextStep == HealthConnectNextStep.NotSupported -> {
                     Text(
-                        text = "Health Connect no está disponible en este dispositivo.",
+                        text = stringResource(R.string.health_not_supported),
                         style = MaterialTheme.typography.bodyMedium,
                         color = ZeniaSlateGrey
                     )
@@ -101,13 +103,13 @@ fun HealthSyncScreen(
 
                 nextStep == HealthConnectNextStep.InstallOrUpdate -> {
                     Text(
-                        text = "Para sincronizar, instala o actualiza Health Connect.",
+                        text = stringResource(R.string.health_install_update),
                         style = MaterialTheme.typography.bodyMedium,
                         color = ZeniaSlateGrey
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    InfoRow(text = "Esto es necesario en Android 13 o inferior.")
-                    InfoRow(text = "Después de instalar, regresa aquí para continuar.")
+                    InfoRow(text = stringResource(R.string.health_android_note))
+                    InfoRow(text = stringResource(R.string.health_return_after_install))
                 }
 
                 isLoading -> {
@@ -115,10 +117,33 @@ fun HealthSyncScreen(
                 }
 
                 connected && healthSummary != null -> {
-                    Text("Ritmo cardiaco: ${healthSummary.heartRateAvg ?: "--"} bpm")
-                    Text("Sueño (anoche): ${"%.1f".format(healthSummary.sleepHours)} hrs")
-                    Text("Pasos hoy: ${healthSummary.steps}")
-                    Text("Estrés: ${healthSummary.stressLevel}")
+                    Text(
+                        text = stringResource(
+                            R.string.health_heart_rate_full,
+                            healthSummary.heartRateAvg ?: "--"
+                        )
+                    )
+
+                    Text(
+                        text = stringResource(
+                            R.string.health_sleep_full,
+                            "%.1f".format(healthSummary.sleepHours)
+                        )
+                    )
+
+                    Text(
+                        text = stringResource(
+                            R.string.health_steps_full,
+                            healthSummary.steps
+                        )
+                    )
+
+                    Text(
+                        text = stringResource(
+                            R.string.health_stress_full,
+                            healthSummary.stressLevel
+                        )
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -128,17 +153,17 @@ fun HealthSyncScreen(
                     ) {
                         MetricItem(
                             icon = Icons.Default.Favorite,
-                            label = "Ritmo",
+                            label = stringResource(R.string.health_metric_heart),
                             color = Color(0xFFFF5252)
                         )
                         MetricItem(
                             icon = Icons.Default.Bedtime,
-                            label = "Sueño",
+                            label = stringResource(R.string.health_metric_sleep),
                             color = ZeniaDream
                         )
                         MetricItem(
                             icon = Icons.AutoMirrored.Filled.DirectionsRun,
-                            label = "Pasos",
+                            label = stringResource(R.string.health_metric_steps),
                             color = ZeniaExercise
                         )
                     }
@@ -146,7 +171,7 @@ fun HealthSyncScreen(
 
                 else -> {
                     Text(
-                        text = "¿Por qué conectar tu reloj?",
+                        text = stringResource(R.string.health_why_title),
                         style = MaterialTheme.typography.titleMedium,
                         color = ZeniaSlateGrey,
                         modifier = Modifier
@@ -154,9 +179,9 @@ fun HealthSyncScreen(
                             .padding(bottom = 12.dp),
                         textAlign = TextAlign.Start
                     )
-                    InfoRow(text = "Mejora el análisis de tu estado de ánimo.")
-                    InfoRow(text = "Detecta patrones de sueño y estrés.")
-                    InfoRow(text = "Recibe recomendaciones personalizadas.")
+                    InfoRow(text = stringResource(R.string.health_why_1))
+                    InfoRow(text = stringResource(R.string.health_why_2))
+                    InfoRow(text = stringResource(R.string.health_why_3))
                 }
             }
 
@@ -175,14 +200,21 @@ fun HealthSyncScreen(
                 ) {
                     Icon(imageVector = Icons.Default.Star, contentDescription = null)
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text(text = "Desbloquear Sincronización", style = MaterialTheme.typography.titleMedium)
+                    Text(text = stringResource(R.string.health_unlock), style = MaterialTheme.typography.titleMedium)
                 }
             } else {
                 val (buttonEnabled, buttonText, buttonColor, buttonIcon) = when (nextStep) {
-                    HealthConnectNextStep.NotSupported -> Quad(false, "No disponible", ZeniaLightGrey, Icons.Default.BrokenImage)
-                    HealthConnectNextStep.InstallOrUpdate -> Quad(true, "Instalar / Actualizar Health Connect", ZeniaTeal, Icons.Default.Watch)
-                    HealthConnectNextStep.RequestPermissions -> Quad(true, "Conectar con Health Connect", ZeniaTeal, Icons.Default.Watch)
-                    HealthConnectNextStep.Ready -> Quad(true, "Actualizar datos", ZeniaSlateGrey, Icons.Default.CheckCircle)
+                    HealthConnectNextStep.NotSupported ->
+                        Quad(false, stringResource(R.string.health_not_available), ZeniaLightGrey, Icons.Default.BrokenImage)
+
+                    HealthConnectNextStep.InstallOrUpdate ->
+                        Quad(true, stringResource(R.string.health_install_button), ZeniaTeal, Icons.Default.Watch)
+
+                    HealthConnectNextStep.RequestPermissions ->
+                        Quad(true, stringResource(R.string.health_connect), ZeniaTeal, Icons.Default.Watch)
+
+                    HealthConnectNextStep.Ready ->
+                        Quad(true, stringResource(R.string.health_refresh), ZeniaSlateGrey, Icons.Default.CheckCircle)
                 }
 
                 Button(
@@ -207,7 +239,7 @@ fun HealthSyncScreen(
                     ) {
                         Icon(imageVector = Icons.Default.SettingsBackupRestore, contentDescription = null)
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text(text = "Gestionar permisos de salud")
+                        Text(stringResource(R.string.health_manage_permissions))
                     }
                 }
             }
@@ -234,8 +266,15 @@ fun ConnectionStatusCard(isConnected: Boolean) {
     }
 
     val contentColor = if (isConnected) Color.White else ZeniaSlateGrey
-    val statusText = if (isConnected) "Conectado" else "Desconectado"
-    val subText = if (isConnected) "Recibiendo datos en tiempo real" else "Sincroniza para mejores resultados"
+    val statusText = if (isConnected)
+        stringResource(R.string.health_connected)
+    else
+        stringResource(R.string.health_disconnected)
+
+    val subText = if (isConnected)
+        stringResource(R.string.health_receiving_data)
+    else
+        stringResource(R.string.health_sync_prompt)
 
     Card(
         shape = RoundedCornerShape(28.dp),

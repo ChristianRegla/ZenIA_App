@@ -295,7 +295,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
+private fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.fire_animation))
     val progress by animateLottieCompositionAsState(
         composition = composition,
@@ -383,7 +383,7 @@ fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
 }
 
 @Composable
-fun EmotionChartCard(chartProducer: com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer) {
+private fun EmotionChartCard(chartProducer: com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -432,7 +432,7 @@ fun EmotionChartCard(chartProducer: com.patrykandpatrick.vico.core.entry.ChartEn
 }
 
 @Composable
-fun EmptyChartCard(onClick: () -> Unit) {
+private fun EmptyChartCard(onClick: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
@@ -487,7 +487,7 @@ fun EmptyChartCard(onClick: () -> Unit) {
 }
 
 @Composable
-fun CommunityCard(actividad: ActividadComunidad) {
+private fun CommunityCard(actividad: ActividadComunidad) {
     val windowInfo = LocalWindowInfo.current
     val density = LocalDensity.current
     val screenWidth = with(density) { windowInfo.containerSize.width.toDp() }
@@ -531,7 +531,7 @@ fun CommunityCard(actividad: ActividadComunidad) {
 }
 
 @Composable
-fun CommunityCardPlaceholder() {
+private fun CommunityCardPlaceholder() {
     val windowInfo = LocalWindowInfo.current
     val density = LocalDensity.current
     val screenWidth = with(density) { windowInfo.containerSize.width.toDp() }

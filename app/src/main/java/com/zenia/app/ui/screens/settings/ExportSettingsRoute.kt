@@ -5,7 +5,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.zenia.app.pdf.PdfExportConfig
 import com.zenia.app.viewmodel.SettingsViewModel
 
 @Composable
