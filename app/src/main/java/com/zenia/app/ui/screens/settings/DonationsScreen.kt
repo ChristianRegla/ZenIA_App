@@ -37,7 +37,9 @@ import com.zenia.app.viewmodel.SettingsViewModel
 @Composable
 fun DonationsScreen(
     onNavigateBack: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel()
+    onDonateCafe: (Activity) -> Unit,
+    onDonatePizza: (Activity) -> Unit,
+    onDonateAmor: (Activity) -> Unit
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
@@ -92,7 +94,7 @@ fun DonationsScreen(
                     title = stringResource(R.string.donation_coffee),
                     price = "$15.00 MXN",
                     color = Color(0xFF795548), // Café
-                    onClick = { activity?.let { viewModel.donar(it) } }
+                    onClick = { activity?.let { onDonateCafe(it) } }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -103,7 +105,7 @@ fun DonationsScreen(
                     title = stringResource(R.string.donation_pizza),
                     price = "$45.00 MXN",
                     color = Color(0xFFFF9800), // Naranja
-                    onClick = { activity?.let { viewModel.donar(it) } }
+                    onClick = { activity?.let { onDonatePizza(it) } }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -115,7 +117,7 @@ fun DonationsScreen(
                     price = "$100.00 MXN",
                     color = Color(0xFFE91E63), // Rosa
                     isHighlight = true,
-                    onClick = { activity?.let { viewModel.donar(it) } }
+                    onClick = { activity?.let { onDonateAmor(it) } }
                 )
                 Spacer(modifier = Modifier.height(32.dp))
             }

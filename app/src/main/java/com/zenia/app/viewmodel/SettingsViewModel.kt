@@ -92,37 +92,11 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun donar(activity: Activity) {
-        viewModelScope.launch {
-            billingRepository.launchBillingFlow(activity, isSubscription = false)
-        }
-    }
-
-    fun comprarPremium(activity: Activity) {
-        viewModelScope.launch {
-            // true = Suscripción
-            billingRepository.launchBillingFlow(activity, isSubscription = true)
-        }
-    }
-
-    /**
-     * Abre la pantalla de gestión de suscripciones de Google Play.
-     * Google no permite cancelar desde la app por seguridad, debes enviarlos allí.
-     */
-    fun gestionarSuscripcion(activity: Activity) {
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            data = "https://play.google.com/store/account/subscriptions?sku=premium_annual&package=com.zenia.app".toUri()
-        }
-        activity.startActivity(intent)
-    }
-
     fun markExportTutorialSeen() {
         viewModelScope.launch {
             userPreferencesRepository.setExportTutorialSeen()
         }
     }
-
-    val currentUser = sessionManager.user
 
     val isBiometricEnabled: StateFlow<Boolean?> = userPreferencesRepository.isBiometricEnabled
         .stateIn(

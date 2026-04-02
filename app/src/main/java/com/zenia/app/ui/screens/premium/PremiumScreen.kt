@@ -1,6 +1,7 @@
 package com.zenia.app.ui.screens.premium
 
 import android.app.Activity
+import android.content.Intent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
@@ -38,8 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zenia.app.R
 import com.zenia.app.ui.theme.*
-import com.zenia.app.viewmodel.SettingsViewModel
-
+import androidx.core.net.toUri
 
 enum class PlanType { MONTHLY, ANNUAL }
 
@@ -47,7 +47,9 @@ enum class PlanType { MONTHLY, ANNUAL }
 fun PremiumScreen(
     onNavigateBack: () -> Unit,
     isPremium: Boolean,
-    viewModel: SettingsViewModel? = null
+    onSubscribe: (Activity, String) -> Unit,
+    isBillingReady: Boolean,
+    prices: Map<String, String>,
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
@@ -131,7 +133,13 @@ fun PremiumScreen(
 
                 if (isPremium) {
                     ActiveSubscriptionCard(
-                        onManageClick = { activity?.let { viewModel?.gestionarSuscripcion(it) } }
+                        onManageClick = {
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                data = "https://play.google.com/store/account/subscriptions".toUri()
+                            }
+
+                            context.startActivity(intent)
+                        }
                     )
                 } else {
                     Text(
@@ -151,7 +159,7 @@ fun PremiumScreen(
                         ) {
                             PlanCard(
                                 title = stringResource(R.string.plan_annual),
-                                price = "$750",
+                                price = prices["anual"] ?: "...",
                                 period = stringResource(R.string.period_year),
                                 subtitle = stringResource(R.string.plan_annual_subtitle),
                                 badgeText = stringResource(R.string.plan_annual_badge),
@@ -161,7 +169,7 @@ fun PremiumScreen(
                             )
                             PlanCard(
                                 title = stringResource(R.string.plan_monthly),
-                                price = "$75",
+                                price = prices["mensual"] ?: "...",
                                 period = stringResource(R.string.period_month),
                                 subtitle = stringResource(R.string.plan_monthly_subtitle),
                                 badgeText = null,
@@ -179,7 +187,7 @@ fun PremiumScreen(
                         ) {
                             PlanCard(
                                 title = stringResource(R.string.plan_annual),
-                                price = "$750",
+                                price = prices["anual"] ?: "...",
                                 period = stringResource(R.string.period_year),
                                 subtitle = stringResource(R.string.plan_annual_subtitle),
                                 badgeText = stringResource(R.string.plan_annual_badge),
@@ -190,7 +198,7 @@ fun PremiumScreen(
 
                             PlanCard(
                                 title = stringResource(R.string.plan_monthly),
-                                price = "$75",
+                                price = prices["mensual"] ?: "...",
                                 period = stringResource(R.string.period_month),
                                 subtitle = stringResource(R.string.plan_monthly_subtitle),
                                 badgeText = null,
@@ -209,8 +217,16 @@ fun PremiumScreen(
                     }
 
                     Button(
+                        enabled = isBillingReady,
                         onClick = {
-                            activity?.let { viewModel?.comprarPremium(it) }
+                            val planId = when (selectedPlan) {
+                                PlanType.MONTHLY -> "mensual"
+                                PlanType.ANNUAL -> "anual"
+                            }
+
+                            activity?.let {
+                                onSubscribe(it, planId)
+                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -440,20 +456,4 @@ private fun PremiumTopBar(
             containerColor = Color.Transparent
         )
     )
-}
-
-@Preview(showBackground = true, name = "No Premium", heightDp = 900)
-@Composable
-fun PremiumScreenPreview() {
-    ZenIATheme {
-        PremiumScreen(onNavigateBack = {}, isPremium = false)
-    }
-}
-
-@Preview(showBackground = true, name = "Es Premium")
-@Composable
-fun PremiumScreenActivePreview() {
-    ZenIATheme {
-        PremiumScreen(onNavigateBack = {}, isPremium = true)
-    }
 }
