@@ -2,8 +2,6 @@ package com.zenia.app.ui.screens.settings
 
 import android.app.Activity
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -15,6 +13,10 @@ import androidx.compose.material.icons.filled.LocalPizza
 import androidx.compose.material.icons.filled.VolunteerActivism
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,14 +26,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.RobotoFlex
+import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaTeal
-import com.zenia.app.viewmodel.SettingsViewModel
+
+enum class DonationOption {
+    CAFE, PIZZA, AMOR
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,12 +50,46 @@ fun DonationsScreen(
     val context = LocalContext.current
     val activity = context as? Activity
 
+    var selectedOption by remember { mutableStateOf<DonationOption?>(null) }
+
     Scaffold(
         topBar = {
             ZeniaTopBar(
                 title = stringResource(R.string.donations_title),
                 onNavigateBack = onNavigateBack
             )
+        },
+        bottomBar = {
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 8.dp
+            ) {
+                Button(
+                    onClick = {
+                        activity?.let { act ->
+                            when (selectedOption) {
+                                DonationOption.CAFE -> onDonateCafe(act)
+                                DonationOption.PIZZA -> onDonatePizza(act)
+                                DonationOption.AMOR -> onDonateAmor(act)
+                                null -> {}
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                        .height(50.dp),
+                    enabled = selectedOption != null,
+                    colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal)
+                ) {
+                    Text(
+                        text = stringResource(R.string.donate),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = RobotoFlex
+                    )
+                }
+            }
         },
         containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
@@ -93,8 +133,9 @@ fun DonationsScreen(
                     icon = Icons.Default.Coffee,
                     title = stringResource(R.string.donation_coffee),
                     price = "$15.00 MXN",
-                    color = Color(0xFF795548), // Café
-                    onClick = { activity?.let { onDonateCafe(it) } }
+                    color = Color(0xFF795548),
+                    isSelected = selectedOption == DonationOption.CAFE,
+                    onClick = { selectedOption = DonationOption.CAFE }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -104,8 +145,9 @@ fun DonationsScreen(
                     icon = Icons.Default.LocalPizza,
                     title = stringResource(R.string.donation_pizza),
                     price = "$45.00 MXN",
-                    color = Color(0xFFFF9800), // Naranja
-                    onClick = { activity?.let { onDonatePizza(it) } }
+                    color = Color(0xFFFF9800),
+                    isSelected = selectedOption == DonationOption.PIZZA,
+                    onClick = { selectedOption = DonationOption.PIZZA }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -116,8 +158,8 @@ fun DonationsScreen(
                     title = stringResource(R.string.donation_sponsor),
                     price = "$100.00 MXN",
                     color = Color(0xFFE91E63), // Rosa
-                    isHighlight = true,
-                    onClick = { activity?.let { onDonateAmor(it) } }
+                    isSelected = selectedOption == DonationOption.AMOR,
+                    onClick = { selectedOption = DonationOption.AMOR }
                 )
                 Spacer(modifier = Modifier.height(32.dp))
             }
@@ -131,12 +173,12 @@ fun DonationCard(
     title: String,
     price: String,
     color: Color,
-    isHighlight: Boolean = false,
+    isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val borderColor = if (isHighlight) color else Color.LightGray.copy(alpha = 0.5f)
-    val borderWidth = if (isHighlight) 2.dp else 1.dp
-    val containerColor = if (isHighlight) color.copy(alpha = 0.05f) else Color.White
+    val borderColor = if (isSelected) color else Color.LightGray.copy(alpha = 0.5f)
+    val borderWidth = if (isSelected) 2.dp else 1.dp
+    val containerColor = if (isSelected) color.copy(alpha = 0.05f) else Color.White
 
     Surface(
         onClick = onClick,
@@ -166,9 +208,22 @@ fun DonationCard(
             Text(
                 text = price,
                 fontWeight = FontWeight.Bold,
-                color = if (isHighlight) color else Color.Black,
+                color = if (isSelected) color else Color.Black,
                 fontFamily = RobotoFlex
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DonationsScreenPreview() {
+    ZenIATheme {
+        DonationsScreen(
+            onNavigateBack = {},
+            onDonateCafe = {},
+            onDonatePizza = {},
+            onDonateAmor = {}
+        )
     }
 }

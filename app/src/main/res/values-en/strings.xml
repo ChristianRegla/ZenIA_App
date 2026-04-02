@@ -512,4 +512,6 @@
     <string name="delete_chat_message">Are you sure you want to delete all history?</string>
     <string name="delete_action">Delete</string>
 
+    <string name="donate">Donate</string>
+
 </resources>

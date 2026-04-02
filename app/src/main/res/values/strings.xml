@@ -499,10 +499,12 @@
     <string name="copy">Copiar</string>
     <string name="delete_chat">Borrar chat</string>
 
-    <string name="chat_placeholder">Escribe cómo te sientes...</string>
+    <string name="chat_placeholder">Escribe cómo te sientes…</string>
 
     <string name="delete_chat_title">Borrar conversación</string>
     <string name="delete_chat_message">¿Estás seguro de borrar todo el historial?</string>
     <string name="delete_action">Borrar</string>
+
+    <string name="donate">Donar</string>
 
 </resources>
