@@ -16,7 +16,7 @@ data class DiarioEntrada(
     val timestamp: Long = System.currentTimeMillis(),
 
     val hcPasos: Int? = null,
-    val hcCaloriasActivas: Int? = null,
+    val hcRitmoCardiaco: Int? = null,
     val hcMinutosSueno: Int? = null,
-    val hcMinutosEjercicio: Int? = null
+    val hcHrv: Int? = null
 )

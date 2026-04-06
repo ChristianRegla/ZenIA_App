@@ -4,27 +4,32 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -98,6 +103,8 @@ fun ConnectedDiaryEntry(
     val existingEntry by viewModel.existingEntry.collectAsState()
     val healthConnectData by viewModel.healthConnectData.collectAsState()
 
+    val isPremium by viewModel.isPremium.collectAsState()
+
     val categoriasUsuario by viewModel.categoriasUsuario.collectAsState()
     val context = LocalContext.current
 
@@ -129,16 +136,18 @@ fun ConnectedDiaryEntry(
         healthConnectData = healthConnectData,
         categoriasUsuario = categoriasUsuario,
         activitiesList = viewModel.activitiesList,
-        onSave = { seleccionesMap, activities, notes, pasos, calorias, minsSueno, minsEj ->
+        isPremium = isPremium,
+        onReloadHealthData = { viewModel.recargarDatosDeSalud(date) },
+        onSave = { seleccionesMap, activities, notes, pasos, ritmoCardiaco, minsSueno, hrv ->
             viewModel.guardarEntrada(
                 date = date,
                 selecciones = seleccionesMap,
                 actividades = activities,
                 notas = notes,
                 hcPasos = pasos,
-                hcCaloriasActivas = calorias,
+                hcRitmoCardiaco = ritmoCardiaco,
                 hcMinutosSueno = minsSueno,
-                hcMinutosEjercicio = minsEj,
+                hcHrv = hrv,
                 onSuccess = {}
             )
         },
@@ -182,6 +191,8 @@ fun DiaryEntryContent(
     healthConnectData: HealthDataResult?,
     categoriasUsuario: List<CategoriaDiario>,
     activitiesList: List<ActivityData>,
+    isPremium: Boolean,
+    onReloadHealthData: () -> Unit,
     onSave: (Map<String, String>, List<String>, String, Int?, Int?, Int?, Int?) -> Unit,
     onDelete: () -> Unit,
     onEditCategory: (String) -> Unit,
@@ -195,14 +206,14 @@ fun DiaryEntryContent(
     var pasosText by rememberSaveable(existingEntry, healthConnectData) {
         mutableStateOf(existingEntry?.hcPasos?.toString() ?: healthConnectData?.pasos?.toString() ?: "")
     }
-    var caloriasText by rememberSaveable(existingEntry, healthConnectData) {
-        mutableStateOf(existingEntry?.hcCaloriasActivas?.toString() ?: healthConnectData?.calorias?.toString() ?: "")
+    var ritmoCardiacoText by rememberSaveable(existingEntry, healthConnectData) {
+        mutableStateOf(existingEntry?.hcRitmoCardiaco?.toString() ?: healthConnectData?.ritmoCardiaco?.toString() ?: "")
     }
     var suenoText by rememberSaveable(existingEntry, healthConnectData) {
         mutableStateOf(existingEntry?.hcMinutosSueno?.toString() ?: healthConnectData?.minutosSueno?.toString() ?: "")
     }
-    var ejercicioText by rememberSaveable(existingEntry, healthConnectData) {
-        mutableStateOf(existingEntry?.hcMinutosEjercicio?.toString() ?: healthConnectData?.minutosEjercicio?.toString() ?: "")
+    var hrvText by rememberSaveable(existingEntry, healthConnectData) {
+        mutableStateOf(existingEntry?.hcHrv?.toString() ?: healthConnectData?.hrv?.toString() ?: "")
     }
 
     LaunchedEffect(existingEntry, categoriasUsuario) {
@@ -236,7 +247,7 @@ fun DiaryEntryContent(
 
     LazyColumn(
         modifier = Modifier
-            .widthIn(max = 600.dp) // Responsive
+            .widthIn(max = 600.dp)
             .fillMaxSize()
             .padding(horizontal = 24.dp)
             .imePadding(),
@@ -255,54 +266,126 @@ fun DiaryEntryContent(
         }
 
         item {
-            SectionTitle("Actividad Física y Salud")
-            Text(
-                text = "Sincronizado con tu reloj o ingresado manualmente.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(
-                        value = pasosText,
-                        onValueChange = { pasosText = it },
-                        label = { Text("Pasos") },
-                        leadingIcon = { Icon(Icons.AutoMirrored.Filled.DirectionsWalk, null) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Actividad Física y Salud",
+                        fontFamily = RobotoFlex,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
-                    OutlinedTextField(
-                        value = caloriasText,
-                        onValueChange = { caloriasText = it },
-                        label = { Text("Calorías (kcal)") },
-                        leadingIcon = { Icon(Icons.Default.LocalFireDepartment, null) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
+                    Text(
+                        text = "Sincronizado con tu reloj o ingresado manualmente.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(
-                        value = suenoText,
-                        onValueChange = { suenoText = it },
-                        label = { Text("Sueño (mins)") },
-                        leadingIcon = { Icon(Icons.Default.Bedtime, null) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
+
+                IconButton(
+                    onClick = onReloadHealthData,
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                        .size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Recargar datos del reloj",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
-                    OutlinedTextField(
-                        value = ejercicioText,
-                        onValueChange = { ejercicioText = it },
-                        label = { Text("Ejercicio (mins)") },
-                        leadingIcon = { Icon(Icons.Default.FitnessCenter, null) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
-                    )
+                }
+            }
+
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.alpha(if (isPremium) 1f else 0.4f)
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedTextField(
+                            value = pasosText,
+                            onValueChange = { pasosText = it },
+                            label = { Text("Pasos") },
+                            leadingIcon = { Icon(Icons.AutoMirrored.Filled.DirectionsWalk, null) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            enabled = isPremium
+                        )
+                        OutlinedTextField(
+                            value = ritmoCardiacoText,
+                            onValueChange = { ritmoCardiacoText = it },
+                            label = { Text("Ritmo Card. (bpm)") },
+                            leadingIcon = { Icon(Icons.Default.Favorite, null) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            enabled = isPremium
+                        )
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedTextField(
+                            value = suenoText,
+                            onValueChange = { suenoText = it },
+                            label = { Text("Sueño (mins)") },
+                            leadingIcon = { Icon(Icons.Default.Bedtime, null) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            enabled = isPremium
+                        )
+                        OutlinedTextField(
+                            value = hrvText,
+                            onValueChange = { hrvText = it },
+                            label = { Text("HRV (ms)") },
+                            leadingIcon = { Icon(Icons.AutoMirrored.Filled.ShowChart, null) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            enabled = isPremium
+                        )
+                    }
+                }
+
+                if (!isPremium) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = { }
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(16.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFD700)),
+                            shadowElevation = 8.dp
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.WorkspacePremium, contentDescription = null, tint = Color(0xFFFFD700))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    "Exclusivo Premium",
+                                    fontFamily = RobotoFlex,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -392,7 +475,6 @@ fun DiaryEntryContent(
                     )
                 )
 
-                // 3. El Botón de Inspiración (Bombilla)
                 IconButton(
                     onClick = {
                         val randomPrompt = prompts.random()
@@ -404,7 +486,7 @@ fun DiaryEntryContent(
                         .padding(8.dp)
                         .background(
                             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
-                            shape = androidx.compose.foundation.shape.CircleShape
+                            shape = CircleShape
                         )
                 ) {
                     Icon(
@@ -435,8 +517,8 @@ fun DiaryEntryContent(
                             seleccionesParaBD,
                             selectedActivities.toList(),
                             noteText,
-                            pasosText.toIntOrNull(), caloriasText.toIntOrNull(),
-                            suenoText.toIntOrNull(), ejercicioText.toIntOrNull()
+                            pasosText.toIntOrNull(), ritmoCardiacoText.toIntOrNull(),
+                            suenoText.toIntOrNull(), hrvText.toIntOrNull()
                         )
                     },
                     enabled = hasContent && !isLoading,
@@ -508,8 +590,16 @@ fun SectionTitle(text: String) {
 @Composable
 fun FeelingItem(iconName: String, label: String, isSelected: Boolean, color: Color, onClick: () -> Unit) {
     val iconRes = IconMapper.getDrawable(iconName)
+    val interactionSource = remember { MutableInteractionSource() }
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable(onClick = onClick).padding(4.dp)) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(
+            interactionSource = interactionSource,
+            indication = null,
+            onClick = onClick
+        ).padding(4.dp)
+    ) {
         Box(
             modifier = Modifier
                 .size(52.dp)
@@ -602,7 +692,6 @@ fun CategoryEditorSheet(
                             .size(48.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(MaterialTheme.colorScheme.surfaceVariant)
-                            // 👇 ACTUALIZADO: Al tocar, abrimos el diálogo para este índice
                             .clickable { seleccionandoIconoParaIndex = index },
                         contentAlignment = Alignment.Center
                     ) {

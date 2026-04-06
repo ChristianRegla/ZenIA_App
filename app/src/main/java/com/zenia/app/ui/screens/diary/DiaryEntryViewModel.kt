@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.zenia.app.R
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.HealthConnectRepository
+import com.zenia.app.data.session.UserSessionManager
 import com.zenia.app.model.CategoriaDiario
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.model.OpcionCategoria
@@ -29,15 +30,16 @@ data class ActivityData(val labelRes: Int, val dbValue: String)
 
 data class HealthDataResult(
     val pasos: Long? = null,
-    val calorias: Int? = null,
+    val ritmoCardiaco: Int? = null,
     val minutosSueno: Int? = null,
-    val minutosEjercicio: Int? = null
+    val hrv: Int? = null
 )
 
 @HiltViewModel
 class DiaryEntryViewModel @Inject constructor(
     private val diaryRepository: DiaryRepository,
-    private val healthConnectRepository: HealthConnectRepository?
+    private val healthConnectRepository: HealthConnectRepository?,
+    sessionManager: UserSessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<DiaryEntryUiState>(DiaryEntryUiState.Idle)
@@ -51,6 +53,8 @@ class DiaryEntryViewModel @Inject constructor(
 
     private val _categoriasUsuario = MutableStateFlow<List<CategoriaDiario>>(emptyList())
     val categoriasUsuario = _categoriasUsuario.asStateFlow()
+
+    val isPremium = sessionManager.isPremium
 
     val allEntries = diaryRepository.getDiaryEntriesStream()
         .stateIn(
@@ -125,15 +129,21 @@ class DiaryEntryViewModel @Inject constructor(
         }
     }
 
+    fun recargarDatosDeSalud(date: LocalDate) {
+        viewModelScope.launch {
+            obtenerDatosDeSaludDelDia(date)
+        }
+    }
+
     fun guardarEntrada(
         date: LocalDate,
         selecciones: Map<String, String>,
         actividades: List<String>,
         notas: String,
         hcPasos: Int?,
-        hcCaloriasActivas: Int?,
+        hcRitmoCardiaco: Int?,
         hcMinutosSueno: Int?,
-        hcMinutosEjercicio: Int?,
+        hcHrv: Int?,
         onSuccess: () -> Unit
     ) {
         viewModelScope.launch {
@@ -153,9 +163,9 @@ class DiaryEntryViewModel @Inject constructor(
                 actividades = actividades,
                 notas = notas,
                 hcPasos = hcPasos,
-                hcCaloriasActivas = hcCaloriasActivas,
+                hcRitmoCardiaco = hcRitmoCardiaco,
                 hcMinutosSueno = hcMinutosSueno,
-                hcMinutosEjercicio = hcMinutosEjercicio
+                hcHrv = hcHrv
             )
 
             val entradaActual = _existingEntry.value
@@ -245,8 +255,8 @@ class DiaryEntryViewModel @Inject constructor(
             _healthConnectData.value = HealthDataResult(
                 pasos = pasos.takeIf { it > 0 },
                 minutosSueno = suenoMinutos.takeIf { it > 0 },
-                calorias = null,
-                minutosEjercicio = null
+                ritmoCardiaco = null,
+                hrv = null
             )
         } catch (e: Exception) {
             e.printStackTrace()
