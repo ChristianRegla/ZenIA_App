@@ -90,7 +90,7 @@ class AuthRepository @Inject constructor(
      * @param email El correo electrónico del usuario.
      * @param isNewUser Si es true, crea un usuario nuevo con valores por defecto. Si es false, solo actualiza datos básicos (merge).
      */
-    suspend fun createUserIfNew(userId: String, email: String?, isNewUser: Boolean) {
+    suspend fun createUserIfNew(userId: String, email: String?, isNewUser: Boolean, nickname: String? = null) {
         val userRef = db.collection(FirestoreCollections.USERS).document(userId)
 
         if (isNewUser) {
@@ -100,28 +100,43 @@ class AuthRepository @Inject constructor(
                 suscripcion = SubscriptionType.FREE
             )
             userRef.set(nuevoUsuario).await()
+
+            if (nickname != null) {
+                userRef.update("apodo", nickname).await()
+            }
         } else {
-            val datosActualizados = mapOf(
-                "email" to (email ?: "")
-            )
-            userRef.set(datosActualizados, SetOptions.merge()).await()
+            val doc = userRef.get().await()
+            if (!doc.exists()) {
+                val nuevoUsuario = Usuario(
+                    id = userId,
+                    email = email ?: "",
+                    suscripcion = SubscriptionType.FREE
+                )
+                userRef.set(nuevoUsuario).await()
+                userRef.update("apodo", nickname ?: "Usuario").await()
+            } else {
+                val datosActualizados = mapOf("email" to (email ?: ""))
+                userRef.set(datosActualizados, SetOptions.merge()).await()
+            }
         }
     }
 
     /**
      * Envía un correo electrónico de verificación al usuario actual mediante Firebase Auth.
      */
-    suspend fun sendEmailVerification(): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun sendEmailVerification(customNickname: String? = null): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val currentUser = auth.currentUser ?: throw Exception("No hay usuario autenticado")
             val email = currentUser.email ?: throw Exception("El usuario no tiene correo electrónico")
 
-            var nombre = "Usuario"
-            try {
-                val snapshot = db.collection(FirestoreCollections.USERS).document(currentUser.uid).get().await()
-                nombre = snapshot.getString("apodo") ?: "Usuario"
-            } catch (e: Exception) {
-                Log.e("AuthRepository", "Error al obtener apodo del usuario", e)
+            var nombre = customNickname ?: "Usuario"
+            if (customNickname == null) {
+                try {
+                    val snapshot = db.collection(FirestoreCollections.USERS).document(currentUser.uid).get().await()
+                    nombre = snapshot.getString("apodo") ?: "Usuario"
+                } catch (e: Exception) {
+                    Log.e("AuthRepository", "Error al obtener apodo del usuario", e)
+                }
             }
 
             val json = JSONObject().apply {

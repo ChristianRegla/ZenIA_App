@@ -542,4 +542,16 @@
     <string name="diary_save_action">Guardar</string>
     <string name="diary_select_icon">Selecciona un ícono</string>
 
+    <string name="auth_nickname_dialog_title">¿Cómo prefieres que te llamemos?</string>
+    <string name="auth_nickname_dialog_desc">Usaremos este apodo para personalizar tus correos y tu experiencia en ZenIA.</string>
+    <string name="auth_nickname_label">Tu apodo</string>
+    <string name="auth_nickname_default">Usuario</string>
+    <string name="auth_nickname_start">Comenzar</string>
+
+    <string name="auth_validation_invalid_email">Por favor, ingresa un correo electrónico válido.</string>
+    <string name="auth_validation_weak_password">La contraseña no cumple con los requisitos de seguridad.</string>
+
+    <string name="auth_error_verification_failed">Cuenta creada, pero falló el envío del correo.</string>
+    <string name="auth_error_resend_failed">Error al reenviar el correo de verificación.</string>
+
 </resources>

@@ -58,8 +58,9 @@ class AuthViewModel @Inject constructor(
     val isResending = _isResending.asStateFlow()
 
     private var timerJob: Job? = null
-
     private var verificationPollJob: Job? = null
+
+    private var pendingNickname: String? = null
 
     override fun onCleared() {
         super.onCleared()
@@ -116,7 +117,7 @@ class AuthViewModel @Inject constructor(
      * Si tiene éxito, crea el documento de usuario en Firestore, envía un correo de verificación,
      * y cierra la sesión para forzar al usuario a verificar su email.
      */
-    fun createUser(email: String, password: String, confirmPassword: String) {
+    fun createUser(email: String, password: String, confirmPassword: String, nickname: String) {
         val cleanEmail = email.trim()
 
         if (_uiState.value is AuthUiState.Loading) return
@@ -140,15 +141,15 @@ class AuthViewModel @Inject constructor(
             val newUser = result.user
 
             if (newUser != null) {
-                authRepository.createUserIfNew(newUser.uid, cleanEmail, isNewUser = true)
+                session.savePendingNickname(nickname)
 
-                val result = authRepository.sendEmailVerification()
+                val verificationResult = authRepository.sendEmailVerification(nickname)
 
-                if (result.isSuccess) {
+                if (verificationResult.isSuccess) {
                     _uiState.value = AuthUiState.VerificationRequired(cleanEmail)
                     startVerificationCheck()
                 } else {
-                    _uiState.value = AuthUiState.Error("Cuenta creada, pero falló el envío del correo.")
+                    _uiState.value = AuthUiState.Error(getString(R.string.auth_error_verification_failed))
                 }
             }
         }
@@ -163,7 +164,8 @@ class AuthViewModel @Inject constructor(
             _uiState.value = AuthUiState.VerificationRequired(user.email ?: "")
             _isResending.value = true
 
-            val result = authRepository.sendEmailVerification()
+            val savedNickname = session.getPendingNickname()
+            val result = authRepository.sendEmailVerification(savedNickname)
 
             _isResending.value = false
 
@@ -171,7 +173,7 @@ class AuthViewModel @Inject constructor(
                 startResendTimer()
             } else {
                 val exception = result.exceptionOrNull()
-                _uiState.value = AuthUiState.Error(exception?.message ?: "Error al reenviar")
+                _uiState.value = AuthUiState.Error(exception?.message ?: getString(R.string.auth_error_resend_failed))
             }
         }
     }
@@ -185,6 +187,9 @@ class AuthViewModel @Inject constructor(
                 user?.reload()?.await()
 
                 if (user?.isEmailVerified == true) {
+                    val savedNickname = session.getPendingNickname()
+                    authRepository.createUserIfNew(user.uid, user.email, isNewUser = true, nickname = savedNickname)
+                    session.clearPendingNickname()
                     _uiState.value = AuthUiState.Authenticated
                     break
                 }
