@@ -9,6 +9,7 @@ import com.zenia.app.model.MensajeChatbot
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -28,6 +29,12 @@ sealed interface ChatUiState {
 
 sealed interface ChatUiEvent {
     data class ShowError(val message: String) : ChatUiEvent
+}
+
+enum class EmergencyDisplayState {
+    NONE,
+    BANNER,
+    MINIMIZED
 }
 
 @HiltViewModel
@@ -51,6 +58,12 @@ class ZeniaChatViewModel @Inject constructor(
 
     private val _isTyping = MutableStateFlow(false)
     val isTyping = _isTyping.asStateFlow()
+
+    private val _emergencyType = MutableStateFlow<String?>(null)
+    val emergencyType = _emergencyType.asStateFlow()
+
+    private val _emergencyDisplay = MutableStateFlow(EmergencyDisplayState.NONE)
+    val emergencyDisplay = _emergencyDisplay.asStateFlow()
 
     fun enviarMensaje(texto: String) {
         if (texto.isBlank()) return
@@ -116,7 +129,6 @@ class ZeniaChatViewModel @Inject constructor(
                 )
 
                 chatRepository.addChatMessage(mensajeIA)
-
                 manejarTrigger(response.trigger)
             }.onFailure {
                 _uiEvent.send(
@@ -127,14 +139,33 @@ class ZeniaChatViewModel @Inject constructor(
     }
 
     private fun manejarTrigger(trigger: String?) {
-
         when(trigger){
+            "physical_risk", "mental_health_emergency" -> {
+                _emergencyType.value = trigger
+                _emergencyDisplay.value = EmergencyDisplayState.BANNER
 
-            "mental_health_emergency" -> {
-                // iniciar ejercicio respiración
+                viewModelScope.launch {
+                    delay(12000)
+                    if (_emergencyDisplay.value == EmergencyDisplayState.BANNER) {
+                        _emergencyDisplay.value = EmergencyDisplayState.MINIMIZED
+                    }
+                }
             }
-
+            "none" -> clearEmergency()
             else -> {}
         }
+    }
+
+    fun dismissBannerToIcon() {
+        _emergencyDisplay.value = EmergencyDisplayState.MINIMIZED
+    }
+
+    fun restoreBanner() {
+        _emergencyDisplay.value = EmergencyDisplayState.BANNER
+    }
+
+    fun clearEmergency() {
+        _emergencyType.value = null
+        _emergencyDisplay.value = EmergencyDisplayState.NONE
     }
 }

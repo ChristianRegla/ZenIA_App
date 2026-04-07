@@ -13,14 +13,21 @@ fun ZeniaBotRoute(
     val uiState by viewModel.uiState.collectAsState()
     val isTyping by viewModel.isTyping.collectAsState()
 
+    val emergencyType by viewModel.emergencyType.collectAsState()
+    val emergencyDisplay by viewModel.emergencyDisplay.collectAsState()
+
     ZeniaBotScreen(
         uiState = uiState,
         isTyping = isTyping,
+        emergencyType = emergencyType,
+        emergencyDisplay = emergencyDisplay,
         onSendMessage = { viewModel.enviarMensaje(it) },
         onClearChat = { viewModel.eliminarHistorial() },
         onDeleteSelected = { ids ->
             viewModel.eliminarMensajesSeleccionados(ids)
         },
+        onDismissBanner = { viewModel.dismissBannerToIcon() },
+        onRestoreBanner = { viewModel.restoreBanner() },
         onNavigateBack = onNavigateBack
     )
 }

@@ -1,26 +1,43 @@
 package com.zenia.app.ui.screens.zenia
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -31,9 +48,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,6 +77,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -64,9 +90,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zenia.app.R
@@ -74,15 +102,29 @@ import com.zenia.app.model.MensajeChatbot
 import com.zenia.app.ui.theme.ZeniaIceBlue
 import com.zenia.app.ui.theme.ZeniaTeal
 import kotlinx.coroutines.launch
+import androidx.core.net.toUri
+import com.zenia.app.ui.theme.ZeniaLightGrey
+import com.zenia.app.ui.theme.ZeniaSoftBlue
+import kotlinx.coroutines.delay
+import kotlin.math.roundToInt
+
+enum class DragAnchors {
+    Visible,
+    Hidden
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ZeniaBotScreen(
     uiState: ChatUiState,
     isTyping: Boolean,
+    emergencyType: String?,
+    emergencyDisplay: EmergencyDisplayState,
     onSendMessage: (String) -> Unit,
     onClearChat: () -> Unit,
     onDeleteSelected: (Set<String>) -> Unit,
+    onDismissBanner: () -> Unit,
+    onRestoreBanner: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
     var textState by rememberSaveable { mutableStateOf("") }
@@ -176,6 +218,15 @@ fun ZeniaBotScreen(
                             )
                         }
                     } else {
+                        if (emergencyDisplay == EmergencyDisplayState.MINIMIZED) {
+                            IconButton(onClick = onRestoreBanner) {
+                                Icon(
+                                    imageVector = Icons.Default.Info,
+                                    contentDescription = "Opciones de ayuda",
+                                    tint = Color(0xFFFFB4AB)
+                                )
+                            }
+                        }
                         IconButton(onClick = { showDeleteDialog = true }) {
                             Icon(
                                 Icons.Default.Delete,
@@ -302,7 +353,7 @@ fun ZeniaBotScreen(
                                             listState.animateScrollToItem(0)
                                         }
                                     },
-                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    containerColor = ZeniaSoftBlue,
                                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                                 ) {
                                     Icon(Icons.Default.ArrowDownward, null)
@@ -380,6 +431,28 @@ fun ZeniaBotScreen(
                     }
                 }
             }
+            AnimatedVisibility(
+                visible = emergencyDisplay == EmergencyDisplayState.BANNER && emergencyType != null,
+                enter = slideInVertically(
+                    initialOffsetY = { -it },
+                    animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
+                ) + fadeIn(),
+                exit = slideOutVertically(
+                    targetOffsetY = { -it },
+                    animationSpec = tween(durationMillis = 350)
+                ) + fadeOut(),
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+            ) {
+                if (emergencyType != null) {
+                    Box(modifier = Modifier.padding(16.dp)) {
+                        EmergencyTopBanner(
+                            triggerType = emergencyType,
+                            onDismiss = onDismissBanner
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -404,8 +477,125 @@ fun ZeniaBotScreen(
                 ) {
                     Text(stringResource(R.string.cancel))
                 }
-            }
+            },
+            containerColor = ZeniaLightGrey
         )
+    }
+}
+
+@Composable
+fun EmergencyTopBanner(
+    triggerType: String,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val isPhysical = triggerType == "physical_risk"
+    val backgroundColor = ZeniaLightGrey
+    val contentColor = Color.Black
+
+    val icon = if (isPhysical) Icons.Default.LocalHospital else Icons.Default.Favorite
+    val title = if (isPhysical) "Posible emergencia médica" else "No estás solo"
+    val message = if (isPhysical) "Nia ha notado síntomas que podrían requerir atención inmediata." else "Si necesitas apoyo inmediato, hay alguien listo para escucharte."
+    val buttonText = if (isPhysical) "Llamar al 911" else "Línea de la Vida"
+
+    var borderWidth by remember { mutableStateOf(0.dp) }
+
+    val animatedBorderWidth by animateDpAsState(
+        targetValue = borderWidth,
+        animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing),
+        label = "borderWidthAnim"
+    )
+
+    LaunchedEffect(Unit) {
+        borderWidth = 3.dp
+        delay(600)
+        borderWidth = 0.5.dp
+    }
+
+    val baseBorderColor = if (isPhysical) MaterialTheme.colorScheme.error else ZeniaTeal
+    val borderColor = baseBorderColor.copy(alpha = if (animatedBorderWidth > 1.dp) 0.8f else 0.3f)
+
+    var offsetY by remember { mutableFloatStateOf(0f) }
+    val scope = rememberCoroutineScope()
+
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor,
+            contentColor = contentColor
+        ),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        border = BorderStroke(animatedBorderWidth, borderColor),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp)
+            .offset { IntOffset(0, offsetY.roundToInt()) }
+            .draggable(
+                orientation = Orientation.Vertical,
+                state = rememberDraggableState { delta ->
+                    if (delta < 0 || offsetY < 0) {
+                        offsetY += delta
+                    }
+                },
+                onDragStopped = { velocity ->
+                    if (offsetY < -150f || velocity < -500f) {
+                        scope.launch {
+                            animate(initialValue = offsetY, targetValue = -500f) { value, _ ->
+                                offsetY = value
+                            }
+                            onDismiss()
+                        }
+                    } else {
+                        scope.launch {
+                            animate(initialValue = offsetY, targetValue = 0f) { value, _ ->
+                                offsetY = value
+                            }
+                        }
+                    }
+                }
+            )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(imageVector = icon, contentDescription = null, tint = contentColor)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = title, style = MaterialTheme.typography.titleMedium, color = contentColor)
+                }
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.Close, contentDescription = "Minimizar", tint = contentColor)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = message, style = MaterialTheme.typography.bodyMedium, color = contentColor)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    val phoneNumber = if (isPhysical) "911" else "8009112000"
+                    val intent = Intent(Intent.ACTION_DIAL, "tel:$phoneNumber".toUri())
+                    context.startActivity(intent)
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isPhysical) MaterialTheme.colorScheme.error else ZeniaTeal,
+                    contentColor = Color.White
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = buttonText)
+            }
+        }
     }
 }
 

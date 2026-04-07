@@ -51,10 +51,6 @@ class DiarioViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Carga y procesa los meses del año seleccionado.
-     * Activa el Skeleton (isLoading=true) mientras procesa.
-     */
     fun loadYearData(year: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
