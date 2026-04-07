@@ -507,4 +507,39 @@
 
     <string name="donate">Donar</string>
 
+    <string name="diary_activity_health_title">Actividad Física y Salud</string>
+    <string name="diary_activity_health_desc">Sincronizado con tu reloj o ingresado manualmente.</string>
+    <string name="diary_reload_watch_desc">Recargar datos del reloj</string>
+    <string name="diary_steps">Pasos</string>
+    <string name="diary_heart_rate">Ritmo Card. (bpm)</string>
+    <string name="diary_sleep_mins">Sueño (mins)</string>
+    <string name="diary_hrv">HRV (ms)</string>
+    <string name="diary_premium_exclusive">Exclusivo Premium</string>
+    <string name="diary_add_custom_category">+ Añadir Categoría Personalizada</string>
+    <string name="diary_what_have_you_done">¿Qué has hecho?</string>
+    <string name="diary_inspiration_desc">Inspiración</string>
+    <string name="diary_edit_desc">Editar</string>
+
+    <string name="diary_create_own_category">Crea tu propia categoría</string>
+    <string name="diary_edit_category">Editar Categoría</string>
+    <string name="diary_category_instructions">Personaliza qué quieres medir en tu día y define 4 niveles para evaluarlo, desde el más positivo al más negativo.</string>
+    <string name="diary_what_to_measure">¿Qué quieres medir?</string>
+    <string name="diary_what_to_measure_placeholder">Ej. Nivel de Estrés, Productividad…</string>
+    <string name="diary_customize_icons">Toca los íconos para personalizarlos:</string>
+
+    <string name="diary_level_4">Nivel 4 (El mejor estado)</string>
+    <string name="diary_level_4_example">Ej. Súper relajado</string>
+    <string name="diary_level_3">Nivel 3 (Positivo)</string>
+    <string name="diary_level_3_example">Ej. Tranquilo</string>
+    <string name="diary_level_2">Nivel 2 (Negativo)</string>
+    <string name="diary_level_2_example">Ej. Tenso</string>
+    <string name="diary_level_1">Nivel 1 (El peor estado)</string>
+    <string name="diary_level_1_example">Ej. A punto de explotar</string>
+    <string name="diary_level_n">Nivel %1$d</string>
+
+    <string name="diary_change_icon_desc">Cambiar ícono</string>
+    <string name="diary_delete_desc">Eliminar</string>
+    <string name="diary_save_action">Guardar</string>
+    <string name="diary_select_icon">Selecciona un ícono</string>
+
 </resources>

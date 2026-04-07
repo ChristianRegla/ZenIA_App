@@ -10,9 +10,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.automirrored.filled.ShowChart
@@ -275,7 +277,7 @@ fun DiaryEntryContent(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Actividad Física y Salud",
+                        text = stringResource(R.string.diary_activity_health_title),
                         fontFamily = RobotoFlex,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
@@ -283,7 +285,7 @@ fun DiaryEntryContent(
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
                     Text(
-                        text = "Sincronizado con tu reloj o ingresado manualmente.",
+                        text = stringResource(R.string.diary_activity_health_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -297,7 +299,7 @@ fun DiaryEntryContent(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
-                        contentDescription = "Recargar datos del reloj",
+                        contentDescription = stringResource(R.string.diary_reload_watch_desc),
                         tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
@@ -312,7 +314,7 @@ fun DiaryEntryContent(
                         OutlinedTextField(
                             value = pasosText,
                             onValueChange = { pasosText = it },
-                            label = { Text("Pasos") },
+                            label = { Text(stringResource(R.string.diary_steps)) },
                             leadingIcon = { Icon(Icons.AutoMirrored.Filled.DirectionsWalk, null) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.weight(1f),
@@ -322,7 +324,7 @@ fun DiaryEntryContent(
                         OutlinedTextField(
                             value = ritmoCardiacoText,
                             onValueChange = { ritmoCardiacoText = it },
-                            label = { Text("Ritmo Card. (bpm)") },
+                            label = { Text(stringResource(R.string.diary_heart_rate)) },
                             leadingIcon = { Icon(Icons.Default.Favorite, null) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.weight(1f),
@@ -334,7 +336,7 @@ fun DiaryEntryContent(
                         OutlinedTextField(
                             value = suenoText,
                             onValueChange = { suenoText = it },
-                            label = { Text("Sueño (mins)") },
+                            label = { Text(stringResource(R.string.diary_sleep_mins)) },
                             leadingIcon = { Icon(Icons.Default.Bedtime, null) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.weight(1f),
@@ -344,7 +346,7 @@ fun DiaryEntryContent(
                         OutlinedTextField(
                             value = hrvText,
                             onValueChange = { hrvText = it },
-                            label = { Text("HRV (ms)") },
+                            label = { Text(stringResource(R.string.diary_hrv)) },
                             leadingIcon = { Icon(Icons.AutoMirrored.Filled.ShowChart, null) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.weight(1f),
@@ -424,13 +426,13 @@ fun DiaryEntryContent(
                     border = androidx.compose.foundation.BorderStroke(1.dp, ZeniaTeal.copy(alpha = 0.5f)),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = ZeniaTeal)
                 ) {
-                    Text("+ Añadir Categoría Personalizada", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.diary_add_custom_category), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
                 }
             }
         }
 
         item {
-            SectionTitle("¿Qué has hecho?")
+            SectionTitle(stringResource(R.string.diary_what_have_you_done))
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -491,7 +493,7 @@ fun DiaryEntryContent(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Lightbulb,
-                        contentDescription = "Inspiración",
+                        contentDescription = stringResource(R.string.diary_inspiration_desc),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -567,7 +569,7 @@ fun SelectionSection(
             color = MaterialTheme.colorScheme.onSurface
         )
         IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
-            Icon(Icons.Default.Settings, contentDescription = "Editar", tint = MaterialTheme.colorScheme.primary)
+            Icon(Icons.Default.Settings, stringResource(R.string.diary_edit_desc), tint = MaterialTheme.colorScheme.primary)
         }
     }
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -592,6 +594,8 @@ fun FeelingItem(iconName: String, label: String, isSelected: Boolean, color: Col
     val iconRes = IconMapper.getDrawable(iconName)
     val interactionSource = remember { MutableInteractionSource() }
 
+    val applyDynamicTint = iconName.contains("nube") || iconName.contains("sol")
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.clickable(
@@ -606,12 +610,18 @@ fun FeelingItem(iconName: String, label: String, isSelected: Boolean, color: Col
                 .clip(RoundedCornerShape(12.dp))
                 .background(if (isSelected) color else MaterialTheme.colorScheme.surfaceVariant)
                 .border(3.dp, color, RoundedCornerShape(12.dp)),
-            contentAlignment = Alignment.Center) {
+            contentAlignment = Alignment.Center
+        ) {
+            val iconTint = if (applyDynamicTint) {
+                if (isSelected) Color.White else color
+            } else {
+                Color.Unspecified
+            }
             Icon(
                 painter = painterResource(id = iconRes),
                 contentDescription = label,
                 modifier = Modifier.size(28.dp),
-                tint = if (isSelected) Color.White else color
+                tint = iconTint
             )
         }
         Spacer(modifier = Modifier.height(4.dp))
@@ -633,7 +643,6 @@ fun CategoryEditorSheet(
 
     val opciones = remember {
         val iniciales = categoriaInicial?.opciones ?: listOf(
-            OpcionCategoria(5, "", "sol_feliz"),
             OpcionCategoria(4, "", "nube_feliz"),
             OpcionCategoria(3, "", "nube_feliz"),
             OpcionCategoria(2, "", "nube_triste"),
@@ -649,15 +658,19 @@ fun CategoryEditorSheet(
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface
     ) {
+        val scrollState = rememberScrollState()
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp),
+                .padding(bottom = 32.dp)
+                .imePadding()
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = if (categoriaInicial == null) "Nueva Categoría" else "Editar Categoría",
+                text = if (categoriaInicial == null) stringResource(R.string.diary_create_own_category) else stringResource(R.string.diary_edit_category),
                 fontFamily = RobotoFlex,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
@@ -666,22 +679,46 @@ fun CategoryEditorSheet(
                 textAlign = TextAlign.Center
             )
 
+            Text(
+                text = stringResource(R.string.diary_category_instructions),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
             OutlinedTextField(
                 value = titulo,
                 onValueChange = { titulo = it },
-                label = { Text("Nombre de la categoría (Ej. Nivel de Estrés)") },
+                label = { Text(stringResource(R.string.diary_what_to_measure)) },
+                placeholder = { Text(stringResource(R.string.diary_what_to_measure_placeholder)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
             )
 
             Text(
-                text = "Toca un ícono para cambiarlo. Ordena de Mejor (5) a Peor (1).",
+                text = stringResource(R.string.diary_customize_icons),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             opciones.forEachIndexed { index, opcion ->
+                val levelDesc = when (opcion.nivel) {
+                    4 -> stringResource(R.string.diary_level_4)
+                    3 -> stringResource(R.string.diary_level_3)
+                    2 -> stringResource(R.string.diary_level_2)
+                    1 -> stringResource(R.string.diary_level_1)
+                    else -> stringResource(R.string.diary_level_n, opcion.nivel)
+                }
+
+                val ejemploGhost = when (opcion.nivel) {
+                    4 -> stringResource(R.string.diary_level_4_example)
+                    3 -> stringResource(R.string.diary_level_3_example)
+                    2 -> stringResource(R.string.diary_level_2_example)
+                    1 -> stringResource(R.string.diary_level_1_example)
+                    else -> ""
+                }
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -695,10 +732,11 @@ fun CategoryEditorSheet(
                             .clickable { seleccionandoIconoParaIndex = index },
                         contentAlignment = Alignment.Center
                     ) {
+                        val applyDynamicTint = opcion.iconResName.contains("nube") || opcion.iconResName.contains("sol")
                         Icon(
                             painter = painterResource(id = IconMapper.getDrawable(opcion.iconResName)),
                             contentDescription = "Cambiar ícono",
-                            tint = ZeniaTeal,
+                            tint = if (applyDynamicTint) ZeniaTeal else Color.Unspecified,
                             modifier = Modifier.size(28.dp)
                         )
                     }
@@ -706,7 +744,8 @@ fun CategoryEditorSheet(
                     OutlinedTextField(
                         value = opcion.nombrePersonalizado,
                         onValueChange = { nuevoTexto -> opciones[index] = opcion.copy(nombrePersonalizado = nuevoTexto) },
-                        label = { Text("Nivel ${opcion.nivel}") },
+                        label = { Text(levelDesc) },
+                        placeholder = { Text(ejemploGhost) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp)
@@ -724,7 +763,7 @@ fun CategoryEditorSheet(
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
                     ) {
-                        Icon(Icons.Default.Delete, contentDescription = "Eliminar")
+                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.diary_delete_desc))
                     }
                 }
 
@@ -737,7 +776,7 @@ fun CategoryEditorSheet(
                     enabled = titulo.isNotBlank() && opciones.all { it.nombrePersonalizado.isNotBlank() },
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Guardar", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.diary_save_action), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -747,7 +786,7 @@ fun CategoryEditorSheet(
         AlertDialog(
             onDismissRequest = { seleccionandoIconoParaIndex = null },
             title = {
-                Text("Selecciona un ícono", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.diary_select_icon), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
             },
             text = {
                 LazyVerticalGrid(
@@ -769,10 +808,11 @@ fun CategoryEditorSheet(
                                 },
                             contentAlignment = Alignment.Center
                         ) {
+                            val applyDynamicTint = iconName.contains("nube") || iconName.contains("sol")
                             Icon(
                                 painter = painterResource(id = IconMapper.getDrawable(iconName)),
                                 contentDescription = null,
-                                tint = ZeniaTeal,
+                                tint = if (applyDynamicTint) ZeniaTeal else Color.Unspecified,
                                 modifier = Modifier.size(32.dp)
                             )
                         }
@@ -781,7 +821,7 @@ fun CategoryEditorSheet(
             },
             confirmButton = {
                 TextButton(onClick = { seleccionandoIconoParaIndex = null }) {
-                    Text("Cancelar", fontFamily = RobotoFlex, color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.cancel), fontFamily = RobotoFlex, color = MaterialTheme.colorScheme.error)
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface
