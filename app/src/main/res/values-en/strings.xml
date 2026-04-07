@@ -561,4 +561,7 @@
     <string name="auth_error_verification_failed">Account created, but verification email failed to send.</string>
     <string name="auth_error_resend_failed">Failed to resend verification email.</string>
 
+    <string name="coming_soon_title">Coming soon</string>
+    <string name="coming_soon_desc">We are preparing this exercise with lots of love. It will be ready in an upcoming update!</string>
+
 </resources>

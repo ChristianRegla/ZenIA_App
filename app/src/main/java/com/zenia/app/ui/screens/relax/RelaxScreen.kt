@@ -19,9 +19,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.RobotoFlex
@@ -52,6 +59,8 @@ fun RelaxScreen(
     onNavigateToPremium: () -> Unit,
     isUserPremium: Boolean = false
 ) {
+    var showUnderConstruction by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             ZeniaTopBar(title = "Relájate")
@@ -105,12 +114,76 @@ fun RelaxScreen(
                         exercise = exercise,
                         isLocked = exercise.isPremium && !isUserPremium,
                         onClick = {
-                            if (exercise.isPremium && !isUserPremium) {
+                            if (exercise.id != 1) {
+                                showUnderConstruction = true
+                            }
+                            else if (exercise.isPremium && !isUserPremium) {
                                 onNavigateToPremium()
-                            } else {
+                            }
+                            else {
                                 onNavigateToPlayer(exercise.id)
                             }
                         }
+                    )
+                }
+            }
+        }
+    }
+    if (showUnderConstruction) {
+        ModalBottomSheet(
+            onDismissRequest = { showUnderConstruction = false },
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.on_build))
+                val progress by animateLottieCompositionAsState(
+                    composition,
+                    iterations = LottieConstants.IterateForever
+                )
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progress },
+                    modifier = Modifier.size(180.dp)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = stringResource(R.string.coming_soon_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = RobotoFlex,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = stringResource(R.string.coming_soon_desc),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = { showUnderConstruction = false },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        stringResource(R.string.understood),
+                        fontFamily = RobotoFlex,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
@@ -141,7 +214,6 @@ fun RelaxExerciseCard(
             modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // --- IMAGEN ---
             Box(
                 modifier = Modifier
                     .width(100.dp)

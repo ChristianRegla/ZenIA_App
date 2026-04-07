@@ -554,4 +554,7 @@
     <string name="auth_error_verification_failed">Cuenta creada, pero falló el envío del correo.</string>
     <string name="auth_error_resend_failed">Error al reenviar el correo de verificación.</string>
 
+    <string name="coming_soon_title">Próximamente</string>
+    <string name="coming_soon_desc">Estamos preparando este ejercicio con mucho cariño. ¡Estará listo en una próxima actualización!</string>
+
 </resources>
