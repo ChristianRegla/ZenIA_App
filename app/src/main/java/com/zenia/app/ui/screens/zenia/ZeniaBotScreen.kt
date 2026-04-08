@@ -1,6 +1,7 @@
 package com.zenia.app.ui.screens.zenia
 
 import android.content.Intent
+import android.speech.tts.TextToSpeech
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -47,6 +48,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
@@ -74,6 +76,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -94,6 +97,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -103,8 +107,12 @@ import com.zenia.app.ui.theme.ZeniaIceBlue
 import com.zenia.app.ui.theme.ZeniaTeal
 import kotlinx.coroutines.launch
 import androidx.core.net.toUri
+import com.mikepenz.markdown.m3.Markdown
+import com.mikepenz.markdown.m3.markdownColor
+import com.mikepenz.markdown.m3.markdownTypography
 import com.zenia.app.ui.theme.ZeniaLightGrey
 import com.zenia.app.ui.theme.ZeniaSoftBlue
+import java.util.Locale
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
@@ -138,6 +146,33 @@ fun ZeniaBotScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val mensajes = (uiState as? ChatUiState.Success)?.mensajes?.reversed() ?: emptyList()
+
+    val context = LocalContext.current
+    var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+
+    DisposableEffect(context) {
+        val textToSpeech = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.language = Locale("es", "MX")
+            }
+        }
+        tts = textToSpeech
+
+        onDispose {
+            textToSpeech.stop()
+            textToSpeech.shutdown()
+        }
+    }
+
+    val onSpeakMessage: (String) -> Unit = { textToRead ->
+        tts?.let {
+            if (it.isSpeaking) {
+                it.stop()
+            } else {
+                it.speak(textToRead, TextToSpeech.QUEUE_FLUSH, null, null)
+            }
+        }
+    }
 
     val animatedTopBarColor by animateColorAsState(
         targetValue = if (selectionMode)
@@ -336,7 +371,10 @@ fun ZeniaBotScreen(
                                                     else
                                                         selectedMessages + mensaje.id
                                             }
-                                        }
+                                        },
+                                        onSpeak = if (mensaje.emisor != "usuario") {
+                                            { onSpeakMessage(mensaje.texto) }
+                                        } else null
                                     )
                                 }
                             }
@@ -604,12 +642,14 @@ private fun ChatBubble(
     mensaje: MensajeChatbot,
     isSelected: Boolean,
     onLongPress: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onSpeak: (() -> Unit)? = null
 ) {
     val isUser = mensaje.emisor == "usuario"
     val configuration = LocalConfiguration.current
-
     val maxBubbleWidth = configuration.screenWidthDp.dp * 0.85f
+
+    val textColor = Color.Black
 
     Box(
         modifier = Modifier
@@ -644,11 +684,50 @@ private fun ChatBubble(
                 else
                     ZeniaIceBlue
         ) {
-            Text(
-                text = mensaje.texto,
-                modifier = Modifier.padding(16.dp),
-                fontSize = 15.sp
-            )
+            Column(modifier = Modifier.padding(16.dp)) {
+                val customTypography = markdownTypography(
+                    text = MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = 15.sp,
+                        color = textColor
+                    ),
+                    h1 = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = textColor),
+                    h2 = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, color = textColor),
+                    h3 = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, color = textColor)
+                )
+
+                val customColors = markdownColor(
+                    text = textColor,
+                    dividerColor = textColor.copy(alpha = 0.2f)
+                )
+
+                val contenidoLimpio = mensaje.texto.replace("\\n", "\n")
+
+                Markdown(
+                    content = contenidoLimpio,
+                    modifier = Modifier.fillMaxWidth(),
+                    typography = customTypography,
+                    colors = customColors
+                )
+
+                if (!isUser && onSpeak != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        IconButton(
+                            onClick = onSpeak,
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                                contentDescription = "Leer en voz alta",
+                                tint = ZeniaTeal.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
