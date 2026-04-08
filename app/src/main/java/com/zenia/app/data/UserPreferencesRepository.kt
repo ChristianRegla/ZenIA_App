@@ -34,6 +34,7 @@ class UserPreferencesRepository @Inject constructor(
         val MORNING_ADVICE_ENABLED = booleanPreferencesKey("morning_advice_enabled")
         val STREAK_REMINDER_HOUR = intPreferencesKey("streak_reminder_hour")
         val STREAK_REMINDER_MINUTE = intPreferencesKey("streak_reminder_minute")
+        val SHARE_HEALTH_DATA_KEY = booleanPreferencesKey("share_health_data_key")
     }
 
     private val safeData = dataStore.data
@@ -69,6 +70,9 @@ class UserPreferencesRepository @Inject constructor(
     val streakReminderMinute: Flow<Int> =
         safeData.map { it[Keys.STREAK_REMINDER_MINUTE] ?: 0 }
 
+    val shareHealthDataWithNia: Flow<Boolean> =
+        safeData.map { it[Keys.SHARE_HEALTH_DATA_KEY] ?: false }
+
     suspend fun setOnboardingCompleted(completed: Boolean) {
         dataStore.edit { it[Keys.ONBOARDING_COMPLETED] = completed }
     }
@@ -102,5 +106,9 @@ class UserPreferencesRepository @Inject constructor(
             preferences[Keys.STREAK_REMINDER_HOUR] = hour
             preferences[Keys.STREAK_REMINDER_MINUTE] = minute
         }
+    }
+
+    suspend fun setShareHealthDataWithNia(share: Boolean) {
+        dataStore.edit { it[Keys.SHARE_HEALTH_DATA_KEY] = share }
     }
 }

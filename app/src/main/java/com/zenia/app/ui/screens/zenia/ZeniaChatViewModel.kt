@@ -3,7 +3,10 @@ package com.zenia.app.ui.screens.zenia
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.ChatRepository
+import com.zenia.app.data.HealthConnectRepository
 import com.zenia.app.data.NiaApiRepository
+import com.zenia.app.data.UserPreferencesRepository
+import com.zenia.app.data.session.UserSessionManager
 import com.zenia.app.di.ApplicationScope
 import com.zenia.app.model.MensajeChatbot
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,6 +44,9 @@ enum class EmergencyDisplayState {
 class ZeniaChatViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
     private val niaRepository: NiaApiRepository,
+    private val healthConnectRepository: HealthConnectRepository,
+    private val sessionManager: UserSessionManager,
+    private val userPreferences: UserPreferencesRepository,
     @ApplicationScope private val externalScope: CoroutineScope
 ) : ViewModel() {
 
@@ -64,6 +70,18 @@ class ZeniaChatViewModel @Inject constructor(
 
     private val _emergencyDisplay = MutableStateFlow(EmergencyDisplayState.NONE)
     val emergencyDisplay = _emergencyDisplay.asStateFlow()
+
+    val isPremium = sessionManager.isPremium
+
+    val shareHealthData = userPreferences.shareHealthDataWithNia.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5000), false
+    )
+
+    fun toggleHealthDataSharing(share: Boolean) {
+        viewModelScope.launch {
+            userPreferences.setShareHealthDataWithNia(share)
+        }
+    }
 
     fun enviarMensaje(texto: String) {
         if (texto.isBlank()) return
@@ -118,7 +136,28 @@ class ZeniaChatViewModel @Inject constructor(
 
     private fun obtenerRespuestaIA(historial: List<MensajeChatbot>) {
         externalScope.launch {
-            val result = niaRepository.enviarMensaje(historial)
+            var healthDataString: String? = null
+
+            val userWantsToShare = shareHealthData.value
+
+            if (isPremium.value && userWantsToShare) {
+                try {
+                    val summary = healthConnectRepository.getHealthSummary()
+
+                    val ritmo = summary.heartRateAvg?.let { "$it bpm" } ?: "Desconocido"
+                    val sueno = String.format(java.util.Locale.US, "%.1f", summary.sleepHours)
+
+                    healthDataString = "Contexto biológico actual del usuario: " +
+                            "Pasos hoy: ${summary.steps}. " +
+                            "Ritmo cardíaco: $ritmo. " +
+                            "Horas de sueño anoche: $sueno hrs. " +
+                            "Nivel de estrés estimado (HRV): ${summary.stressLevel}."
+                } catch (e: Exception) {
+                    android.util.Log.e("ZeniaChatVM", "Error leyendo Health Connect", e)
+                }
+            }
+
+            val result = niaRepository.enviarMensaje(historial, healthDataString)
 
             _isTyping.value = false
 

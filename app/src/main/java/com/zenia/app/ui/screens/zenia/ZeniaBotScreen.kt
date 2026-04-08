@@ -70,6 +70,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -95,6 +96,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -110,6 +112,7 @@ import androidx.core.net.toUri
 import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.m3.markdownColor
 import com.mikepenz.markdown.m3.markdownTypography
+import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZeniaLightGrey
 import com.zenia.app.ui.theme.ZeniaSoftBlue
 import java.util.Locale
@@ -128,6 +131,9 @@ fun ZeniaBotScreen(
     isTyping: Boolean,
     emergencyType: String?,
     emergencyDisplay: EmergencyDisplayState,
+    isPremium: Boolean,
+    shareHealthData: Boolean,
+    onToggleShareHealthData: (Boolean) -> Unit,
     onSendMessage: (String) -> Unit,
     onClearChat: () -> Unit,
     onDeleteSelected: (Set<String>) -> Unit,
@@ -139,7 +145,9 @@ fun ZeniaBotScreen(
     val listState = rememberLazyListState()
     val haptic = LocalHapticFeedback.current
     val clipboardManager = LocalClipboardManager.current
+
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+    var showHealthSyncDialog by rememberSaveable { mutableStateOf(false) }
 
     var selectedMessages by rememberSaveable { mutableStateOf(setOf<String>()) }
     val selectionMode = selectedMessages.isNotEmpty()
@@ -261,6 +269,14 @@ fun ZeniaBotScreen(
                                     tint = Color(0xFFFFB4AB)
                                 )
                             }
+                        }
+                        IconButton(onClick = { showHealthSyncDialog = true }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_watch_outlined),
+                                contentDescription = "Conexión de salud",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
                         IconButton(onClick = { showDeleteDialog = true }) {
                             Icon(
@@ -517,6 +533,58 @@ fun ZeniaBotScreen(
                 }
             },
             containerColor = ZeniaLightGrey
+        )
+    }
+
+    if (showHealthSyncDialog) {
+        AlertDialog(
+            onDismissRequest = { showHealthSyncDialog = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(painterResource(id = R.drawable.ic_watch), contentDescription = null, tint = ZeniaTeal, modifier = Modifier.size(28.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Conexión de Salud", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
+                }
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "Si eres Premium, Nia puede leer tus datos de salud (sueño, pasos, ritmo cardíaco) de forma privada para brindarte apoyo emocional y recomendaciones mucho más personalizadas.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Compartir con Nia", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                if (!isPremium) {
+                                    Text("Exclusivo Premium", color = Color(0xFFD69D00), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                            Switch(
+                                checked = shareHealthData && isPremium,
+                                onCheckedChange = onToggleShareHealthData,
+                                enabled = isPremium
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showHealthSyncDialog = false }) {
+                    Text("Cerrar", fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 }

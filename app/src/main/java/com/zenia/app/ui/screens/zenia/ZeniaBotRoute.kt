@@ -16,6 +16,9 @@ fun ZeniaBotRoute(
     val emergencyType by viewModel.emergencyType.collectAsState()
     val emergencyDisplay by viewModel.emergencyDisplay.collectAsState()
 
+    val isPremium by viewModel.isPremium.collectAsState()
+    val shareHealthData by viewModel.shareHealthData.collectAsState()
+
     ZeniaBotScreen(
         uiState = uiState,
         isTyping = isTyping,
@@ -28,6 +31,9 @@ fun ZeniaBotRoute(
         },
         onDismissBanner = { viewModel.dismissBannerToIcon() },
         onRestoreBanner = { viewModel.restoreBanner() },
-        onNavigateBack = onNavigateBack
+        onNavigateBack = onNavigateBack,
+        isPremium = isPremium,
+        shareHealthData = shareHealthData,
+        onToggleShareHealthData = { viewModel.toggleHealthDataSharing(it) }
     )
 }

@@ -23,9 +23,10 @@ class NiaApiRepository @Inject constructor() {
     private val url =
         "https://api-zenia.onrender.com/chat"
 
-    suspend fun enviarMensaje(historial: List<MensajeChatbot>): Result<NiaResponse> =
-        withContext(Dispatchers.IO) {
-
+    suspend fun enviarMensaje(
+        historial: List<MensajeChatbot>,
+        healthContext: String? = null
+    ): Result<NiaResponse> = withContext(Dispatchers.IO) {
             try {
                 val historyArray = org.json.JSONArray()
                 for (msg in historial) {
@@ -38,6 +39,10 @@ class NiaApiRepository @Inject constructor() {
 
                 val json = JSONObject().apply {
                     put("history", historyArray)
+
+                    if (healthContext != null) {
+                        put("health_context", healthContext)
+                    }
                 }
 
                 val body = json.toString()
