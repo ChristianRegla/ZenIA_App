@@ -557,4 +557,16 @@
     <string name="coming_soon_title">Próximamente</string>
     <string name="coming_soon_desc">Estamos preparando este ejercicio con mucho cariño. ¡Estará listo en una próxima actualización!</string>
 
+    <string name="health_sync_title">Conexión de Salud</string>
+
+    <string name="health_sync_description">
+        Si eres Premium, Nia puede leer tus datos de salud (sueño, pasos, ritmo cardíaco) de forma privada para brindarte apoyo emocional y recomendaciones mucho más personalizadas.
+    </string>
+
+    <string name="share_with_nia">Compartir con Nia</string>
+
+    <string name="premium_exclusive">Exclusivo Premium</string>
+
+    <string name="close">Cerrar</string>
+
 </resources>

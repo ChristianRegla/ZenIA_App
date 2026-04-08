@@ -1,5 +1,6 @@
 package com.zenia.app.ui.screens.zenia
 
+import android.content.ClipData
 import android.content.Intent
 import android.speech.tts.TextToSpeech
 import androidx.activity.compose.BackHandler
@@ -40,6 +41,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -92,13 +94,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -144,7 +146,7 @@ fun ZeniaBotScreen(
     var textState by rememberSaveable { mutableStateOf("") }
     val listState = rememberLazyListState()
     val haptic = LocalHapticFeedback.current
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
 
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
     var showHealthSyncDialog by rememberSaveable { mutableStateOf(false) }
@@ -161,7 +163,7 @@ fun ZeniaBotScreen(
     DisposableEffect(context) {
         val textToSpeech = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                tts?.language = Locale("es", "MX")
+                tts?.language = Locale.Builder().setLanguage("es").setRegion("MX").build()
             }
         }
         tts = textToSpeech
@@ -236,7 +238,13 @@ fun ZeniaBotScreen(
                                     val msgId = selectedMessages.first()
                                     val textToCopy = mensajes.find { it.id == msgId }?.texto
                                     if (textToCopy != null) {
-                                        clipboardManager.setText(AnnotatedString(textToCopy))
+                                        coroutineScope.launch {
+                                            clipboard.setClipEntry(
+                                                ClipEntry(
+                                                    ClipData.newPlainText("Mensaje", textToCopy)
+                                                )
+                                            )
+                                        }
                                     }
                                     selectedMessages = emptySet()
                                 }
@@ -541,33 +549,53 @@ fun ZeniaBotScreen(
             onDismissRequest = { showHealthSyncDialog = false },
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(painterResource(id = R.drawable.ic_watch), contentDescription = null, tint = ZeniaTeal, modifier = Modifier.size(28.dp))
+                    Icon(
+                        painterResource(id = R.drawable.ic_watch),
+                        contentDescription = null,
+                        tint = ZeniaTeal,
+                        modifier = Modifier.size(28.dp)
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Conexión de Salud", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
+                    Text(
+                        stringResource(R.string.health_sync_title),
+                        fontFamily = RobotoFlex,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             },
             text = {
                 Column {
                     Text(
-                        text = "Si eres Premium, Nia puede leer tus datos de salud (sueño, pasos, ritmo cardíaco) de forma privada para brindarte apoyo emocional y recomendaciones mucho más personalizadas.",
+                        text = stringResource(R.string.health_sync_description),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        color = Color(0xFFE5E5E5),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Compartir con Nia", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                Text(
+                                    stringResource(R.string.share_with_nia),
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                                 if (!isPremium) {
-                                    Text("Exclusivo Premium", color = Color(0xFFD69D00), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text(
+                                        stringResource(R.string.premium_exclusive),
+                                        color = Color(0xFFD69D00),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 }
                             }
                             Switch(
@@ -581,10 +609,13 @@ fun ZeniaBotScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showHealthSyncDialog = false }) {
-                    Text("Cerrar", fontWeight = FontWeight.Bold)
+                    Text(
+                        stringResource(R.string.close),
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             },
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = ZeniaLightGrey
         )
     }
 }
@@ -772,7 +803,7 @@ private fun ChatBubble(
 
                 Markdown(
                     content = contenidoLimpio,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.wrapContentWidth(),
                     typography = customTypography,
                     colors = customColors
                 )
