@@ -22,14 +22,16 @@ import com.zenia.app.ui.screens.analytics.AnalyticsViewModel
 import com.zenia.app.ui.screens.community.CommunityRoute
 import com.zenia.app.ui.screens.diary.DiarioRoute
 import com.zenia.app.ui.screens.diary.DiaryEntryScreen
+import com.zenia.app.ui.screens.evaluacion.EvaluacionRoute
 import com.zenia.app.ui.screens.lock.LockRoute
 import com.zenia.app.ui.screens.notifications.NotificationsRoute
+import com.zenia.app.ui.screens.recursos.RecursoDetailRoute
 import com.zenia.app.ui.screens.recursos.RecursosRoute
+import com.zenia.app.ui.screens.relax.BreathingRoute
 import com.zenia.app.ui.screens.relax.RelaxRoute
 import com.zenia.app.ui.screens.sos.HelplineRoute
 import com.zenia.app.ui.screens.zenia.ZeniaBotRoute
 import com.zenia.app.viewmodel.MainViewModel
-import kotlinx.coroutines.delay
 import java.time.LocalDate
 
 /**
@@ -112,13 +114,6 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
 
             MainScreen(
                 startTab = tab,
-                onSignOut = {
-                    mainViewModel.signOut()
-                    navController.navigate(Destinations.AUTH_ROUTE) {
-                        popUpTo(Destinations.HOME_ROUTE) { inclusive = true }
-                    }
-                },
-                onNavigateToAccount = { navController.safeNavigate(Destinations.ACCOUNT_ROUTE) },
                 onNavigateToSettings = { navController.safeNavigate(Destinations.SETTINGS_ROUTE) },
                 onNotificationClick = { navController.safeNavigate(Destinations.NOTIFICATIONS_ROUTE) },
                 onNavigateToSOS = { navController.safeNavigate(Destinations.SOS) },
@@ -127,7 +122,14 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
                 },
                 onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) },
                 onNavigateToAnalytics = { navController.safeNavigate(Destinations.ANALYTICS_ROUTE) },
-                onNavigateToCommunity = { navController.safeNavigate(Destinations.COMMUNITY_ROUTE) }
+                onNavigateToCommunity = { navController.safeNavigate(Destinations.COMMUNITY_ROUTE) },
+                onNavigateToRecursoDetail = { recursoId ->
+                    navController.safeNavigate(Destinations.createRecursoDetailRoute(recursoId))
+                },
+                onNavigateToTest = { testId ->
+                    navController.safeNavigate(Destinations.createEvaluacionRoute(testId))
+                },
+                onNavigateToBreathing = { navController.safeNavigate(Destinations.BREATHING_ROUTE) }
             )
         }
 
@@ -200,7 +202,8 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
 
         composable(Destinations.RELAX_ROUTE) {
             RelaxRoute(
-                onNavigateToPlayer = { /* TODO: Player */ },
+                onNavigateToPlayer = { id -> },
+                onNavigateToBreathing = { navController.safeNavigate(Destinations.BREATHING_ROUTE) },
                 onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) }
             )
         }
@@ -209,6 +212,22 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
             RecursosRoute(
                 onNavigateToDetail = { /* TODO: Detail */ },
                 onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) }
+            )
+        }
+
+        composable(
+            route = Destinations.EVALUACION_ROUTE,
+            arguments = listOf(navArgument(NavArgs.TIPO_TEST_ID) { type = NavType.StringType }),
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
+        ) { backStackEntry ->
+            val tipoTestId = backStackEntry.arguments?.getString(NavArgs.TIPO_TEST_ID) ?: return@composable
+
+            EvaluacionRoute(
+                tipoTestId = tipoTestId,
+                onBackClick = { navController.popBackStack() }
             )
         }
 
@@ -255,6 +274,34 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
             popExitTransition = { popSlideOut() }
         ) {
             CommunityRoute(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Destinations.RECURSO_DETAIL_ROUTE,
+            arguments = listOf(navArgument(NavArgs.RECURSO_ID) { type = NavType.StringType }),
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
+        ) { backStackEntry ->
+            val recursoId = backStackEntry.arguments?.getString(NavArgs.RECURSO_ID) ?: return@composable
+
+            RecursoDetailRoute(
+                recursoId = recursoId,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Destinations.BREATHING_ROUTE,
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
+            ) {
+            BreathingRoute(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

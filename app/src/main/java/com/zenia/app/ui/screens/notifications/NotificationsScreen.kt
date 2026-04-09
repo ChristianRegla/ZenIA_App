@@ -315,7 +315,7 @@ fun NotificationItem(
 }
 
 @Composable
-fun NotificationControlHeader(
+private fun NotificationControlHeader(
     isEnabled: Boolean,
     onToggle: (Boolean) -> Unit
 ) {

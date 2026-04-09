@@ -331,7 +331,9 @@ fun MiniCalendarTopBar(
         Box(contentAlignment = Alignment.TopCenter, modifier = Modifier.fillMaxWidth()) {
             val weekDays = remember(selectedDate) {
                 val currentDayOfWeek = selectedDate.dayOfWeek.value
-                val startOfWeek = selectedDate.minusDays((currentDayOfWeek - 1).toLong())
+
+                val daysToSubtract = if (currentDayOfWeek == 7) 0 else currentDayOfWeek
+                val startOfWeek = selectedDate.minusDays(daysToSubtract.toLong())
                 (0..6).map { startOfWeek.plusDays(it.toLong()) }
             }
 
@@ -403,9 +405,9 @@ fun DayCell(
     }
 
     val borderModifier = when {
-        isSelected -> Modifier.border(2.dp, Color.Black, RoundedCornerShape(5.dp)) // Borde Negro al seleccionar
-        !dayState.hasEntry && !dayState.isFuture -> Modifier.border(1.dp, Color.LightGray, RoundedCornerShape(5.dp)) // Borde gris si vacío
-        else -> Modifier // Sin borde si tiene racha (la racha llena el espacio) y no está seleccionado
+        isSelected -> Modifier.border(2.dp, Color.Black, RoundedCornerShape(5.dp))
+        !dayState.hasEntry && !dayState.isFuture -> Modifier.border(1.dp, Color.LightGray, RoundedCornerShape(5.dp))
+        else -> Modifier
     }
 
     Box(

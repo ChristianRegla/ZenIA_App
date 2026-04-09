@@ -11,6 +11,7 @@ import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.BillingRepository
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.UserPreferencesRepository
+import com.zenia.app.data.session.UserSessionManager
 import com.zenia.app.model.Usuario
 import com.zenia.app.pdf.PdfExportConfig
 import com.zenia.app.pdf.PdfGenerator
@@ -34,11 +35,14 @@ class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val authRepository: AuthRepository,
     private val diaryRepository: DiaryRepository,
+    private val sessionManager: UserSessionManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
-    val isUserPremium: StateFlow<Boolean> = authRepository.isPremium
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    val nickname: StateFlow<String> = sessionManager.nickname
+    val avatarIndex: StateFlow<Int> = sessionManager.avatarIndex
+    val email: StateFlow<String?> = sessionManager.email
+    val isUserPremium = sessionManager.isPremium
 
     val billingConnectionState = billingRepository.billingConnectionState
 
@@ -88,37 +92,11 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun donar(activity: Activity) {
-        viewModelScope.launch {
-            billingRepository.launchBillingFlow(activity, isSubscription = false)
-        }
-    }
-
-    fun comprarPremium(activity: Activity) {
-        viewModelScope.launch {
-            // true = Suscripción
-            billingRepository.launchBillingFlow(activity, isSubscription = true)
-        }
-    }
-
-    /**
-     * Abre la pantalla de gestión de suscripciones de Google Play.
-     * Google no permite cancelar desde la app por seguridad, debes enviarlos allí.
-     */
-    fun gestionarSuscripcion(activity: Activity) {
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            data = "https://play.google.com/store/account/subscriptions?sku=premium_annual&package=com.zenia.app".toUri()
-        }
-        activity.startActivity(intent)
-    }
-
     fun markExportTutorialSeen() {
         viewModelScope.launch {
             userPreferencesRepository.setExportTutorialSeen()
         }
     }
-
-    val currentUser: Flow<Usuario?> = authRepository.getUsuarioFlow()
 
     val isBiometricEnabled: StateFlow<Boolean?> = userPreferencesRepository.isBiometricEnabled
         .stateIn(
@@ -148,7 +126,8 @@ class SettingsViewModel @Inject constructor(
 
     fun updateProfile(nickname: String, avatarIndex: Int) {
         viewModelScope.launch {
-            val uid = authRepository.currentUserId
+            val uid = sessionManager.currentUserId
+
             if(uid != null) {
                 try {
                     authRepository.updateProfile(uid, nickname, avatarIndex)
@@ -167,7 +146,7 @@ class SettingsViewModel @Inject constructor(
             try {
 
                 val allEntries = diaryRepository.getAllEntriesOnce()
-                val user = authRepository.getUsuarioFlow()
+                val user = sessionManager.user
                     .firstOrNull()
                     ?.apodo ?: "Usuario ZenIA"
 

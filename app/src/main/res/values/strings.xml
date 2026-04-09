@@ -11,9 +11,6 @@
     <string name="cancel">Cancelar</string>
     <string name="common_back">Regresar</string>
     <string name="common_delete">Eliminar</string>
-    <string name="common_not_available">No disponible</string>
-    <string name="common_yes">Sí</string>
-    <string name="common_no">No</string>
 
     <string name="confirmPassword">Confirmar contraseña</string>
     <string name="forgotPassword">¿Olvidaste tu contraseña?</string>
@@ -23,22 +20,12 @@
     <string name="lock_waiting">Esperando autenticación…</string>
     <string name="lock_auth_failed">No se pudo verificar la identidad.</string>
 
-    <string name="account_title">Mi Cuenta</string>
-    <string name="account_info_title">Información de la Cuenta</string>
-    <string name="account_email_label">Correo: </string>
-    <string name="account_verified_label">Verificado: </string>
     <string name="account_biometrics_label">Bloquear app con huella/rostro</string>
     <string name="account_biometrics_not_available">No hay hardware biométrico disponible en este dispositivo.</string>
-    <string name="account_delete_button">Eliminar Mi Cuenta</string>
-    <string name="account_resend_verification_button">Reenviar correo de verificación</string>
-    <string name="account_change_password_button">Cambiar Contraseña</string>
-    <string name="account_delete_warning">Advertencia: La eliminación de la cuenta es permanente y no se puede deshacer.</string>
-    <string name="account_delete_dialog_title">¿Eliminar cuenta?</string>
     <string name="account_delete_dialog_text">¿Estás seguro de que deseas eliminar tu cuenta? Esta acción es irreversible.</string>
     <string name="account_language_label">Idioma</string>
 
     <string name="auth_verification_sent">¡Registro exitoso! Revisa tu correo para verificar tu cuenta.</string>
-    <string name="auth_password_reset_sent">Correo enviado. Revisa tu bandeja de entrada para restablecer la contraseña.</string>
     <string name="auth_error_not_google_credential">Error: La credencial recibida no es de Google.</string>
     <string name="auth_error_google_canceled">Inicio con Google cancelado o fallido.</string>
     <string name="auth_error_prefix">Error de autenticación: </string>
@@ -133,7 +120,6 @@
     <string name="help_center_btn_contact">Contactar Soporte</string>
     <string name="help_email_subject">Soporte ZenIA - Ayuda</string>
 
-    <string name="donations_title">Apoya a ZenIA</string>
     <string name="donations_desc">ZenIA es un proyecto independiente creado con amor para ayudarte a mejorar tu bienestar. Si la app te ha sido útil, considera hacer una donación para ayudarnos a seguir creciendo.</string>
     <string name="donations_btn_action">Hacer una Donación</string>
     <string name="donations_footer">¡Gracias por tu generosidad! ❤️</string>
@@ -358,5 +344,229 @@
     <string name="password_requirement_uppercase">Una letra mayúscula</string>
     <string name="password_requirement_number">Un número</string>
     <string name="password_requirement_special">Un carácter especial</string>
+
+    <string name="resource_detail_mark_completed">Marcar como completado</string>
+
+    <string name="account_title">Mi Cuenta</string>
+    <string name="account_info_title">Información de la cuenta</string>
+    <string name="account_email_label">Correo electrónico</string>
+    <string name="account_verified_label">Estado de verificación</string>
+    <string name="account_security_title">Seguridad</string>
+    <string name="account_danger_zone_title">Zona de peligro</string>
+    <string name="account_change_password_button">Cambiar contraseña</string>
+    <string name="account_resend_verification_button">Reenviar correo de verificación</string>
+    <string name="account_delete_button">Eliminar cuenta</string>
+    <string name="account_delete_warning">Al eliminar tu cuenta, se borrarán todos tus datos de forma permanente. Esta acción no se puede deshacer.</string>
+
+    <string name="account_delete_dialog_title">¿Eliminar cuenta?</string>
+    <string name="account_delete_dialog_step1_desc">Estás a punto de iniciar el proceso de eliminación. Todos tus progresos, chats y diarios se perderán para siempre.</string>
+    <string name="account_delete_dialog_final_title">Confirmación Final</string>
+    <string name="account_delete_dialog_final_desc">Esta acción es irreversible. Por seguridad, espera unos segundos antes de confirmar.</string>
+    <string name="account_delete_confirm_permanent">Eliminar definitivamente</string>
+    <string name="account_delete_enabling_in">Habilitando en %1$ds…</string>
+    <string name="account_delete_cancel_process">Cancelar proceso</string>
+
+    <string name="common_not_available">No disponible</string>
+    <string name="common_yes">Verificado</string>
+    <string name="common_no">No verificado</string>
+    <string name="common_cancel">Cancelar</string>
+    <string name="common_continue">Continuar</string>
+
+    <string name="auth_password_reset_sent">Correo de recuperación enviado exitosamente</string>
+    <string name="auth_account_deleted">Cuenta eliminada correctamente</string>
+
+    <string name="loading_breathing">Respirando…</string>
+
+    <string name="recursos_title">Recursos</string>
+    <string name="error_connection_title">¡Ups! Problemas de conexión</string>
+    <string name="error_connection_message">No pudimos cargar los recursos. Revisa tu conexión a internet e inténtalo de nuevo.</string>
+    <string name="retry">Reintentar</string>
+    <string name="favorite">Favorito</string>
+    <string name="progress">Progreso</string>
+    <string name="continue_resource">Continuar</string>
+    <string name="start">Comenzar</string>
+    <string name="locked">Bloqueado</string>
+    <string name="premium">Premium</string>
+
+    <string name="donations_title">Apoya a ZenIA</string>
+    <string name="donations_header">Tu apoyo mantiene a ZenIA viva</string>
+    <string name="donations_description">Somos un equipo pequeño de estudiantes. Cada donación nos ayuda a pagar los servidores y seguir mejorando.</string>
+
+    <string name="donation_coffee">Invítanos un Café</string>
+    <string name="donation_pizza">Una Rebanada de Pizza</string>
+    <string name="donation_sponsor">Patrocinador de Amor</string>
+
+    <string name="donation_one_time">Pago único</string>
+
+    <string name="export_title">Cápsula del Tiempo</string>
+
+    <string name="export_tutorial_title">¿Qué es la Cápsula del Tiempo?</string>
+    <string name="export_tutorial_desc">Aquí puedes generar un PDF con tus registros emocionales. Tú decides qué compartir y en qué periodo.</string>
+    <string name="understood">Entendido</string>
+
+    <string name="export_period">Periodo</string>
+    <string name="export_today">Hoy</string>
+    <string name="export_last_week">Última semana</string>
+    <string name="export_last_month">Último mes</string>
+
+    <string name="export_include_pdf">Incluir en el PDF</string>
+    <string name="export_include_mood">Estado de ánimo</string>
+    <string name="export_include_activities">Actividades</string>
+    <string name="export_include_notes">Notas</string>
+    <string name="export_include_smartwatch">Datos del smartwatch</string>
+    <string name="export_include_logo">Mostrar logo ZenIA</string>
+
+    <string name="export_generate_pdf">Generar PDF</string>
+
+    <string name="health_title">Salud y Wearables</string>
+
+    <string name="health_not_supported">Health Connect no está disponible en este dispositivo.</string>
+    <string name="health_install_update">Para sincronizar, instala o actualiza Health Connect.</string>
+    <string name="health_android_note">Esto es necesario en Android 13 o inferior.</string>
+    <string name="health_return_after_install">Después de instalar, regresa aquí para continuar.</string>
+
+    <string name="health_heart_rate">Ritmo cardiaco:</string>
+    <string name="health_sleep">Sueño (anoche):</string>
+    <string name="health_steps">Pasos hoy:</string>
+    <string name="health_stress">Estrés:</string>
+    <string name="health_bpm">bpm</string>
+    <string name="health_hours">hrs</string>
+
+    <string name="health_metric_heart">Ritmo</string>
+    <string name="health_metric_sleep">Sueño</string>
+    <string name="health_metric_steps">Pasos</string>
+
+    <string name="health_why_title">¿Por qué conectar tu reloj?</string>
+    <string name="health_why_1">Mejora el análisis de tu estado de ánimo.</string>
+    <string name="health_why_2">Detecta patrones de sueño y estrés.</string>
+    <string name="health_why_3">Recibe recomendaciones personalizadas.</string>
+
+    <string name="health_unlock">Desbloquear Sincronización</string>
+    <string name="health_not_available">No disponible</string>
+    <string name="health_install_button">Instalar / Actualizar Health Connect</string>
+    <string name="health_connect">Conectar con Health Connect</string>
+    <string name="health_refresh">Actualizar datos</string>
+    <string name="health_manage_permissions">Gestionar permisos de salud</string>
+
+    <string name="health_connected">Conectado</string>
+    <string name="health_disconnected">Desconectado</string>
+    <string name="health_receiving_data">Recibiendo datos en tiempo real</string>
+    <string name="health_sync_prompt">Sincroniza para mejores resultados</string>
+
+    <string name="health_heart_rate_full">Ritmo cardiaco: %1$s bpm</string>
+    <string name="health_sleep_full">Sueño (anoche): %1$s hrs</string>
+    <string name="health_steps_full">Pasos hoy: %1$s</string>
+    <string name="health_stress_full">Estrés: %1$s</string>
+
+    <string name="settings_data_section">Tus Datos</string>
+
+    <string name="settings_time_capsule">Cápsula del Tiempo</string>
+    <string name="settings_export_pdf">Exportar tu diario a PDF</string>
+
+    <string name="settings_changelog">Historial de Cambios</string>
+    <string name="settings_changelog_desc">Ver versiones de la app</string>
+
+    <string name="settings_notifications_title">Notificaciones</string>
+    <string name="settings_notifications_enable">Permitir notificaciones</string>
+    <string name="settings_streak_reminder">Recordatorio de racha (8:00 PM)</string>
+    <string name="settings_morning_advice">Consejo matutino</string>
+    <string name="settings_advice_desc">Recibe un tip basado en tu entrada del día anterior.</string>
+
+    <string name="sos_lifeline_sub">Gratis, anónimo y disponible 24/7</string>
+    <string name="sos_contacts_sub">Añade hasta 3 contactos de confianza</string>
+    <string name="sos_disclaimer">ZenIA es una herramienta de apoyo emocional y no reemplaza la ayuda profesional.</string>
+
+    <string name="contacts_title">Contactos de Emergencia</string>
+    <string name="contacts_desc">Añade hasta 3 contactos de confianza para llamarlos rápidamente en caso de crisis.</string>
+    <string name="contacts_empty">No tienes contactos guardados.</string>
+    <string name="contacts_add">Añadir Contacto (%1$d/3)</string>
+
+    <string name="delete">Eliminar</string>
+    <string name="call">Llamar</string>
+
+    <string name="delete_contact_title">Eliminar Contacto</string>
+    <string name="delete_contact_message">¿Estás seguro de que quieres eliminar a %1$s de tus contactos de emergencia?</string>
+
+    <string name="new_contact">Nuevo Contacto</string>
+    <string name="choose_contact">Elegir de mis contactos</string>
+    <string name="or_separator">O</string>
+    <string name="name">Nombre</string>
+    <string name="phone">Teléfono</string>
+    <string name="save">Guardar</string>
+
+    <string name="chat_selected_count">%1$d seleccionados</string>
+
+    <string name="copy">Copiar</string>
+    <string name="delete_chat">Borrar chat</string>
+
+    <string name="chat_placeholder">Escribe cómo te sientes…</string>
+
+    <string name="delete_chat_title">Borrar conversación</string>
+    <string name="delete_chat_message">¿Estás seguro de borrar todo el historial?</string>
+    <string name="delete_action">Borrar</string>
+
+    <string name="donate">Donar</string>
+
+    <string name="diary_activity_health_title">Actividad Física y Salud</string>
+    <string name="diary_activity_health_desc">Sincronizado con tu reloj o ingresado manualmente.</string>
+    <string name="diary_reload_watch_desc">Recargar datos del reloj</string>
+    <string name="diary_steps">Pasos</string>
+    <string name="diary_heart_rate">Ritmo Card. (bpm)</string>
+    <string name="diary_sleep_mins">Sueño (mins)</string>
+    <string name="diary_hrv">HRV (ms)</string>
+    <string name="diary_premium_exclusive">Exclusivo Premium</string>
+    <string name="diary_add_custom_category">+ Añadir Categoría Personalizada</string>
+    <string name="diary_what_have_you_done">¿Qué has hecho?</string>
+    <string name="diary_inspiration_desc">Inspiración</string>
+    <string name="diary_edit_desc">Editar</string>
+
+    <string name="diary_create_own_category">Crea tu propia categoría</string>
+    <string name="diary_edit_category">Editar Categoría</string>
+    <string name="diary_category_instructions">Personaliza qué quieres medir en tu día y define 4 niveles para evaluarlo, desde el más positivo al más negativo.</string>
+    <string name="diary_what_to_measure">¿Qué quieres medir?</string>
+    <string name="diary_what_to_measure_placeholder">Ej. Nivel de Estrés, Productividad…</string>
+    <string name="diary_customize_icons">Toca los íconos para personalizarlos:</string>
+
+    <string name="diary_level_4">Nivel 4 (El mejor estado)</string>
+    <string name="diary_level_4_example">Ej. Súper relajado</string>
+    <string name="diary_level_3">Nivel 3 (Positivo)</string>
+    <string name="diary_level_3_example">Ej. Tranquilo</string>
+    <string name="diary_level_2">Nivel 2 (Negativo)</string>
+    <string name="diary_level_2_example">Ej. Tenso</string>
+    <string name="diary_level_1">Nivel 1 (El peor estado)</string>
+    <string name="diary_level_1_example">Ej. A punto de explotar</string>
+    <string name="diary_level_n">Nivel %1$d</string>
+
+    <string name="diary_change_icon_desc">Cambiar ícono</string>
+    <string name="diary_delete_desc">Eliminar</string>
+    <string name="diary_save_action">Guardar</string>
+    <string name="diary_select_icon">Selecciona un ícono</string>
+
+    <string name="auth_nickname_dialog_title">¿Cómo prefieres que te llamemos?</string>
+    <string name="auth_nickname_dialog_desc">Usaremos este apodo para personalizar tus correos y tu experiencia en ZenIA.</string>
+    <string name="auth_nickname_label">Tu apodo</string>
+    <string name="auth_nickname_default">Usuario</string>
+    <string name="auth_nickname_start">Comenzar</string>
+
+    <string name="auth_validation_invalid_email">Por favor, ingresa un correo electrónico válido.</string>
+    <string name="auth_validation_weak_password">La contraseña no cumple con los requisitos de seguridad.</string>
+
+    <string name="auth_error_verification_failed">Cuenta creada, pero falló el envío del correo.</string>
+    <string name="auth_error_resend_failed">Error al reenviar el correo de verificación.</string>
+
+    <string name="coming_soon_title">Próximamente</string>
+    <string name="coming_soon_desc">Estamos preparando este ejercicio con mucho cariño. ¡Estará listo en una próxima actualización!</string>
+
+    <string name="health_sync_title">Conexión de Salud</string>
+
+    <string name="health_sync_description">
+        Si eres Premium, Nia puede leer tus datos de salud (sueño, pasos, ritmo cardíaco) de forma privada para brindarte apoyo emocional y recomendaciones mucho más personalizadas.
+    </string>
+
+    <string name="share_with_nia">Compartir con Nia</string>
+
+    <string name="premium_exclusive">Exclusivo Premium</string>
+
+    <string name="close">Cerrar</string>
 
 </resources>

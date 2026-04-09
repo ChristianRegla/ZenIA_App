@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.zenia.app.BuildConfig
 import com.zenia.app.model.SubscriptionType
 import com.zenia.app.model.Usuario
 import kotlinx.coroutines.CoroutineScope
@@ -16,32 +17,26 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Repositorio central encargado de la autenticación y la gestión de datos del usuario en Firestore.
- * Sigue el patrón "Single Source of Truth" combinando Firebase Auth y Firestore.
- *
- * @property auth Instancia de FirebaseAuth para gestión de sesión.
- * @property db Instancia de Firestore para base de datos.
- */
 @Singleton
 class AuthRepository @Inject constructor(
     private val auth: FirebaseAuth,
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    private val client: OkHttpClient
 ) {
 
-    // Scope para mantener vivos los Flows compartidos mientras la app viva.
-    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val baseUrl = BuildConfig.API_BASE_URL
 
-    /**
-     * Obtiene el ID único (UID) del usuario autenticado actualmente.
-     * Retorna null si no hay sesión iniciada.
-     */
     val currentUserId: String?
         get() = auth.currentUser?.uid
 
@@ -57,14 +52,6 @@ class AuthRepository @Inject constructor(
         awaitClose { auth.removeAuthStateListener(listener) }
     }
 
-    /**
-     * Flujo compartido (Hot Flow) que expone los datos del usuario en tiempo real.
-     *
-     * Características clave:
-     * 1. **Reactivo:** Usa [flatMapLatest] para cambiar la suscripción de Firestore automáticamente si cambia el UID.
-     * 2. **Optimizado:** Usa [shareIn] con `replay = 1` para mantener el último dato en memoria caché.
-     * 3. **Eficiente:** Evita lecturas redundantes a Firestore cuando múltiples pantallas observan al usuario.
-     */
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _sharedUserFlow: Flow<Usuario?> = _authState
         .flatMapLatest { uid ->
@@ -76,7 +63,8 @@ class AuthRepository @Inject constructor(
                         .document(uid)
                         .addSnapshotListener { snapshot, error ->
                             if (error != null) {
-                                close(error)
+                                Log.e("AuthRepository", "Error escuchando usuario en Firestore", error)
+                                trySend(null)
                                 return@addSnapshotListener
                             }
                             if (snapshot != null && snapshot.exists()) {
@@ -90,41 +78,10 @@ class AuthRepository @Inject constructor(
             }
         }
         .shareIn(
-            scope = repositoryScope,
+            scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
             started = SharingStarted.WhileSubscribed(5000),
             replay = 1
         )
-
-    /**
-     * Flujo compartido que expone si el usuario es premium o no.
-     * Se deriva de [_sharedUserFlow] para mantener una única fuente de verdad.
-     */
-    val isPremium: Flow<Boolean> = _sharedUserFlow
-        .map { it?.suscripcion == SubscriptionType.PREMIUM }
-        .shareIn(
-            scope = repositoryScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            replay = 1
-        )
-
-    /**
-     * Obtiene el documento del usuario actual una sola vez (Snapshot).
-     * Útil para operaciones puntuales como "Crear Post" donde necesitamos los datos actuales.
-     */
-    suspend fun getCurrentUserSnapshot(): Usuario? {
-        val uid = currentUserId ?: return null
-        return try {
-            val snapshot = db.collection(FirestoreCollections.USERS)
-                .document(uid)
-                .get()
-                .await()
-
-            snapshot.toObject(Usuario::class.java)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
 
     /**
      * Crea o actualiza el documento del usuario en Firestore tras el inicio de sesión.
@@ -133,7 +90,7 @@ class AuthRepository @Inject constructor(
      * @param email El correo electrónico del usuario.
      * @param isNewUser Si es true, crea un usuario nuevo con valores por defecto. Si es false, solo actualiza datos básicos (merge).
      */
-    suspend fun createUserIfNew(userId: String, email: String?, isNewUser: Boolean) {
+    suspend fun createUserIfNew(userId: String, email: String?, isNewUser: Boolean, nickname: String? = null) {
         val userRef = db.collection(FirestoreCollections.USERS).document(userId)
 
         if (isNewUser) {
@@ -143,31 +100,102 @@ class AuthRepository @Inject constructor(
                 suscripcion = SubscriptionType.FREE
             )
             userRef.set(nuevoUsuario).await()
+
+            if (nickname != null) {
+                userRef.update("apodo", nickname).await()
+            }
         } else {
-            val datosActualizados = mapOf(
-                "email" to (email ?: "")
-            )
-            userRef.set(datosActualizados, SetOptions.merge()).await()
+            val doc = userRef.get().await()
+            if (!doc.exists()) {
+                val nuevoUsuario = Usuario(
+                    id = userId,
+                    email = email ?: "",
+                    suscripcion = SubscriptionType.FREE
+                )
+                userRef.set(nuevoUsuario).await()
+                userRef.update("apodo", nickname ?: "Usuario").await()
+            } else {
+                val datosActualizados = mapOf("email" to (email ?: ""))
+                userRef.set(datosActualizados, SetOptions.merge()).await()
+            }
         }
     }
 
     /**
      * Envía un correo electrónico de verificación al usuario actual mediante Firebase Auth.
      */
-    suspend fun sendEmailVerification() {
-        auth.currentUser?.sendEmailVerification()?.await()
+    suspend fun sendEmailVerification(customNickname: String? = null): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val currentUser = auth.currentUser ?: throw Exception("No hay usuario autenticado")
+            val email = currentUser.email ?: throw Exception("El usuario no tiene correo electrónico")
+
+            var nombre = customNickname ?: "Usuario"
+            if (customNickname == null) {
+                try {
+                    val snapshot = db.collection(FirestoreCollections.USERS).document(currentUser.uid).get().await()
+                    nombre = snapshot.getString("apodo") ?: "Usuario"
+                } catch (e: Exception) {
+                    Log.e("AuthRepository", "Error al obtener apodo del usuario", e)
+                }
+            }
+
+            val json = JSONObject().apply {
+                put("email", email)
+                put("nombre", nombre)
+            }
+            val body = json.toString().toRequestBody("application/json".toMediaType())
+
+            val request = Request.Builder()
+                .url("$baseUrl/send-custom-verification")
+                .post(body)
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    Log.d("AuthRepository", "Correo de ZenIA enviado exitosamente")
+                    Result.success(Unit)
+                } else {
+                    val errorBody = response.body?.string()
+                    Log.e("AuthRepository", "Error en Render: ${response.code} - $errorBody")
+                    Result.failure(Exception("Error del servidor: ${response.code}"))
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error al enviar correo de verificación", e)
+            Result.failure(e)
+        }
     }
 
-    /**
-     * Obtiene el flujo observable del usuario actual.
-     * @return Un [Flow] que emite objetos [Usuario] o null si no hay sesión.
-     */
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val json = JSONObject().apply {
+                put("email", email)
+            }
+            val body = json.toString().toRequestBody("application/json".toMediaType())
+
+            val request = Request.Builder()
+                .url("$baseUrl/send-password-reset")
+                .post(body)
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    Log.d("AuthRepository", "Correo de recuperación enviado exitosamente")
+                    Result.success(Unit)
+                } else {
+                    val errorBody = response.body?.string()
+                    Log.e("AuthRepository", "Error en Render al recuperar: ${response.code} - $errorBody")
+                    Result.failure(Exception("Error del servidor: ${response.code}"))
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error al enviar correo de recuperación", e)
+            Result.failure(e)
+        }
+    }
+
     fun getUsuarioFlow(): Flow<Usuario?> = _sharedUserFlow
 
-    /**
-     * Cierra la sesión actual en Firebase Auth.
-     * Esto disparará automáticamente la actualización de [_sharedUserFlow] a null.
-     */
     fun signOut() {
         auth.signOut()
     }
@@ -175,13 +203,30 @@ class AuthRepository @Inject constructor(
     /**
      * Elimina permanentemente los datos del usuario de Firestore.
      */
-    suspend fun deleteUserData(userId: String) {
-        // Esta función ahora solo registra una advertencia. La lógica real debe estar en el backend.
-        Log.w(
-            "AuthRepository",
-            "La eliminación de datos de Firestore ($userId) debe ser manejada por una Cloud Function. " +
-            "La implementación del lado del cliente ha sido deshabilitada para evitar la pérdida de datos o crashes."
-        )
+    suspend fun deleteUserData(userId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            db.collection(FirestoreCollections.USERS).document(userId).delete().await()
+
+            val request = Request.Builder()
+                .url("$baseUrl/delete-account/$userId")
+                .delete()
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    Log.d("AuthRepository", "Cuenta $userId eliminada de Firebase Auth")
+                    auth.signOut()
+                    Result.success(Unit)
+                } else {
+                    val errorBody = response.body?.string()
+                    Log.e("AuthRepository", "Error borrando en Render: ${response.code} - $errorBody")
+                    Result.failure(Exception("Error al borrar cuenta: ${response.code}"))
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error eliminando usuario", e)
+            Result.failure(e)
+        }
     }
 
     /**

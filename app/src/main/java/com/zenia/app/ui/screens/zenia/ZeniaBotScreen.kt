@@ -1,28 +1,47 @@
 package com.zenia.app.ui.screens.zenia
 
+import android.content.ClipData
+import android.content.Intent
+import android.speech.tts.TextToSpeech
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -31,30 +50,40 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -64,8 +93,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zenia.app.R
@@ -73,25 +110,79 @@ import com.zenia.app.model.MensajeChatbot
 import com.zenia.app.ui.theme.ZeniaIceBlue
 import com.zenia.app.ui.theme.ZeniaTeal
 import kotlinx.coroutines.launch
+import androidx.core.net.toUri
+import com.mikepenz.markdown.m3.Markdown
+import com.mikepenz.markdown.m3.markdownColor
+import com.mikepenz.markdown.m3.markdownTypography
+import com.zenia.app.ui.theme.RobotoFlex
+import com.zenia.app.ui.theme.ZeniaLightGrey
+import com.zenia.app.ui.theme.ZeniaSoftBlue
+import java.util.Locale
+import kotlinx.coroutines.delay
+import kotlin.math.roundToInt
+
+enum class DragAnchors {
+    Visible,
+    Hidden
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ZeniaBotScreen(
     uiState: ChatUiState,
     isTyping: Boolean,
+    emergencyType: String?,
+    emergencyDisplay: EmergencyDisplayState,
+    isPremium: Boolean,
+    shareHealthData: Boolean,
+    onToggleShareHealthData: (Boolean) -> Unit,
     onSendMessage: (String) -> Unit,
     onClearChat: () -> Unit,
     onDeleteSelected: (Set<String>) -> Unit,
+    onDismissBanner: () -> Unit,
+    onRestoreBanner: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
     var textState by rememberSaveable { mutableStateOf("") }
     val listState = rememberLazyListState()
     val haptic = LocalHapticFeedback.current
+    val clipboard = LocalClipboard.current
+
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+    var showHealthSyncDialog by rememberSaveable { mutableStateOf(false) }
 
     var selectedMessages by rememberSaveable { mutableStateOf(setOf<String>()) }
     val selectionMode = selectedMessages.isNotEmpty()
     val coroutineScope = rememberCoroutineScope()
+
+    val mensajes = (uiState as? ChatUiState.Success)?.mensajes?.reversed() ?: emptyList()
+
+    val context = LocalContext.current
+    var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+
+    DisposableEffect(context) {
+        val textToSpeech = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.language = Locale.Builder().setLanguage("es").setRegion("MX").build()
+            }
+        }
+        tts = textToSpeech
+
+        onDispose {
+            textToSpeech.stop()
+            textToSpeech.shutdown()
+        }
+    }
+
+    val onSpeakMessage: (String) -> Unit = { textToRead ->
+        tts?.let {
+            if (it.isSpeaking) {
+                it.stop()
+            } else {
+                it.speak(textToRead, TextToSpeech.QUEUE_FLUSH, null, null)
+            }
+        }
+    }
 
     val animatedTopBarColor by animateColorAsState(
         targetValue = if (selectionMode)
@@ -109,14 +200,13 @@ fun ZeniaBotScreen(
         selectedMessages = emptySet()
     }
 
-
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
                     if (selectionMode) {
                         Text(
-                            "${selectedMessages.size} seleccionados",
+                            text = stringResource(R.string.chat_selected_count, selectedMessages.size),
                             color = Color.White
                         )
                     } else {
@@ -142,6 +232,30 @@ fun ZeniaBotScreen(
                 },
                 actions = {
                     if (selectionMode) {
+                        if (selectedMessages.size == 1) {
+                            IconButton(
+                                onClick = {
+                                    val msgId = selectedMessages.first()
+                                    val textToCopy = mensajes.find { it.id == msgId }?.texto
+                                    if (textToCopy != null) {
+                                        coroutineScope.launch {
+                                            clipboard.setClipEntry(
+                                                ClipEntry(
+                                                    ClipData.newPlainText("Mensaje", textToCopy)
+                                                )
+                                            )
+                                        }
+                                    }
+                                    selectedMessages = emptySet()
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Default.ContentCopy,
+                                    contentDescription = stringResource(R.string.copy),
+                                    tint = Color.White
+                                )
+                            }
+                        }
                         IconButton(
                             onClick = {
                                 onDeleteSelected(selectedMessages)
@@ -150,15 +264,32 @@ fun ZeniaBotScreen(
                         ) {
                             Icon(
                                 Icons.Default.Delete,
-                                contentDescription = null,
+                                contentDescription = stringResource(R.string.delete),
                                 tint = Color.White
                             )
                         }
                     } else {
+                        if (emergencyDisplay == EmergencyDisplayState.MINIMIZED) {
+                            IconButton(onClick = onRestoreBanner) {
+                                Icon(
+                                    imageVector = Icons.Default.Info,
+                                    contentDescription = "Opciones de ayuda",
+                                    tint = Color(0xFFFFB4AB)
+                                )
+                            }
+                        }
+                        IconButton(onClick = { showHealthSyncDialog = true }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_watch_outlined),
+                                contentDescription = "Conexión de salud",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                         IconButton(onClick = { showDeleteDialog = true }) {
                             Icon(
                                 Icons.Default.Delete,
-                                contentDescription = null,
+                                contentDescription = stringResource(R.string.delete_chat),
                                 tint = Color.White
                             )
                         }
@@ -192,7 +323,6 @@ fun ZeniaBotScreen(
                 ) {
 
                     when (uiState) {
-
                         is ChatUiState.Loading -> {
                             CircularProgressIndicator(
                                 modifier = Modifier.align(Alignment.Center)
@@ -209,8 +339,6 @@ fun ZeniaBotScreen(
 
                         is ChatUiState.Success -> {
 
-                            val mensajes = uiState.mensajes.reversed()
-
                             val isAtBottom by remember {
                                 derivedStateOf {
                                     listState.firstVisibleItemIndex == 0 &&
@@ -219,7 +347,7 @@ fun ZeniaBotScreen(
                             }
 
                             LaunchedEffect(mensajes.size, isTyping) {
-                                if (isAtBottom) {
+                                if (listState.firstVisibleItemIndex < 3) {
                                     listState.animateScrollToItem(0)
                                 }
                             }
@@ -267,7 +395,10 @@ fun ZeniaBotScreen(
                                                     else
                                                         selectedMessages + mensaje.id
                                             }
-                                        }
+                                        },
+                                        onSpeak = if (mensaje.emisor != "usuario") {
+                                            { onSpeakMessage(mensaje.texto) }
+                                        } else null
                                     )
                                 }
                             }
@@ -275,15 +406,17 @@ fun ZeniaBotScreen(
                             androidx.compose.animation.AnimatedVisibility(
                                 visible = !isAtBottom,
                                 modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(bottom = 20.dp)
+                                    .align(Alignment.BottomEnd)
+                                    .padding(start = 16.dp, bottom = 16.dp)
                             ) {
-                                FloatingActionButton(
+                                SmallFloatingActionButton(
                                     onClick = {
                                         coroutineScope.launch {
                                             listState.animateScrollToItem(0)
                                         }
-                                    }
+                                    },
+                                    containerColor = ZeniaSoftBlue,
+                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                                 ) {
                                     Icon(Icons.Default.ArrowDownward, null)
                                 }
@@ -306,7 +439,7 @@ fun ZeniaBotScreen(
                             value = textState,
                             onValueChange = { textState = it },
                             placeholder = {
-                                Text("Escribe cómo te sientes...")
+                                Text(stringResource(R.string.chat_placeholder))
                             },
                             modifier = Modifier
                                 .weight(1f)
@@ -329,6 +462,9 @@ fun ZeniaBotScreen(
                                     HapticFeedbackType.TextHandleMove
                                 )
                                 textState = ""
+                                coroutineScope.launch {
+                                    listState.animateScrollToItem(0)
+                                }
                             },
                             modifier = Modifier
                                 .size(48.dp)
@@ -357,16 +493,36 @@ fun ZeniaBotScreen(
                     }
                 }
             }
+            AnimatedVisibility(
+                visible = emergencyDisplay == EmergencyDisplayState.BANNER && emergencyType != null,
+                enter = slideInVertically(
+                    initialOffsetY = { -it },
+                    animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
+                ) + fadeIn(),
+                exit = slideOutVertically(
+                    targetOffsetY = { -it },
+                    animationSpec = tween(durationMillis = 350)
+                ) + fadeOut(),
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+            ) {
+                if (emergencyType != null) {
+                    Box(modifier = Modifier.padding(16.dp)) {
+                        EmergencyTopBanner(
+                            triggerType = emergencyType,
+                            onDismiss = onDismissBanner
+                        )
+                    }
+                }
+            }
         }
     }
 
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Borrar conversación") },
-            text = {
-                Text("¿Estás seguro de borrar todo el historial?")
-            },
+            title = { Text(stringResource(R.string.delete_chat_title)) },
+            text = { Text(stringResource(R.string.delete_chat_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -374,29 +530,225 @@ fun ZeniaBotScreen(
                         showDeleteDialog = false
                     }
                 ) {
-                    Text("Borrar", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete_action), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showDeleteDialog = false }
                 ) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel))
                 }
-            }
+            },
+            containerColor = ZeniaLightGrey
+        )
+    }
+
+    if (showHealthSyncDialog) {
+        AlertDialog(
+            onDismissRequest = { showHealthSyncDialog = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        painterResource(id = R.drawable.ic_watch),
+                        contentDescription = null,
+                        tint = ZeniaTeal,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        stringResource(R.string.health_sync_title),
+                        fontFamily = RobotoFlex,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            text = {
+                Column {
+                    Text(
+                        text = stringResource(R.string.health_sync_description),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Surface(
+                        color = Color(0xFFE5E5E5),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    stringResource(R.string.share_with_nia),
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                if (!isPremium) {
+                                    Text(
+                                        stringResource(R.string.premium_exclusive),
+                                        color = Color(0xFFD69D00),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                            Switch(
+                                checked = shareHealthData && isPremium,
+                                onCheckedChange = onToggleShareHealthData,
+                                enabled = isPremium
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showHealthSyncDialog = false }) {
+                    Text(
+                        stringResource(R.string.close),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            containerColor = ZeniaLightGrey
         )
     }
 }
 
 @Composable
-fun ChatBubble(
+fun EmergencyTopBanner(
+    triggerType: String,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val isPhysical = triggerType == "physical_risk"
+    val backgroundColor = ZeniaLightGrey
+    val contentColor = Color.Black
+
+    val icon = if (isPhysical) Icons.Default.LocalHospital else Icons.Default.Favorite
+    val title = if (isPhysical) "Posible emergencia médica" else "No estás solo"
+    val message = if (isPhysical) "Nia ha notado síntomas que podrían requerir atención inmediata." else "Si necesitas apoyo inmediato, hay alguien listo para escucharte."
+    val buttonText = if (isPhysical) "Llamar al 911" else "Línea de la Vida"
+
+    var borderWidth by remember { mutableStateOf(0.dp) }
+
+    val animatedBorderWidth by animateDpAsState(
+        targetValue = borderWidth,
+        animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing),
+        label = "borderWidthAnim"
+    )
+
+    LaunchedEffect(Unit) {
+        borderWidth = 3.dp
+        delay(600)
+        borderWidth = 0.5.dp
+    }
+
+    val baseBorderColor = if (isPhysical) MaterialTheme.colorScheme.error else ZeniaTeal
+    val borderColor = baseBorderColor.copy(alpha = if (animatedBorderWidth > 1.dp) 0.8f else 0.3f)
+
+    var offsetY by remember { mutableFloatStateOf(0f) }
+    val scope = rememberCoroutineScope()
+
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor,
+            contentColor = contentColor
+        ),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        border = BorderStroke(animatedBorderWidth, borderColor),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp)
+            .offset { IntOffset(0, offsetY.roundToInt()) }
+            .draggable(
+                orientation = Orientation.Vertical,
+                state = rememberDraggableState { delta ->
+                    if (delta < 0 || offsetY < 0) {
+                        offsetY += delta
+                    }
+                },
+                onDragStopped = { velocity ->
+                    if (offsetY < -150f || velocity < -500f) {
+                        scope.launch {
+                            animate(initialValue = offsetY, targetValue = -500f) { value, _ ->
+                                offsetY = value
+                            }
+                            onDismiss()
+                        }
+                    } else {
+                        scope.launch {
+                            animate(initialValue = offsetY, targetValue = 0f) { value, _ ->
+                                offsetY = value
+                            }
+                        }
+                    }
+                }
+            )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(imageVector = icon, contentDescription = null, tint = contentColor)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = title, style = MaterialTheme.typography.titleMedium, color = contentColor)
+                }
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.Close, contentDescription = "Minimizar", tint = contentColor)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = message, style = MaterialTheme.typography.bodyMedium, color = contentColor)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    val phoneNumber = if (isPhysical) "911" else "8009112000"
+                    val intent = Intent(Intent.ACTION_DIAL, "tel:$phoneNumber".toUri())
+                    context.startActivity(intent)
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isPhysical) MaterialTheme.colorScheme.error else ZeniaTeal,
+                    contentColor = Color.White
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = buttonText)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChatBubble(
     mensaje: MensajeChatbot,
     isSelected: Boolean,
     onLongPress: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onSpeak: (() -> Unit)? = null
 ) {
-
     val isUser = mensaje.emisor == "usuario"
+    val configuration = LocalConfiguration.current
+    val maxBubbleWidth = configuration.screenWidthDp.dp * 0.85f
+
+    val textColor = Color.Black
 
     Box(
         modifier = Modifier
@@ -416,7 +768,9 @@ fun ChatBubble(
     ) {
 
         Surface(
-            modifier = Modifier.widthIn(max = 600.dp),
+            modifier = Modifier
+                .widthIn(max = maxBubbleWidth)
+                .padding(horizontal = 8.dp),
             shape = RoundedCornerShape(
                 topStart = 20.dp,
                 topEnd = 20.dp,
@@ -429,17 +783,56 @@ fun ChatBubble(
                 else
                     ZeniaIceBlue
         ) {
-            Text(
-                text = mensaje.texto,
-                modifier = Modifier.padding(16.dp),
-                fontSize = 15.sp
-            )
+            Column(modifier = Modifier.padding(16.dp)) {
+                val customTypography = markdownTypography(
+                    text = MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = 15.sp,
+                        color = textColor
+                    ),
+                    h1 = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = textColor),
+                    h2 = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, color = textColor),
+                    h3 = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, color = textColor)
+                )
+
+                val customColors = markdownColor(
+                    text = textColor,
+                    dividerColor = textColor.copy(alpha = 0.2f)
+                )
+
+                val contenidoLimpio = mensaje.texto.replace("\\n", "\n")
+
+                Markdown(
+                    content = contenidoLimpio,
+                    modifier = Modifier.wrapContentWidth(),
+                    typography = customTypography,
+                    colors = customColors
+                )
+
+                if (!isUser && onSpeak != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        IconButton(
+                            onClick = onSpeak,
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                                contentDescription = "Leer en voz alta",
+                                tint = ZeniaTeal.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-fun TypingBubble() {
+private fun TypingBubble() {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.CenterStart
@@ -450,7 +843,7 @@ fun TypingBubble() {
                 bottomStart = 2.dp, bottomEnd = 16.dp
             ),
             color = ZeniaIceBlue,
-            modifier = Modifier.padding(vertical = 4.dp)
+            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
         ) {
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -466,7 +859,7 @@ fun TypingBubble() {
 }
 
 @Composable
-fun TypingDot(delayMillis: Int) {
+private fun TypingDot(delayMillis: Int) {
     val transition = rememberInfiniteTransition(label = "typing")
 
     val offsetY by transition.animateFloat(
@@ -484,57 +877,5 @@ fun TypingDot(delayMillis: Int) {
             .size(8.dp)
             .graphicsLayer { translationY = offsetY }
             .background(MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f), CircleShape)
-    )
-}
-
-@Composable
-fun ZeniaWelcomeCard(
-    onSuggestionClick: (String) -> Unit
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-
-        Surface(
-            shape = RoundedCornerShape(20.dp),
-            color = ZeniaIceBlue
-        ) {
-            Text(
-                text = "Hola 🌿 Soy ZenIA.\nEstoy aquí para escucharte.\n¿Cómo te sientes hoy?",
-                modifier = Modifier.padding(20.dp),
-                fontSize = 16.sp
-            )
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-
-            SuggestionChip(
-                onClick = { onSuggestionClick("Me siento ansioso") },
-                label = { Text("Ansioso") }
-            )
-
-            SuggestionChip(
-                onClick = { onSuggestionClick("Me siento triste") },
-                label = { Text("Triste") }
-            )
-
-            SuggestionChip(
-                onClick = { onSuggestionClick("Estoy estresado") },
-                label = { Text("Estrés") }
-            )
-        }
-    }
-}
-
-@Composable
-fun SupportDisclaimer() {
-    AssistChip(
-        onClick = {},
-        label = {
-            Text(
-                "Zenia es apoyo emocional, no reemplaza ayuda profesional.",
-                fontSize = 12.sp
-            )
-        }
     )
 }

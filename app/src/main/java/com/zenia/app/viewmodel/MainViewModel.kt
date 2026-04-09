@@ -5,8 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.UserPreferencesRepository
+import com.zenia.app.data.session.UserSessionManager
 import com.zenia.app.ui.navigation.Destinations
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,13 +16,16 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.net.HttpURLConnection
+import java.net.URL
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val sessionManager: UserSessionManager
 ) : ViewModel() {
     private val _authTrigger = MutableStateFlow(0)
 
@@ -28,7 +33,7 @@ class MainViewModel @Inject constructor(
     val pendingRouteAfterUnlock: StateFlow<String?> = _pendingRouteAfterUnlock
 
     val startDestinationState: StateFlow<String?> = combine(
-        authRepository.getUsuarioFlow(),
+        sessionManager.user,
         userPreferencesRepository.isBiometricEnabled,
         userPreferencesRepository.isOnboardingCompleted,
         _authTrigger
@@ -51,6 +56,30 @@ class MainViewModel @Inject constructor(
         initialValue = null
     )
 
+    init {
+        wakeUpRenderServer()
+    }
+
+    private fun wakeUpRenderServer() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val url = URL("https://api-zenia.onrender.com/wakeup")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+
+                connection.connectTimeout = 60000
+                connection.readTimeout = 60000
+
+                val code = connection.responseCode
+                println("Render WakeUp Status: $code")
+
+                connection.disconnect()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun setPendingRoute(route: String) {
         _pendingRouteAfterUnlock.value = route
     }
@@ -63,10 +92,14 @@ class MainViewModel @Inject constructor(
 
     fun checkAuthStatus() {
         viewModelScope.launch {
-            val user = auth.currentUser
-            user?.reload()?.await()
+            try {
+                val user = auth.currentUser
+                user?.reload()?.await()
+            } catch (e: Exception) {
 
-            _authTrigger.value += 1
+            } finally {
+                _authTrigger.value += 1
+            }
         }
     }
 

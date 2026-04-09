@@ -48,7 +48,6 @@ fun YearPickerDialog(
     val flingBehavior = rememberSnapFlingBehavior(listState)
     val haptic = LocalHapticFeedback.current
 
-    // Scroll inicial centrado correctamente
     LaunchedEffect(Unit) {
         val index = years.indexOf(currentYear)
         if (index >= 0) {
@@ -56,7 +55,6 @@ fun YearPickerDialog(
         }
     }
 
-    // 🔥 Centro REAL del viewport
     val selectedIndex by remember {
         derivedStateOf {
             val layoutInfo = listState.layoutInfo

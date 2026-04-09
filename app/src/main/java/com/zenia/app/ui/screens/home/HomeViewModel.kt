@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.entryOf
-import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.ContentRepository
 import com.zenia.app.data.DiaryRepository
+import com.zenia.app.data.session.UserSessionManager
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.util.AnalysisUtils
 import com.zenia.app.util.ChartUtils
@@ -26,16 +26,12 @@ sealed interface HomeUiState {
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
-    private val contentRepository: ContentRepository,
+    contentRepository: ContentRepository,
     private val diaryRepository: DiaryRepository,
+    private val sessionManager: UserSessionManager
 ) : ViewModel() {
 
-    // --- ESTADO DE USUARIO ---
-    val userName = authRepository.getUsuarioFlow()
-        .map { it?.apodo ?: "Usuario" }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Cargando...")
-
+    val userName = sessionManager.nickname
 
     private val sevenDaysAgo = LocalDate.now().minusDays(7).toString()
 
@@ -74,12 +70,13 @@ class HomeViewModel @Inject constructor(
      */
     private fun loadStreak() {
         viewModelScope.launch {
-            val userId = authRepository.currentUserId
+            val userId = sessionManager.currentUserId
             if (userId != null) {
                 try {
-                    val streak = diaryRepository.calculateCurrentStreak(userId)
+                    val streak = diaryRepository.calculateCurrentStreak()
                     _currentStreak.value = streak
                 } catch (e: Exception) {
+                    e.printStackTrace()
                     _currentStreak.value = 0
                 }
             }
@@ -99,6 +96,7 @@ class HomeViewModel @Inject constructor(
                         entryOf(xValue, moodValue)
                     } else null
                 } catch (e: Exception) {
+                    e.printStackTrace()
                     null
                 }
             }

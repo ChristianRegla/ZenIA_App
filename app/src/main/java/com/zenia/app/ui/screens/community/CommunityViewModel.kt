@@ -3,8 +3,8 @@ package com.zenia.app.ui.screens.community
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.DocumentSnapshot
-import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.CommunityRepository
+import com.zenia.app.data.session.UserSessionManager
 import com.zenia.app.model.CommunityPost
 import com.zenia.app.model.SubscriptionType
 import com.zenia.app.util.ProfanityFilter
@@ -18,8 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class CommunityViewModel @Inject constructor(
     private val communityRepository: CommunityRepository,
-    private val authRepository: AuthRepository,
-    private val profanityFilter: ProfanityFilter
+    private val profanityFilter: ProfanityFilter,
+    private val sessionManager: UserSessionManager
 ) : ViewModel() {
 
     data class UiState(
@@ -89,7 +89,7 @@ class CommunityViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isPostLoading = true, postCreationError = null) }
 
-            val currentUser = authRepository.getCurrentUserSnapshot()
+            val currentUser = sessionManager.user.value
 
             if (currentUser != null) {
                 val isPremium = currentUser.suscripcion == SubscriptionType.PREMIUM
@@ -120,7 +120,7 @@ class CommunityViewModel @Inject constructor(
     }
 
     fun onLikeClick(post: CommunityPost) {
-        val userId = authRepository.currentUserId ?: return
+        val userId = sessionManager.userId.value ?: return
 
         val newIsLiked = !post.isLikedByCurrentUser
         val newCount = if (newIsLiked) post.likesCount + 1 else post.likesCount - 1

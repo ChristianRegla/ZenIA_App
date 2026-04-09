@@ -27,8 +27,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.zenia.app.R
 import com.zenia.app.pdf.DateRange
 import com.zenia.app.pdf.PdfExportConfig
 import com.zenia.app.ui.components.ZeniaTopBar
@@ -54,7 +56,7 @@ fun ExportSettingsScreen(
     Scaffold(
         topBar = {
             ZeniaTopBar(
-                title = "Cápsula del Tiempo",
+                title = stringResource(R.string.export_title),
                 onNavigateBack = onNavigateBack
             )
         }
@@ -79,7 +81,7 @@ fun ExportSettingsScreen(
                     Column(modifier = Modifier.padding(16.dp)) {
 
                         Text(
-                            text = "¿Qué es la Cápsula del Tiempo?",
+                            text = stringResource(R.string.export_tutorial_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -87,14 +89,14 @@ fun ExportSettingsScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = "Aquí puedes generar un PDF con tus registros emocionales. Tú decides qué compartir y en qué periodo.",
+                            text = stringResource(R.string.export_tutorial_desc),
                             style = MaterialTheme.typography.bodyMedium
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Button(onClick = onTutorialDismiss) {
-                            Text("Entendido")
+                            Text(stringResource(R.string.understood))
                         }
                     }
                 }
@@ -105,7 +107,7 @@ fun ExportSettingsScreen(
             // ---- PERIODO ----
 
             Text(
-                text = "Periodo",
+                text = stringResource(R.string.export_period),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -113,19 +115,19 @@ fun ExportSettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             ExportRangeOption(
-                title = "Hoy",
+                title = stringResource(R.string.export_today),
                 selected = selectedRangeType == "day",
                 onClick = { selectedRangeType = "day" }
             )
 
             ExportRangeOption(
-                title = "Última semana",
+                title = stringResource(R.string.export_last_week),
                 selected = selectedRangeType == "week",
                 onClick = { selectedRangeType = "week" }
             )
 
             ExportRangeOption(
-                title = "Último mes",
+                title = stringResource(R.string.export_last_month),
                 selected = selectedRangeType == "month",
                 onClick = { selectedRangeType = "month" }
             )
@@ -135,22 +137,22 @@ fun ExportSettingsScreen(
             // ---- CONTENIDO ----
 
             Text(
-                text = "Incluir en el PDF",
+                text = stringResource(R.string.export_include_pdf),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            CheckboxRow("Estado de ánimo", includeMood) { includeMood = it }
-            CheckboxRow("Actividades", includeActivities) { includeActivities = it }
-            CheckboxRow("Notas", includeNotes) { includeNotes = it }
+            CheckboxRow(stringResource(R.string.export_include_mood), includeMood) { includeMood = it }
+            CheckboxRow(stringResource(R.string.export_include_activities), includeActivities) { includeActivities = it }
+            CheckboxRow(stringResource(R.string.export_include_notes), includeNotes) { includeNotes = it }
 
             if (isPremium) {
-                CheckboxRow("Datos del smartwatch", includeSmartwatch) {
+                CheckboxRow(stringResource(R.string.export_include_smartwatch), includeSmartwatch) {
                     includeSmartwatch = it
                 }
-                CheckboxRow("Mostrar logo ZenIA", includeLogo) {
+                CheckboxRow(stringResource(R.string.export_include_logo), includeLogo) {
                     includeLogo = it
                 }
             }
@@ -181,7 +183,7 @@ fun ExportSettingsScreen(
                     onGeneratePdf(config)
                 }
             ) {
-                Text("Generar PDF")
+                Text(stringResource(R.string.export_generate_pdf))
             }
         }
     }

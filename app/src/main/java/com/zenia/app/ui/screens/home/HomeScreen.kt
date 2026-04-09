@@ -105,7 +105,8 @@ fun HomeScreen(
     topBooster: AnalysisUtils.Insight?,
     topDrainer: AnalysisUtils.Insight?,
     onNavigateToAnalytics: () -> Unit,
-    onNavigateToCommunity: () -> Unit
+    onNavigateToCommunity: () -> Unit,
+    onNavigateToTest: (String) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -242,13 +243,59 @@ fun HomeScreen(
                         }
                     }
                 }
+
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(
+                                text = "🧪 Pruebas de Evaluación (Temporal)",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                            Text(
+                                text = "Acceso rápido a los nuevos tests psicológicos.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Button(
+                                    onClick = { onNavigateToTest("GAD7") }, // TipoTest.GAD7.name
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Test Ansiedad")
+                                }
+                                Button(
+                                    onClick = { onNavigateToTest("PHQ9") }, // TipoTest.PHQ9.name
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Test Depresión")
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
             }
         }
     }
 }
 
 @Composable
-fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
+private fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.fire_animation))
     val progress by animateLottieCompositionAsState(
         composition = composition,
@@ -336,7 +383,7 @@ fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
 }
 
 @Composable
-fun EmotionChartCard(chartProducer: com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer) {
+private fun EmotionChartCard(chartProducer: com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -385,7 +432,7 @@ fun EmotionChartCard(chartProducer: com.patrykandpatrick.vico.core.entry.ChartEn
 }
 
 @Composable
-fun EmptyChartCard(onClick: () -> Unit) {
+private fun EmptyChartCard(onClick: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
@@ -440,7 +487,7 @@ fun EmptyChartCard(onClick: () -> Unit) {
 }
 
 @Composable
-fun CommunityCard(actividad: ActividadComunidad) {
+private fun CommunityCard(actividad: ActividadComunidad) {
     val windowInfo = LocalWindowInfo.current
     val density = LocalDensity.current
     val screenWidth = with(density) { windowInfo.containerSize.width.toDp() }
@@ -484,7 +531,7 @@ fun CommunityCard(actividad: ActividadComunidad) {
 }
 
 @Composable
-fun CommunityCardPlaceholder() {
+private fun CommunityCardPlaceholder() {
     val windowInfo = LocalWindowInfo.current
     val density = LocalDensity.current
     val screenWidth = with(density) { windowInfo.containerSize.width.toDp() }

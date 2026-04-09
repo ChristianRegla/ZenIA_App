@@ -38,15 +38,20 @@ android {
     defaultConfig {
         applicationId = "com.zenia.app"
         minSdk = 28
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        targetSdk = 36
+        versionCode = 7
+        versionName = "1.1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField(
             "String",
             "GEMINI_API_KEY",
             "\"${localProperties.getProperty("GEMINI_API_KEY") ?: ""}\""
+        )
+        buildConfigField(
+            "String",
+            "API_BASE_URL",
+            "\"https://api-zenia.onrender.com\""
         )
     }
 
@@ -148,7 +153,13 @@ dependencies {
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
 
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+    implementation(libs.google.generativeai)
+    implementation(libs.okhttp)
+    implementation(libs.mikepenz.markdown.renderer)
 
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("androidx.media3:media3-exoplayer:1.2.1")
+    implementation("androidx.media3:media3-ui:1.2.1")
+
+    implementation("com.google.android.play:app-update:2.1.0")
+    implementation("com.google.android.play:app-update-ktx:2.1.0")
 }

@@ -6,6 +6,7 @@ object FirestoreCollections {
     const val CHAT_HISTORY = "chatHistory"
     const val WELNESS_LOGS = "registrosBienestar"
     const val RESOURCES = "recursos"
+    const val RESOURCES_INTERACTIONS = "recursos_interacciones"
     const val GUIDED_EXERCISES = "ejerciciosGuiados"
     const val COMMUNITY_ACTIVITIES = "actividadesComunidad"
 
@@ -16,5 +17,7 @@ object FirestoreCollections {
     const val POSTS = "comunidad_posts"
 
     const val EMERGENCY_CONTACTS = "emergencyContacts"
+
+    const val EVALUACIONES = "evaluaciones"
 
 }

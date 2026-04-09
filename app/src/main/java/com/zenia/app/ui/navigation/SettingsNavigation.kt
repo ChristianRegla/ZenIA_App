@@ -1,5 +1,7 @@
 package com.zenia.app.ui.navigation
 
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -16,6 +18,8 @@ import com.zenia.app.ui.screens.settings.PrivacyRoute
 import com.zenia.app.ui.screens.settings.SettingsRoute
 import com.zenia.app.viewmodel.MainViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
+import androidx.core.net.toUri
+import androidx.health.connect.client.HealthConnectClient
 
 fun NavGraphBuilder.settingsGraph(navController: NavController, mainViewModel: MainViewModel) {
     composable(
@@ -77,8 +81,34 @@ fun NavGraphBuilder.settingsGraph(navController: NavController, mainViewModel: M
         popEnterTransition = { popSlideIn() },
         popExitTransition = { popSlideOut() }
     ) {
+        val context = LocalContext.current
         HealthSyncRoute(
-            onNavigateBack = { navController.popBackStack() }
+            onNavigateBack = { navController.popBackStack() },
+            onInstallOrUpdateHealthConnect = {
+                val pkg = "com.google.android.apps.healthdata"
+                val uriString = "market://details?id=$pkg&url=healthconnect%3A%2F%2Fonboarding"
+
+                try {
+                    context.startActivity(
+                        Intent(Intent.ACTION_VIEW).apply {
+                            setPackage("com.android.vending")
+                            data = uriString.toUri()
+                            putExtra("overlay", true)
+                            putExtra("callerId", context.packageName)
+                        }
+                    )
+                } catch (e: Exception) {
+                    context.startActivity(
+                        Intent(Intent.ACTION_VIEW,
+                            "https://play.google.com/store/apps/details?id=$pkg".toUri())
+                    )
+                }
+            },
+            onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) },
+            onManagePermissionClick = {
+                val intent = Intent(HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS)
+                context.startActivity(intent)
+            }
         )
     }
 

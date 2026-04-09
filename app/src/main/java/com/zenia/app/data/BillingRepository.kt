@@ -27,8 +27,11 @@ class BillingRepository @Inject constructor(
     val billingConnectionState = _billingConnectionState.asStateFlow()
 
     companion object {
-        const val PREMIUM_SUB_ID = "premium_annual"
-        const val DONATION_PRODUCT_ID = "donation_basic"
+        const val PREMIUM_SUB_ID = "zenia_premium"
+
+        const val DONATION_CAFE = "donacion_cafe"
+        const val DONATION_PIZZA = "donacion_pizza"
+        const val DONATION_AMOR = "donacion_amor"
     }
 
     private val billingClient = BillingClient.newBuilder(context)
@@ -91,54 +94,103 @@ class BillingRepository @Inject constructor(
         }
     }
 
-    suspend fun launchBillingFlow(activity: Activity, isSubscription: Boolean) {
-        if (!_billingConnectionState.value) {
-            Log.e("BillingRepo", "No hay conexión con Google Play")
-            return
-        }
-
-        val productId = if (isSubscription) PREMIUM_SUB_ID else DONATION_PRODUCT_ID
-        val productType = if (isSubscription) BillingClient.ProductType.SUBS else BillingClient.ProductType.INAPP
+    suspend fun launchSubscription(activity: Activity, planId: String) {
+        if (!_billingConnectionState.value) return
 
         val productList = listOf(
             QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(productId)
-                .setProductType(productType)
+                .setProductId(PREMIUM_SUB_ID)
+                .setProductType(BillingClient.ProductType.SUBS)
                 .build()
         )
 
-        val params = QueryProductDetailsParams.newBuilder().setProductList(productList).build()
+        val params = QueryProductDetailsParams.newBuilder()
+            .setProductList(productList)
+            .build()
 
-        val productDetailsResult = withContext(Dispatchers.IO) {
+        val result = withContext(Dispatchers.IO) {
             billingClient.queryProductDetails(params)
         }
 
-        if (productDetailsResult.billingResult.responseCode == BillingClient.BillingResponseCode.OK &&
-            !productDetailsResult.productDetailsList.isNullOrEmpty()
-        ) {
-            val productDetails = productDetailsResult.productDetailsList!!.first()
+        val productDetails = result.productDetailsList?.firstOrNull() ?: return
 
-            val offerToken = if (isSubscription) {
-                productDetails.subscriptionOfferDetails?.firstOrNull()?.offerToken
-            } else null
+        val offer = productDetails.subscriptionOfferDetails
+            ?.firstOrNull { it.basePlanId == planId }
 
-            val productDetailsParamsList = listOf(
-                BillingFlowParams.ProductDetailsParams.newBuilder()
-                    .setProductDetails(productDetails)
-                    .apply {
-                        offerToken?.let { setOfferToken(it) }
-                    }
-                    .build()
+        val offerToken = offer?.offerToken ?: return
+
+        val billingFlowParams = BillingFlowParams.newBuilder()
+            .setProductDetailsParamsList(
+                listOf(
+                    BillingFlowParams.ProductDetailsParams.newBuilder()
+                        .setProductDetails(productDetails)
+                        .setOfferToken(offerToken)
+                        .build()
+                )
             )
+            .build()
 
-            val billingFlowParams = BillingFlowParams.newBuilder()
-                .setProductDetailsParamsList(productDetailsParamsList)
+        billingClient.launchBillingFlow(activity, billingFlowParams)
+    }
+
+    suspend fun launchDonation(activity: Activity, productId: String) {
+        val productList = listOf(
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(productId)
+                .setProductType(BillingClient.ProductType.INAPP)
                 .build()
+        )
 
-            billingClient.launchBillingFlow(activity, billingFlowParams)
-        } else {
-            Log.e("BillingRepo", "Producto no encontrado o error: ${productDetailsResult.billingResult.debugMessage}")
+        val params = QueryProductDetailsParams.newBuilder()
+            .setProductList(productList)
+            .build()
+
+        val result = withContext(Dispatchers.IO) {
+            billingClient.queryProductDetails(params)
         }
+
+        val productDetails = result.productDetailsList?.firstOrNull() ?: return
+
+        val billingFlowParams = BillingFlowParams.newBuilder()
+            .setProductDetailsParamsList(
+                listOf(
+                    BillingFlowParams.ProductDetailsParams.newBuilder()
+                        .setProductDetails(productDetails)
+                        .build()
+                )
+            )
+            .build()
+
+        billingClient.launchBillingFlow(activity, billingFlowParams)
+    }
+
+    suspend fun getSubscriptionPrices(): Map<String, String> {
+        val productList = listOf(
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(PREMIUM_SUB_ID)
+                .setProductType(BillingClient.ProductType.SUBS)
+                .build()
+        )
+
+        val params = QueryProductDetailsParams.newBuilder()
+            .setProductList(productList)
+            .build()
+
+        val result = billingClient.queryProductDetails(params)
+
+        val productDetails = result.productDetailsList?.firstOrNull()
+            ?: return emptyMap()
+
+        val prices = mutableMapOf<String, String>()
+
+        productDetails.subscriptionOfferDetails?.forEach { offer ->
+            val pricingPhase = offer.pricingPhases.pricingPhaseList.firstOrNull()
+            val formattedPrice = pricingPhase?.formattedPrice ?: return@forEach
+
+            prices[offer.basePlanId] = formattedPrice
+        }
+
+        return prices
     }
 
     override fun onPurchasesUpdated(billingResult: BillingResult, purchases: MutableList<Purchase>?) {
@@ -159,7 +211,11 @@ class BillingRepository @Inject constructor(
                 if (!purchase.isAcknowledged) {
                     acknowledgePurchase(purchase)
                 }
-            } else if (purchase.products.contains(DONATION_PRODUCT_ID)) {
+            } else if (
+                purchase.products.contains(DONATION_CAFE) ||
+                purchase.products.contains(DONATION_PIZZA) ||
+                purchase.products.contains(DONATION_AMOR)
+            ) {
                 consumePurchase(purchase)
             }
         } else if (purchase.purchaseState == Purchase.PurchaseState.PENDING) {

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.zenia.app.R
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.HealthConnectRepository
+import com.zenia.app.data.session.UserSessionManager
 import com.zenia.app.model.CategoriaDiario
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.model.OpcionCategoria
@@ -28,16 +29,17 @@ sealed interface DiaryEntryUiState {
 data class ActivityData(val labelRes: Int, val dbValue: String)
 
 data class HealthDataResult(
-    val pasos: Int? = null,
-    val calorias: Int? = null,
+    val pasos: Long? = null,
+    val ritmoCardiaco: Int? = null,
     val minutosSueno: Int? = null,
-    val minutosEjercicio: Int? = null
+    val hrv: Int? = null
 )
 
 @HiltViewModel
 class DiaryEntryViewModel @Inject constructor(
     private val diaryRepository: DiaryRepository,
-    private val healthConnectRepository: HealthConnectRepository?
+    private val healthConnectRepository: HealthConnectRepository?,
+    sessionManager: UserSessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<DiaryEntryUiState>(DiaryEntryUiState.Idle)
@@ -51,6 +53,8 @@ class DiaryEntryViewModel @Inject constructor(
 
     private val _categoriasUsuario = MutableStateFlow<List<CategoriaDiario>>(emptyList())
     val categoriasUsuario = _categoriasUsuario.asStateFlow()
+
+    val isPremium = sessionManager.isPremium
 
     val allEntries = diaryRepository.getDiaryEntriesStream()
         .stateIn(
@@ -125,31 +129,31 @@ class DiaryEntryViewModel @Inject constructor(
         }
     }
 
+    fun recargarDatosDeSalud(date: LocalDate) {
+        viewModelScope.launch {
+            obtenerDatosDeSaludDelDia(date)
+        }
+    }
+
     fun guardarEntrada(
         date: LocalDate,
         selecciones: Map<String, String>,
         actividades: List<String>,
         notas: String,
         hcPasos: Int?,
-        hcCaloriasActivas: Int?,
+        hcRitmoCardiaco: Int?,
         hcMinutosSueno: Int?,
-        hcMinutosEjercicio: Int?,
+        hcHrv: Int?,
         onSuccess: () -> Unit
     ) {
         viewModelScope.launch {
             _uiState.value = DiaryEntryUiState.Loading
 
-            val currentUserId = diaryRepository.getCurrentUserId() ?: ""
-            if (currentUserId.isBlank()) {
-                _uiState.value = DiaryEntryUiState.Error(R.string.diary_error_user_id)
-                return@launch
-            }
-
             val categoriasBase = listOf("estadoAnimo", "calidadSueno", "estadoMental", "ejercicio")
             val extras = selecciones.filterKeys { it !in categoriasBase }
 
             val nuevaEntrada = DiarioEntrada(
-                userId = currentUserId,
+                userId = "",
                 fecha = date.toString(),
                 estadoAnimo = selecciones["estadoAnimo"],
                 calidadSueno = selecciones["calidadSueno"],
@@ -159,9 +163,9 @@ class DiaryEntryViewModel @Inject constructor(
                 actividades = actividades,
                 notas = notas,
                 hcPasos = hcPasos,
-                hcCaloriasActivas = hcCaloriasActivas,
+                hcRitmoCardiaco = hcRitmoCardiaco,
                 hcMinutosSueno = hcMinutosSueno,
-                hcMinutosEjercicio = hcMinutosEjercicio
+                hcHrv = hcHrv
             )
 
             val entradaActual = _existingEntry.value
@@ -240,17 +244,19 @@ class DiaryEntryViewModel @Inject constructor(
     }
 
     private suspend fun obtenerDatosDeSaludDelDia(date: LocalDate) {
-        if (healthConnectRepository == null) return
+        val hc = healthConnectRepository ?: return
 
         try {
-            val pasos = healthConnectRepository.readStepsByDate(date)
-            val suenoMinutos = healthConnectRepository.readSleepMinutesByDate(date)
+            val pasos = hc.readStepsByDate(date)
+            val sueno = hc.readLastNightSleepDurationByDate(date)
+
+            val suenoMinutos = sueno.totalMinutes
 
             _healthConnectData.value = HealthDataResult(
-                pasos = if (pasos > 0) pasos else null,
-                minutosSueno = if (suenoMinutos > 0) suenoMinutos else null,
-                calorias = null,
-                minutosEjercicio = null
+                pasos = pasos.takeIf { it > 0 },
+                minutosSueno = suenoMinutos.takeIf { it > 0 },
+                ritmoCardiaco = null,
+                hrv = null
             )
         } catch (e: Exception) {
             e.printStackTrace()

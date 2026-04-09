@@ -1,12 +1,5 @@
 package com.zenia.app.ui.screens.sos
 
-import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Context
-import android.net.Uri
-import android.provider.ContactsContract
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -34,16 +27,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.ChatBubble
-import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -66,7 +58,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -143,7 +134,6 @@ fun HelplineScreen(
                         text = stringResource(R.string.sos_body_html),
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
-                        // fontFamily = RobotoFlex,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 24.sp
                     )
@@ -161,15 +151,16 @@ fun HelplineScreen(
                             SosButton(
                                 icon = Icons.Default.Favorite,
                                 text = stringResource(R.string.sos_btn_lifeline),
-                                subText = "Gratis, anónimo y disponible 24/7",
+                                subText = stringResource(R.string.sos_lifeline_sub),
                                 accentColor = ColorLifeline,
+                                isPrimary = true,
                                 onClick = onCallLifeline
                             )
 
                             SosButton(
                                 icon = Icons.Default.Person,
                                 text = stringResource(R.string.sos_btn_friend),
-                                subText = "Añade hasta 3 contactos de confianza",
+                                subText = stringResource(R.string.sos_contacts_sub),
                                 accentColor = ColorFriend,
                                 onClick = onNavigateToContacts
                             )
@@ -193,7 +184,7 @@ fun HelplineScreen(
                     Spacer(modifier = Modifier.height(32.dp))
 
                     Text(
-                        text = "ZenIA es una herramienta de apoyo emocional y no reemplaza la ayuda profesional.",
+                        text = stringResource(R.string.sos_disclaimer),
                         style = MaterialTheme.typography.bodySmall,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
@@ -211,13 +202,20 @@ private fun SosButton(
     text: String,
     accentColor: Color,
     subText: String? = null,
+    isPrimary: Boolean = false,
     onClick: () -> Unit
 ) {
+    val containerColor = if (isPrimary) accentColor else MaterialTheme.colorScheme.surfaceContainerLow
+    val textColor = if (isPrimary) Color.White else MaterialTheme.colorScheme.onSurface
+    val subTextColor = if (isPrimary) Color.White.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurfaceVariant
+    val iconBgColor = if (isPrimary) Color.White.copy(alpha = 0.25f) else accentColor.copy(alpha = 0.15f)
+    val iconTintColor = if (isPrimary) Color.White else accentColor
+
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shadowElevation = 4.dp,
+        color = containerColor,
+        shadowElevation = if (isPrimary) 8.dp else 4.dp,
         modifier = Modifier
             .fillMaxWidth()
             .height(85.dp)
@@ -231,13 +229,13 @@ private fun SosButton(
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)
-                    .background(accentColor.copy(alpha = 0.15f)),
+                    .background(iconBgColor),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = accentColor,
+                    tint = iconTintColor,
                     modifier = Modifier.size(26.dp)
                 )
             }
@@ -247,22 +245,19 @@ private fun SosButton(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-
                 Text(
                     text = text,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = textColor
                 )
 
                 if (subText != null) {
-
                     Spacer(modifier = Modifier.height(2.dp))
-
                     Text(
                         text = subText,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = subTextColor
                     )
                 }
             }
@@ -295,7 +290,7 @@ fun EmergencyContactsSheet(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Contactos de Emergencia",
+                text = stringResource(R.string.contacts_title),
                 fontFamily = RobotoFlex,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
@@ -303,14 +298,30 @@ fun EmergencyContactsSheet(
             )
 
             Text(
-                text = "Añade hasta 3 contactos de confianza para llamarlos rápidamente en caso de crisis.",
+                text = stringResource(R.string.contacts_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             if (contacts.isEmpty()) {
-                Box(modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp), contentAlignment = Alignment.Center) {
-                    Text("No tienes contactos guardados.", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.GroupAdd,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = stringResource(R.string.contacts_empty),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -334,7 +345,7 @@ fun EmergencyContactsSheet(
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Añadir Contacto (${contacts.size}/3)", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.contacts_add, contacts.size), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -357,6 +368,8 @@ fun ContactCard(
     onCall: () -> Unit,
     onDelete: () -> Unit
 ) {
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+
     androidx.compose.material3.Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -380,16 +393,41 @@ fun ContactCard(
                 Text(contact.name, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 Text(contact.phone, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.error)
+            IconButton(onClick = { showDeleteConfirm = true }) {
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error)
             }
             IconButton(
                 onClick = onCall,
                 modifier = Modifier.background(ColorFriend, CircleShape)
             ) {
-                Icon(Icons.Default.Call, contentDescription = "Llamar", tint = Color.White)
+                Icon(Icons.Default.Call, contentDescription = stringResource(R.string.call), tint = Color.White)
             }
         }
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text(stringResource(R.string.delete_contact_title), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.delete_contact_message, contact.name)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDelete()
+                        showDeleteConfirm = false
+                    },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text(stringResource(R.string.delete), color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     }
 }
 
@@ -400,53 +438,16 @@ fun AddContactDialog(
 ) {
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
-    val context = LocalContext.current
-
-    val contactLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickContact()
-    ) { uri ->
-        if (uri != null) {
-            val datos = obtenerDatosDeContacto(context, uri)
-            if (datos != null) {
-                name = datos.first
-                phone = datos.second
-            }
-        }
-    }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            contactLauncher.launch(null)
-        }
-    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nuevo Contacto", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold) },
+        title = { Text(stringResource(R.string.new_contact), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                OutlinedButton(
-                    onClick = { permissionLauncher.launch(Manifest.permission.READ_CONTACTS) },
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.Contacts, contentDescription = null, tint = ZeniaTeal)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Elegir de mis contactos", color = ZeniaTeal, fontWeight = FontWeight.Bold)
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    HorizontalDivider(modifier = Modifier.weight(1f))
-                    Text(" O ", modifier = Modifier.padding(horizontal = 8.dp), style = MaterialTheme.typography.bodySmall)
-                    HorizontalDivider(modifier = Modifier.weight(1f))
-                }
-
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Nombre") },
+                    label = { Text(stringResource(R.string.name)) },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -454,7 +455,7 @@ fun AddContactDialog(
                 OutlinedTextField(
                     value = phone,
                     onValueChange = { phone = it },
-                    label = { Text("Teléfono") },
+                    label = { Text(stringResource(R.string.phone)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
@@ -467,47 +468,14 @@ fun AddContactDialog(
                 onClick = { onConfirm(name, phone) },
                 enabled = name.isNotBlank() && phone.isNotBlank()
             ) {
-                Text("Guardar")
+                Text(stringResource(R.string.save))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
         },
         containerColor = MaterialTheme.colorScheme.surface
     )
-}
-
-@SuppressLint("Range")
-fun obtenerDatosDeContacto(context: Context, contactUri: Uri): Pair<String, String>? {
-    var nombre = ""
-    var telefono = ""
-    val contentResolver = context.contentResolver
-
-    val cursor = contentResolver.query(contactUri, null, null, null, null)
-    cursor?.use {
-        if (it.moveToFirst()) {
-            nombre = it.getString(it.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)) ?: ""
-            val id = it.getString(it.getColumnIndex(ContactsContract.Contacts._ID))
-            val hasPhone = it.getInt(it.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0
-
-            if (hasPhone) {
-                val phoneCursor = contentResolver.query(
-                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                    null,
-                    "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
-                    arrayOf(id),
-                    null
-                )
-                phoneCursor?.use { pc ->
-                    if (pc.moveToFirst()) {
-                        telefono = pc.getString(pc.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)) ?: ""
-                        telefono = telefono.replace(" ", "").replace("-", "")
-                    }
-                }
-            }
-        }
-    }
-    return if (nombre.isNotBlank() || telefono.isNotBlank()) Pair(nombre, telefono) else null
 }
 
 @Preview(showBackground = true, name = "SOS Screen Light", locale = "es")

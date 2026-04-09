@@ -50,11 +50,11 @@ fun HelpCenterScreen(
             ) {
                 Column(
                     modifier = Modifier
-                        .widthIn(max = 600.dp) // Límite de ancho para Tablet
-                        .fillMaxWidth()        // Llenar ancho hasta el límite
-                        .fillMaxHeight()       // Llenar alto para scroll
+                        .widthIn(max = 600.dp)
+                        .fillMaxWidth()
+                        .fillMaxHeight()
                         .verticalScroll(rememberScrollState())
-                        .padding(24.dp), // Un poco más de padding se ve mejor
+                        .padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {

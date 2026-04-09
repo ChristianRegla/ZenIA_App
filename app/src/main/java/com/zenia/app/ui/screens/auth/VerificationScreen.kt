@@ -65,8 +65,6 @@ fun VerificationScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-
-            // 🔹 Círculo adaptable
             Box(
                 modifier = Modifier
                     .size(140.dp)
@@ -160,7 +158,7 @@ fun VerificationScreen(
                 onClick = onResendClick,
                 enabled = resendTimer == 0 && !isResending,
                 modifier = Modifier
-                    .fillMaxWidth(0.9f), // 🔥 no full width absoluto
+                    .fillMaxWidth(0.9f),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 if (isResending) {

@@ -129,7 +129,6 @@ fun PrivacyScreen(
                         onClick = onPrivacyClick
                     )
 
-                    // Empuja el footer hacia abajo si hay espacio
                     Spacer(modifier = Modifier.weight(1f))
                     Spacer(modifier = Modifier.height(24.dp))
 

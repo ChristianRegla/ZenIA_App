@@ -1,6 +1,7 @@
 package com.zenia.app.data
 
 import android.util.Log
+import com.zenia.app.model.MensajeChatbot
 import com.zenia.app.model.NiaResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,12 +23,26 @@ class NiaApiRepository @Inject constructor() {
     private val url =
         "https://api-zenia.onrender.com/chat"
 
-    suspend fun enviarMensaje(mensaje: String): Result<NiaResponse> =
-        withContext(Dispatchers.IO) {
-
+    suspend fun enviarMensaje(
+        historial: List<MensajeChatbot>,
+        healthContext: String? = null
+    ): Result<NiaResponse> = withContext(Dispatchers.IO) {
             try {
+                val historyArray = org.json.JSONArray()
+                for (msg in historial) {
+                    val msgObject = JSONObject().apply {
+                        put("role", if (msg.emisor == "usuario") "user" else "model")
+                        put("text", msg.texto)
+                    }
+                    historyArray.put(msgObject)
+                }
+
                 val json = JSONObject().apply {
-                    put("message", mensaje)
+                    put("history", historyArray)
+
+                    if (healthContext != null) {
+                        put("health_context", healthContext)
+                    }
                 }
 
                 val body = json.toString()
@@ -48,7 +63,6 @@ class NiaApiRepository @Inject constructor() {
 
                 if (!jsonResponse.has("mensaje_nia")) {
                     Log.e("NIA_API", "¡ERROR! El JSON no trae la llave 'mensaje_nia'. Trae esto: $responseBody")
-                    // Opcional: Si el servidor mandó un mensaje de error de Python, lo atrapamos
                     val errorServidor = jsonResponse.optString("error", "Error desconocido en el servidor")
                     return@withContext Result.failure(Exception(errorServidor))
                 }

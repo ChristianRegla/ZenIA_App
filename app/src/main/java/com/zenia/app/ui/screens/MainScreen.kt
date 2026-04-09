@@ -37,15 +37,16 @@ import java.time.LocalDate
 @Composable
 fun MainScreen(
     startTab: String? = null,
-    onSignOut: () -> Unit,
-    onNavigateToAccount: () -> Unit,
     onNavigateToPremium: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNotificationClick: () -> Unit,
     onNavigateToSOS: () -> Unit,
     onNavigateToDiaryEntry: (LocalDate) -> Unit,
     onNavigateToAnalytics: () -> Unit,
-    onNavigateToCommunity: () -> Unit
+    onNavigateToCommunity: () -> Unit,
+    onNavigateToRecursoDetail: (String) -> Unit,
+    onNavigateToTest: (String) -> Unit,
+    onNavigateToBreathing: () -> Unit
 ) {
     val bottomNavController = rememberNavController()
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
@@ -124,12 +125,16 @@ fun MainScreen(
                             onNavigateToSOS = onNavigateToSOS,
                             onNavigateToDiaryEntry = onNavigateToDiaryEntry,
                             onNavigateToAnalytics = onNavigateToAnalytics,
-                            onNavigateToCommunity = onNavigateToCommunity
+                            onNavigateToCommunity = onNavigateToCommunity,
+                            onNavigateToTest = { testId ->
+                                onNavigateToTest(testId)
+                            }
                         )
                     }
 
                     composable(BottomNavItem.Relajacion.route) {
                         RelaxRoute(
+                            onNavigateToBreathing = onNavigateToBreathing,
                             onNavigateToPlayer = { /* TODO */ },
                             onNavigateToPremium = onNavigateToPremium
                         )
@@ -151,7 +156,9 @@ fun MainScreen(
 
                     composable(BottomNavItem.Recursos.route) {
                         RecursosRoute(
-                            onNavigateToDetail = { /* TODO */ },
+                            onNavigateToDetail = { id ->
+                                onNavigateToRecursoDetail(id)
+                            },
                             onNavigateToPremium = onNavigateToPremium
                         )
                     }

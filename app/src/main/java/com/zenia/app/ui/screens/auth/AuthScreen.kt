@@ -33,6 +33,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -57,6 +58,9 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.zenia.app.R
+import com.zenia.app.ui.components.SnackbarState
+import com.zenia.app.ui.components.ZeniaSnackbarController
+import com.zenia.app.ui.components.ZeniaSnackbarData
 import com.zenia.app.ui.theme.*
 import kotlinx.coroutines.delay
 
@@ -66,8 +70,8 @@ data class AuthScreenState(
     val email: String,
     val password: String,
     val confirmPassword: String,
-    val snackbarHostState: SnackbarHostState,
-    val termsAccepted: Boolean
+    val termsAccepted: Boolean,
+    val isGoogleLoading: Boolean = false
 )
 
 data class AuthScreenActions(
@@ -82,7 +86,8 @@ data class AuthScreenActions(
     val onTermsClick: () -> Unit,
     val onPrivacyPolicyClick: () -> Unit,
     val onResendVerificationClick: () -> Unit,
-    val onDismissVerificationDialog: () -> Unit
+    val onDismissVerificationDialog: () -> Unit,
+    val onResetState: () -> Unit
 )
 
 @Composable
@@ -90,9 +95,41 @@ fun AuthScreen(
     state: AuthScreenState,
     actions: AuthScreenActions
 ) {
+    val context = LocalContext.current
+    LaunchedEffect(state.uiState) {
+        when (val uiState = state.uiState) {
+            is AuthUiState.Error -> {
+                ZeniaSnackbarController.showMessage(
+                    ZeniaSnackbarData(
+                        message = uiState.message,
+                        state = SnackbarState.ERROR
+                    )
+                )
+                actions.onResetState()
+            }
+            is AuthUiState.PasswordResetSent -> {
+                ZeniaSnackbarController.showMessage(
+                    ZeniaSnackbarData(
+                        message = context.getString(R.string.auth_password_reset_sent),
+                        state = SnackbarState.SUCCESS
+                    )
+                )
+                actions.onResetState()
+            }
+            is AuthUiState.AccountDeleted -> {
+                ZeniaSnackbarController.showMessage(
+                    ZeniaSnackbarData(
+                        message = context.getString(R.string.auth_account_deleted),
+                        state = SnackbarState.INFO
+                    )
+                )
+                actions.onResetState()
+            }
+            else -> {}
+        }
+    }
     ZenIATheme {
         Scaffold(
-            snackbarHost = { SnackbarHost(hostState = state.snackbarHostState) },
             containerColor = Color.Transparent
         ) { paddingValues ->
             Box(
@@ -172,6 +209,9 @@ private fun AuthContent(
     var showPasswordPanel by remember { mutableStateOf(false) }
 
     val isLoading = state.uiState == AuthUiState.Loading
+
+    val isGlobalLoading = state.uiState == AuthUiState.Loading || state.isGoogleLoading
+    val isEmailLoading = state.uiState == AuthUiState.Loading
 
     val isPasswordValid = state.password.length >= 8 &&
             state.password.any { it.isUpperCase() } &&
@@ -422,7 +462,8 @@ private fun AuthContent(
                 AuthButton(
                     text = if (state.isRegisterMode) stringResource(R.string.register) else stringResource(R.string.login),
                     onClick = actions.onLoginOrRegisterClick,
-                    enabled = !isLoading,
+                    enabled = !isGlobalLoading,
+                    isLoading = isEmailLoading,
                     modifier = Modifier.constrainAs(loginButton) {
                         bottom.linkTo(divider.top, margin = 16.dp)
                         centerHorizontallyTo(parent)
@@ -450,7 +491,8 @@ private fun AuthContent(
                 AuthButton(
                     text = stringResource(R.string.googleLogin),
                     onClick = actions.onGoogleSignInClick,
-                    enabled = !isLoading,
+                    enabled = !isGlobalLoading,
+                    isLoading = state.isGoogleLoading,
                     containerColor = colorResource(id = R.color.google),
                     textColor = Color.Black,
                     icon = painterResource(id = R.drawable.image_continuar_google_group),
@@ -615,10 +657,9 @@ fun AuthScreenPreview_Login() {
         email = "",
         password = "",
         confirmPassword = "",
-        snackbarHostState = SnackbarHostState(),
         termsAccepted = false
     )
-    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})
+    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})
     ZenIATheme { AuthScreen(state = state, actions = actions) }
 }
 
@@ -631,9 +672,8 @@ fun AuthScreenPreview_Loading_Zen() {
         email = "test@zen.ia",
         password = "password",
         confirmPassword = "",
-        snackbarHostState = SnackbarHostState(),
         termsAccepted = false
     )
-    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})
+    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})
     ZenIATheme { AuthScreen(state = state, actions = actions) }
 }

@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.zenia.app.R
 import com.zenia.app.data.AuthRepository
+import com.zenia.app.data.session.UserSessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -31,22 +32,21 @@ import javax.inject.Inject
 class AuthViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val authRepository: AuthRepository,
+    private val session: UserSessionManager,
     private val application: Application
 ) : AndroidViewModel(application) {
     /**
      * Expone el email del usuario actualmente autenticado.
      */
-    val userEmail: String?
-        get() = auth.currentUser?.email
+    val userEmail = session.email
+
+    val isUserLoggedIn = session.isLoggedIn
 
     val isUserVerified: Boolean
         get() = auth.currentUser?.isEmailVerified ?: false
 
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
     val uiState = _uiState.asStateFlow()
-
-    private val _isUserLoggedIn = MutableStateFlow(false)
-    val isUserLoggedIn = _isUserLoggedIn.asStateFlow()
 
     private val _resendTimer = MutableStateFlow(0)
     val resendTimer = _resendTimer.asStateFlow()
@@ -58,26 +58,12 @@ class AuthViewModel @Inject constructor(
     val isResending = _isResending.asStateFlow()
 
     private var timerJob: Job? = null
+    private var verificationPollJob: Job? = null
 
-    private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-        val user = firebaseAuth.currentUser
-        _isUserLoggedIn.value = (user != null && user.isEmailVerified)
-    }
+    private var pendingNickname: String? = null
 
-    /**
-     * Bloque de inicialización. Se registra el [authStateListener] cuando el ViewModel se crea.
-     */
-    init {
-        auth.addAuthStateListener(authStateListener)
-    }
-
-    /**
-     * Se llama cuando el ViewModel está a punto de ser destruido.
-     * Limpia él [authStateListener] para evitar memory leaks.
-     */
     override fun onCleared() {
         super.onCleared()
-        auth.removeAuthStateListener(authStateListener)
         timerJob?.cancel()
         stopVerificationCheck()
     }
@@ -115,7 +101,7 @@ class AuthViewModel @Inject constructor(
             if (user != null) {
                 if (user.isEmailVerified) {
                     authRepository.createUserIfNew(user.uid, user.email, isNewUser = false)
-                    _uiState.value = AuthUiState.Idle
+                    _uiState.value = AuthUiState.Authenticated
                 } else {
                     _uiState.value = AuthUiState.VerificationRequired(cleanEmail)
                     startVerificationCheck()
@@ -131,7 +117,7 @@ class AuthViewModel @Inject constructor(
      * Si tiene éxito, crea el documento de usuario en Firestore, envía un correo de verificación,
      * y cierra la sesión para forzar al usuario a verificar su email.
      */
-    fun createUser(email: String, password: String, confirmPassword: String) {
+    fun createUser(email: String, password: String, confirmPassword: String, nickname: String) {
         val cleanEmail = email.trim()
 
         if (_uiState.value is AuthUiState.Loading) return
@@ -155,12 +141,16 @@ class AuthViewModel @Inject constructor(
             val newUser = result.user
 
             if (newUser != null) {
-                authRepository.createUserIfNew(newUser.uid, cleanEmail, isNewUser = true)
+                session.savePendingNickname(nickname)
 
-                newUser.sendEmailVerification().await()
+                val verificationResult = authRepository.sendEmailVerification(nickname)
 
-                _uiState.value = AuthUiState.VerificationRequired(cleanEmail)
-                startVerificationCheck()
+                if (verificationResult.isSuccess) {
+                    _uiState.value = AuthUiState.VerificationRequired(cleanEmail)
+                    startVerificationCheck()
+                } else {
+                    _uiState.value = AuthUiState.Error(getString(R.string.auth_error_verification_failed))
+                }
             }
         }
     }
@@ -171,21 +161,22 @@ class AuthViewModel @Inject constructor(
         val user = auth.currentUser ?: return
 
         viewModelScope.launch {
-            try {
-                _uiState.value = AuthUiState.VerificationRequired(user.email ?: "")
+            _uiState.value = AuthUiState.VerificationRequired(user.email ?: "")
+            _isResending.value = true
 
-                _isResending.value = true
-                user.sendEmailVerification().await()
-                _isResending.value = false
+            val savedNickname = session.getPendingNickname()
+            val result = authRepository.sendEmailVerification(savedNickname)
 
+            _isResending.value = false
+
+            if (result.isSuccess) {
                 startResendTimer()
-            } catch (e: Exception) {
-                _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
+            } else {
+                val exception = result.exceptionOrNull()
+                _uiState.value = AuthUiState.Error(exception?.message ?: getString(R.string.auth_error_resend_failed))
             }
         }
     }
-
-    private var verificationPollJob: Job? = null
 
     fun startVerificationCheck() {
         if (verificationPollJob?.isActive == true) return
@@ -196,11 +187,13 @@ class AuthViewModel @Inject constructor(
                 user?.reload()?.await()
 
                 if (user?.isEmailVerified == true) {
-                    _uiState.value = AuthUiState.Idle
-                    _isUserLoggedIn.value = true
-
+                    val savedNickname = session.getPendingNickname()
+                    authRepository.createUserIfNew(user.uid, user.email, isNewUser = true, nickname = savedNickname)
+                    session.clearPendingNickname()
+                    _uiState.value = AuthUiState.Authenticated
                     break
                 }
+
                 delay(3000)
             }
         }
@@ -227,7 +220,7 @@ class AuthViewModel @Inject constructor(
                 if (user != null) {
                     authRepository.createUserIfNew(user.uid, user.email, isNewUser)
                 }
-                _uiState.value = AuthUiState.Idle
+                _uiState.value = AuthUiState.Authenticated
             } catch (e: Exception) {
                 _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
             }
@@ -249,63 +242,43 @@ class AuthViewModel @Inject constructor(
 
         _uiState.value = AuthUiState.Loading
         viewModelScope.launch {
-            try {
-                auth.sendPasswordResetEmail(cleanEmail).await()
+            val result = authRepository.sendPasswordResetEmail(cleanEmail)
+
+            if (result.isSuccess) {
                 _uiState.value = AuthUiState.PasswordResetSent
                 _emailSentSuccess.value = true
                 startResendTimer()
-            } catch (e: Exception) {
-                _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
+            } else {
+                val exception = result.exceptionOrNull()
+                _uiState.value = AuthUiState.Error(exception?.message ?: "Error al enviar el correo de recuperación")
             }
         }
     }
 
-    // Limpia el estado cuando salimos de la pantalla
     fun resetForgotPasswordState() {
         _resendTimer.value = 0
         _emailSentSuccess.value = false
         _uiState.value = AuthUiState.Idle
     }
 
-    /**
-     * Reenvía el correo de verificación al usuario actual (si no está verificado).
-     */
-    fun resendVerificationEmail() {
-        if (_uiState.value == AuthUiState.Loading) return
-
-        _uiState.value = AuthUiState.Loading
-        viewModelScope.launch {
-            try {
-                authRepository.sendEmailVerification()
-                _uiState.value = AuthUiState.VerificationSent
-            } catch (e: Exception) {
-                _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
-            }
-        }
-    }
-
-    /**
-     * Elimina permanentemente la cuenta del usuario actual de Firebase Authentication.
-     * Las reglas de Firestore (o Cloud Functions) deberían encargarse de limpiar sus datos.
-     */
     fun deleteAccount() {
         if (_uiState.value == AuthUiState.Loading) return
 
         _uiState.value = AuthUiState.Loading
         viewModelScope.launch {
-            try {
-                val user = auth.currentUser
-                val userId = user?.uid
+            val user = auth.currentUser
+            val userId = user?.uid
 
-                if (userId != null) {
-                    authRepository.deleteUserData(userId)
+            if (userId != null) {
+                val result = authRepository.deleteUserData(userId)
+
+                if (result.isSuccess) {
+                    _uiState.value = AuthUiState.AccountDeleted
+                } else {
+                    _uiState.value = AuthUiState.Error("No se pudo eliminar la cuenta.")
                 }
-
-                user?.delete()?.await()
-
-                _uiState.value = AuthUiState.AccountDeleted
-            } catch (e: Exception) {
-                _uiState.value = AuthUiState.Error(mapFirebaseAuthException(e))
+            } else {
+                _uiState.value = AuthUiState.Error("No hay usuario activo")
             }
         }
     }
@@ -342,8 +315,7 @@ class AuthViewModel @Inject constructor(
     }
 
     fun signOut() {
-        auth.signOut()
-        _isUserLoggedIn.value = false
+        authRepository.signOut()
     }
 
     /**

@@ -306,11 +306,6 @@ fun CalendarPagerView(
     }
 }
 
-/**
- * Función auxiliar inteligente:
- * Si el año que pide el Pager es el año seleccionado en el ViewModel, usa los datos reales (con eventos).
- * Si es otro año (el vecino que estamos espiando), genera una estructura vacía al vuelo para que se vea el calendario.
- */
 @Composable
 fun rememberMonthsForYear(
     year: Int,
