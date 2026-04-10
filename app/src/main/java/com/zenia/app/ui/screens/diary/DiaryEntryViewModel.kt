@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -27,7 +28,6 @@ sealed interface DiaryEntryUiState {
 }
 
 data class ActivityData(val labelRes: Int, val dbValue: String)
-
 data class HealthDataResult(
     val pasos: Long? = null,
     val ritmoCardiaco: Int? = null,
@@ -51,9 +51,6 @@ class DiaryEntryViewModel @Inject constructor(
     private val _healthConnectData = MutableStateFlow<HealthDataResult?>(null)
     val healthConnectData = _healthConnectData.asStateFlow()
 
-    private val _categoriasUsuario = MutableStateFlow<List<CategoriaDiario>>(emptyList())
-    val categoriasUsuario = _categoriasUsuario.asStateFlow()
-
     val isPremium = sessionManager.isPremium
 
     val allEntries = diaryRepository.getDiaryEntriesStream()
@@ -75,64 +72,51 @@ class DiaryEntryViewModel @Inject constructor(
         ActivityData(R.string.activity_rest, "Descanso")
     )
 
-    init {
-        cargarCategorias()
-    }
+    val limiteCategorias = 7
+
+    private val defaultsCategorias = listOf(
+        CategoriaDiario("estadoAnimo", "Estado de Ánimo", listOf(
+            OpcionCategoria(4, "Increíble", "sol_muy_feliz"),
+            OpcionCategoria(3, "Bien", "sol_feliz"),
+            OpcionCategoria(2, "Desanimado", "sol_mid"),
+            OpcionCategoria(1, "Terrible", "sol_triste")
+        )),
+        CategoriaDiario("calidadSueno", "Calidad del Sueño", listOf(
+            OpcionCategoria(4, "Muy bien", "nube_muy_feliz"),
+            OpcionCategoria(3, "Descansado", "nube_feliz"),
+            OpcionCategoria(2, "Cansado", "nube_mid"),
+            OpcionCategoria(1, "Insomnio", "nube_triste")
+        )),
+        CategoriaDiario("estadoMental", "Estado Mental", listOf(
+            OpcionCategoria(4, "Claridad", "superhappy"),
+            OpcionCategoria(3, "Tranquilidad", "happyface"),
+            OpcionCategoria(2, "Estrés", "sadface"),
+            OpcionCategoria(1, "Caos", "supersad")
+        )),
+        CategoriaDiario("ejercicio", "Intensidad del Ejercicio", listOf(
+            OpcionCategoria(4, "Intenso", "happy1"),
+            OpcionCategoria(3, "Moderado", "happy2"),
+            OpcionCategoria(2, "Ligero", "sad"),
+            OpcionCategoria(1, "Nada", "sad2")
+        ))
+    )
+
+    val categoriasUsuario = combine(
+        MutableStateFlow(defaultsCategorias),
+        diaryRepository.getCustomCategoriesStream()
+    ) { defs, customs ->
+        val customsMap = customs.associateBy { it.idCategoria }
+        val mergedDefaults = defs.map { customsMap[it.idCategoria] ?: it }
+        val pureCustoms = customs.filter { it.idCategoria !in defs.map { d -> d.idCategoria } }
+
+        mergedDefaults + pureCustoms
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), defaultsCategorias)
+
 
     fun resetState() { _uiState.value = DiaryEntryUiState.Idle }
 
-    private fun cargarCategorias() {
-        viewModelScope.launch {
-            val defaults = listOf(
-                CategoriaDiario(
-                    idCategoria = "estadoAnimo",
-                    tituloPersonalizado = "Estado de Ánimo",
-                    opciones = listOf(
-                        OpcionCategoria(4, "Increíble", "ic_sol_feli"),
-                        OpcionCategoria(3, "Bien", "ic_nube_feli"),
-                        OpcionCategoria(2, "Desanimado", "ic_sol_tite"),
-                        OpcionCategoria(1, "Terrible", "ic_nube_tite")
-                    )
-                ),
-                CategoriaDiario(
-                    idCategoria = "calidadSueno",
-                    tituloPersonalizado = "Calidad del Sueño",
-                    opciones = listOf(
-                        OpcionCategoria(4, "Muy bien", "ic_sol_feli"),
-                        OpcionCategoria(3, "Descansado", "ic_nube_feli"),
-                        OpcionCategoria(2, "Cansado", "ic_nube_tite"),
-                        OpcionCategoria(1, "Insomnio", "ic_sol_tite")
-                    )
-                ),
-                CategoriaDiario(
-                    idCategoria = "estadoMental",
-                    tituloPersonalizado = "Estado Mental",
-                    opciones = listOf(
-                        OpcionCategoria(4, "Claridad", "ic_sol_feli"),
-                        OpcionCategoria(3, "Tranquilidad", "ic_nube_feli"),
-                        OpcionCategoria(2, "Estrés", "ic_nube_tite"),
-                        OpcionCategoria(1, "Caos", "ic_sol_tite")
-                    )
-                ),
-                CategoriaDiario(
-                    idCategoria = "ejercicio",
-                    tituloPersonalizado = "Intensidad del Ejercicio",
-                    opciones = listOf(
-                        OpcionCategoria(4, "Intenso", "ic_sol_feli"),
-                        OpcionCategoria(3, "Moderado", "ic_nube_feli"),
-                        OpcionCategoria(2, "Ligero", "ic_nube_tite"),
-                        OpcionCategoria(1, "Nada", "ic_sol_tite")
-                    )
-                )
-            )
-            _categoriasUsuario.value = defaults
-        }
-    }
-
     fun recargarDatosDeSalud(date: LocalDate) {
-        viewModelScope.launch {
-            obtenerDatosDeSaludDelDia(date)
-        }
+        viewModelScope.launch { obtenerDatosDeSaludDelDia(date) }
     }
 
     fun guardarEntrada(
@@ -181,8 +165,8 @@ class DiaryEntryViewModel @Inject constructor(
             try {
                 diaryRepository.saveDiaryEntry(nuevaEntrada)
                 val feedbackMsg = when (selecciones["estadoAnimo"]?.lowercase()?.trim()) {
-                    "feliz", "increíble", "excelente", "5" -> R.string.feedback_happy
-                    "bien", "contento", "4" -> R.string.feedback_good
+                    "feliz", "increíble", "excelente", "5", "4" -> R.string.feedback_happy
+                    "bien", "contento", "3" -> R.string.feedback_good
                     "mal", "triste", "cansado", "2" -> R.string.feedback_sad
                     "terrible", "pésimo", "1" -> R.string.feedback_awful
                     else -> R.string.feedback_neutral
@@ -219,48 +203,42 @@ class DiaryEntryViewModel @Inject constructor(
         }
     }
 
-    val limiteCategorias = 7
     fun agregarCategoriaPersonalizada(nuevaCategoria: CategoriaDiario) {
-        val actuales = _categoriasUsuario.value.toMutableList()
-        if (actuales.size < limiteCategorias) {
-            actuales.add(nuevaCategoria)
-            _categoriasUsuario.value = actuales
+        viewModelScope.launch {
+            if (categoriasUsuario.value.size < limiteCategorias) {
+                try { diaryRepository.saveCustomCategory(nuevaCategoria) }
+                catch (e: Exception) { e.printStackTrace() }
+            }
         }
     }
 
     fun actualizarCategoria(categoriaModificada: CategoriaDiario) {
-        val actuales = _categoriasUsuario.value.toMutableList()
-        val index = actuales.indexOfFirst { it.idCategoria == categoriaModificada.idCategoria }
-        if (index != -1) {
-            actuales[index] = categoriaModificada
-            _categoriasUsuario.value = actuales
+        viewModelScope.launch {
+            try { diaryRepository.saveCustomCategory(categoriaModificada) }
+            catch (e: Exception) { e.printStackTrace() }
         }
     }
 
     fun eliminarCategoria(idCategoria: String) {
-        val actuales = _categoriasUsuario.value.toMutableList()
-        actuales.removeAll { it.idCategoria == idCategoria }
-        _categoriasUsuario.value = actuales
+        viewModelScope.launch {
+            try { diaryRepository.deleteCustomCategory(idCategoria) }
+            catch (e: Exception) { e.printStackTrace() }
+        }
     }
 
     private suspend fun obtenerDatosDeSaludDelDia(date: LocalDate) {
         val hc = healthConnectRepository ?: return
-
         try {
             val pasos = hc.readStepsByDate(date)
             val sueno = hc.readLastNightSleepDurationByDate(date)
 
-            val suenoMinutos = sueno.totalMinutes
-
             _healthConnectData.value = HealthDataResult(
                 pasos = pasos.takeIf { it > 0 },
-                minutosSueno = suenoMinutos.takeIf { it > 0 },
+                minutosSueno = sueno.totalMinutes.takeIf { it > 0 },
                 ritmoCardiaco = null,
                 hrv = null
             )
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        } catch (e: Exception) { e.printStackTrace() }
     }
 
     fun eliminarEntrada(date: LocalDate) {

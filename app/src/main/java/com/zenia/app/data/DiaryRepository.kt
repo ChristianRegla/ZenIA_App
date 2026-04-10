@@ -4,6 +4,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import com.zenia.app.model.CategoriaDiario
 import com.zenia.app.model.DiarioEntrada
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -70,11 +71,6 @@ class DiaryRepository @Inject constructor(
      */
     fun getDiaryEntriesStream(): Flow<List<DiarioEntrada>> = getUserSubcollectionFlow(FirestoreCollections.DIARY)
 
-    /**
-     * Obtiene un flujo de entradas del diario a partir de una fecha mínima.
-     *
-     * @param minDate La fecha mínima en formato AAAA-MM-DD.
-     */
     fun getEntriesFromDate(minDate: String): Flow<List<DiarioEntrada>> = getUserSubcollectionFlow(FirestoreCollections.DIARY) { query ->
         query.whereGreaterThanOrEqualTo("fecha", minDate)
     }
@@ -116,6 +112,46 @@ class DiaryRepository @Inject constructor(
             snapshot.toObjects(DiarioEntrada::class.java)
         } catch (e: Exception) {
             emptyList()
+        }
+    }
+
+    fun getCustomCategoriesStream(): Flow<List<CategoriaDiario>> = getUserSubcollectionFlow(
+        FirestoreCollections.DIARY_CATEGORY)
+
+    suspend fun saveCustomCategory(categoria: CategoriaDiario) {
+        db.collection(FirestoreCollections.USERS).document(userId)
+            .collection(FirestoreCollections.DIARY_CATEGORY)
+            .document(categoria.idCategoria)
+            .set(categoria)
+            .await()
+    }
+
+    suspend fun deleteCustomCategory(idCategoria: String) {
+        db.collection(FirestoreCollections.USERS).document(userId)
+            .collection("categorias_diario")
+            .document(idCategoria)
+            .delete()
+            .await()
+
+        val entriesSnapshot = db.collection(FirestoreCollections.USERS).document(userId)
+            .collection(FirestoreCollections.DIARY)
+            .get()
+            .await()
+
+        val docsToUpdate = entriesSnapshot.documents.filter { doc ->
+            val entry = doc.toObject(DiarioEntrada::class.java)
+            entry != null && entry.categoriasExtra.containsKey(idCategoria)
+        }
+
+        docsToUpdate.chunked(500).forEach { chunk ->
+            db.runBatch { batch ->
+                for (doc in chunk) {
+                    val entry = doc.toObject(DiarioEntrada::class.java)!!
+                    val newExtras = entry.categoriasExtra.toMutableMap()
+                    newExtras.remove(idCategoria)
+                    batch.update(doc.reference, "categoriasExtra", newExtras)
+                }
+            }.await()
         }
     }
 

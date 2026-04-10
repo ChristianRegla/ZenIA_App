@@ -41,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -89,6 +90,7 @@ fun DiaryEntryScreen(
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             ConnectedDiaryEntry(
                 date = date,
+                viewModel = viewModel,
                 onSuccessCallback = onNavigateBack
             )
         }
@@ -98,15 +100,13 @@ fun DiaryEntryScreen(
 @Composable
 fun ConnectedDiaryEntry(
     date: LocalDate,
-    viewModel: DiaryEntryViewModel = hiltViewModel(),
+    viewModel: DiaryEntryViewModel = hiltViewModel(), // <-- CORRECCIÓN: Se restauró el valor por defecto
     onSuccessCallback: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val existingEntry by viewModel.existingEntry.collectAsState()
     val healthConnectData by viewModel.healthConnectData.collectAsState()
-
     val isPremium by viewModel.isPremium.collectAsState()
-
     val categoriasUsuario by viewModel.categoriasUsuario.collectAsState()
     val context = LocalContext.current
 
@@ -139,18 +139,13 @@ fun ConnectedDiaryEntry(
         categoriasUsuario = categoriasUsuario,
         activitiesList = viewModel.activitiesList,
         isPremium = isPremium,
+        limiteCategorias = viewModel.limiteCategorias,
         onReloadHealthData = { viewModel.recargarDatosDeSalud(date) },
         onSave = { seleccionesMap, activities, notes, pasos, ritmoCardiaco, minsSueno, hrv ->
             viewModel.guardarEntrada(
-                date = date,
-                selecciones = seleccionesMap,
-                actividades = activities,
-                notas = notes,
-                hcPasos = pasos,
-                hcRitmoCardiaco = ritmoCardiaco,
-                hcMinutosSueno = minsSueno,
-                hcHrv = hrv,
-                onSuccess = {}
+                date = date, selecciones = seleccionesMap, actividades = activities,
+                notas = notes, hcPasos = pasos, hcRitmoCardiaco = ritmoCardiaco,
+                hcMinutosSueno = minsSueno, hcHrv = hrv, onSuccess = {}
             )
         },
         onDelete = { viewModel.eliminarEntrada(date) },
@@ -194,6 +189,7 @@ fun DiaryEntryContent(
     categoriasUsuario: List<CategoriaDiario>,
     activitiesList: List<ActivityData>,
     isPremium: Boolean,
+    limiteCategorias: Int,
     onReloadHealthData: () -> Unit,
     onSave: (Map<String, String>, List<String>, String, Int?, Int?, Int?, Int?) -> Unit,
     onDelete: () -> Unit,
@@ -232,6 +228,10 @@ fun DiaryEntryContent(
             getLevel("estadoMental", existingEntry.estadoMental)?.let { selecciones["estadoMental"] = it }
             getLevel("ejercicio", existingEntry.ejercicio)?.let { selecciones["ejercicio"] = it }
 
+            existingEntry.categoriasExtra.forEach { (catId, dbName) ->
+                getLevel(catId, dbName)?.let { selecciones[catId] = it }
+            }
+
             noteText = existingEntry.notas
             selectedActivities.clear()
             selectedActivities.addAll(existingEntry.actividades)
@@ -269,39 +269,26 @@ fun DiaryEntryContent(
 
         item {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(R.string.diary_activity_health_title),
-                        fontFamily = RobotoFlex,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        text = stringResource(R.string.diary_activity_health_title), fontFamily = RobotoFlex,
+                        fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
                     Text(
                         text = stringResource(R.string.diary_activity_health_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-
                 IconButton(
                     onClick = onReloadHealthData,
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                        .size(40.dp)
+                    modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer, CircleShape).size(40.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = stringResource(R.string.diary_reload_watch_desc),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    Icon(Icons.Default.Refresh, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
                 }
             }
 
@@ -312,79 +299,36 @@ fun DiaryEntryContent(
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         OutlinedTextField(
-                            value = pasosText,
-                            onValueChange = { pasosText = it },
-                            label = { Text(stringResource(R.string.diary_steps)) },
-                            leadingIcon = { Icon(Icons.AutoMirrored.Filled.DirectionsWalk, null) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            enabled = isPremium
+                            value = pasosText, onValueChange = { pasosText = it }, label = { Text(stringResource(R.string.diary_steps)) },
+                            leadingIcon = { Icon(Icons.AutoMirrored.Filled.DirectionsWalk, null) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp), enabled = isPremium
                         )
                         OutlinedTextField(
-                            value = ritmoCardiacoText,
-                            onValueChange = { ritmoCardiacoText = it },
-                            label = { Text(stringResource(R.string.diary_heart_rate)) },
-                            leadingIcon = { Icon(Icons.Default.Favorite, null) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            enabled = isPremium
+                            value = ritmoCardiacoText, onValueChange = { ritmoCardiacoText = it }, label = { Text(stringResource(R.string.diary_heart_rate)) },
+                            leadingIcon = { Icon(Icons.Default.Favorite, null) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp), enabled = isPremium
                         )
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         OutlinedTextField(
-                            value = suenoText,
-                            onValueChange = { suenoText = it },
-                            label = { Text(stringResource(R.string.diary_sleep_mins)) },
-                            leadingIcon = { Icon(Icons.Default.Bedtime, null) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            enabled = isPremium
+                            value = suenoText, onValueChange = { suenoText = it }, label = { Text(stringResource(R.string.diary_sleep_mins)) },
+                            leadingIcon = { Icon(Icons.Default.Bedtime, null) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp), enabled = isPremium
                         )
                         OutlinedTextField(
-                            value = hrvText,
-                            onValueChange = { hrvText = it },
-                            label = { Text(stringResource(R.string.diary_hrv)) },
-                            leadingIcon = { Icon(Icons.AutoMirrored.Filled.ShowChart, null) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            enabled = isPremium
+                            value = hrvText, onValueChange = { hrvText = it }, label = { Text(stringResource(R.string.diary_hrv)) },
+                            leadingIcon = { Icon(Icons.AutoMirrored.Filled.ShowChart, null) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp), enabled = isPremium
                         )
                     }
                 }
-
                 if (!isPremium) {
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = { }
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(16.dp),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFD700)),
-                            shadowElevation = 8.dp
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(Icons.Default.WorkspacePremium, contentDescription = null, tint = Color(0xFFFFD700))
+                    Box(modifier = Modifier.matchParentSize().clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = { }), contentAlignment = Alignment.Center) {
+                        Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(16.dp), border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFD700)), shadowElevation = 8.dp) {
+                            Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.WorkspacePremium, null, tint = Color(0xFFFFD700))
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    "Exclusivo Premium",
-                                    fontFamily = RobotoFlex,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
+                                Text("Exclusivo Premium", fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                             }
                         }
                     }
@@ -407,17 +351,14 @@ fun DiaryEntryContent(
                 selectedNivel = selecciones[categoria.idCategoria],
                 color = categoryColor,
                 onSelect = { nivel ->
-                    if (selecciones[categoria.idCategoria] == nivel) {
-                        selecciones.remove(categoria.idCategoria)
-                    } else {
-                        selecciones[categoria.idCategoria] = nivel
-                    }
+                    if (selecciones[categoria.idCategoria] == nivel) selecciones.remove(categoria.idCategoria)
+                    else selecciones[categoria.idCategoria] = nivel
                 },
                 onEdit = { onEditCategory(categoria.idCategoria) }
             )
         }
 
-        if (categoriasUsuario.size < 7) {
+        if (categoriasUsuario.size < limiteCategorias) {
             item {
                 OutlinedButton(
                     onClick = onAddCategory,
@@ -434,24 +375,16 @@ fun DiaryEntryContent(
         item {
             SectionTitle(stringResource(R.string.diary_what_have_you_done))
             FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 activitiesList.forEach { activityItem ->
                     val isSelected = selectedActivities.contains(activityItem.dbValue)
                     FilterChip(
                         selected = isSelected,
-                        onClick = {
-                            if (isSelected) selectedActivities.remove(activityItem.dbValue)
-                            else selectedActivities.add(activityItem.dbValue)
-                        },
+                        onClick = { if (isSelected) selectedActivities.remove(activityItem.dbValue) else selectedActivities.add(activityItem.dbValue) },
                         label = { Text(stringResource(activityItem.labelRes), fontFamily = RobotoFlex) },
                         leadingIcon = if (isSelected) { { Icon(Icons.Default.Check, null, Modifier.size(18.dp)) } } else null,
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primaryContainer, selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer)
                     )
                 }
             }
@@ -459,43 +392,22 @@ fun DiaryEntryContent(
 
         item {
             SectionTitle(stringResource(R.string.diary_section_notes))
-
             val prompts = stringArrayResource(R.array.diary_prompts)
-
             Box(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
-                    value = noteText,
-                    onValueChange = { noteText = it },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp),
-                    placeholder = { Text(stringResource(R.string.diary_placeholder_notes)) },
-                    shape = RoundedCornerShape(16.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                    )
+                    value = noteText, onValueChange = { noteText = it }, modifier = Modifier.fillMaxWidth().height(180.dp),
+                    placeholder = { Text(stringResource(R.string.diary_placeholder_notes)) }, shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
                 )
-
                 IconButton(
                     onClick = {
                         val randomPrompt = prompts.random()
                         val separator = if (noteText.isBlank()) "" else "\n\n"
                         noteText = "$noteText$separator✨ $randomPrompt\n"
                     },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
-                            shape = CircleShape
-                        )
+                    modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).background(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f), shape = CircleShape)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Lightbulb,
-                        contentDescription = stringResource(R.string.diary_inspiration_desc),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                    Icon(Icons.Default.Lightbulb, null, tint = MaterialTheme.colorScheme.primary)
                 }
             }
         }
@@ -509,23 +421,16 @@ fun DiaryEntryContent(
                 Button(
                     onClick = {
                         val seleccionesParaBD = selecciones.mapNotNull { (catId, nivel) ->
-                            val dbName = categoriasUsuario.find { it.idCategoria == catId }
-                                ?.opciones?.find { it.nivel == nivel }?.nombrePersonalizado
-
+                            val dbName = categoriasUsuario.find { it.idCategoria == catId }?.opciones?.find { it.nivel == nivel }?.nombrePersonalizado
                             if (dbName != null) catId to dbName else null
                         }.toMap()
 
                         onSave(
-                            seleccionesParaBD,
-                            selectedActivities.toList(),
-                            noteText,
-                            pasosText.toIntOrNull(), ritmoCardiacoText.toIntOrNull(),
-                            suenoText.toIntOrNull(), hrvText.toIntOrNull()
+                            seleccionesParaBD, selectedActivities.toList(), noteText,
+                            pasosText.toIntOrNull(), ritmoCardiacoText.toIntOrNull(), suenoText.toIntOrNull(), hrvText.toIntOrNull()
                         )
                     },
-                    enabled = hasContent && !isLoading,
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    shape = RoundedCornerShape(12.dp)
+                    enabled = hasContent && !isLoading, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(12.dp)
                 ) {
                     if (isLoading) CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                     else Text(buttonText, fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -533,12 +438,8 @@ fun DiaryEntryContent(
 
                 if (existingEntry != null) {
                     OutlinedButton(
-                        onClick = onDelete,
-                        enabled = !isLoading,
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+                        onClick = onDelete, enabled = !isLoading, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error)
                     ) {
                         Text(stringResource(R.string.diary_btn_delete), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
@@ -549,83 +450,81 @@ fun DiaryEntryContent(
 }
 
 @Composable
-fun SelectionSection(
-    categoria: CategoriaDiario,
-    selectedNivel: Int?,
-    color: Color,
-    onSelect: (Int) -> Unit,
-    onEdit: () -> Unit
-) {
+fun SelectionSection(categoria: CategoriaDiario, selectedNivel: Int?, color: Color, onSelect: (Int) -> Unit, onEdit: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = categoria.tituloPersonalizado,
-            fontFamily = RobotoFlex,
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        Text(text = categoria.tituloPersonalizado, fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface)
         IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
             Icon(Icons.Default.Settings, stringResource(R.string.diary_edit_desc), tint = MaterialTheme.colorScheme.primary)
         }
     }
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         categoria.opciones.forEach { opcion ->
-            FeelingItem(
-                iconName = opcion.iconResName,
-                label = opcion.nombrePersonalizado,
-                isSelected = selectedNivel == opcion.nivel,
-                color = color
-            ) { onSelect(opcion.nivel) }
+            FeelingItem(iconName = opcion.iconResName, label = opcion.nombrePersonalizado, isSelected = selectedNivel == opcion.nivel, color = color) { onSelect(opcion.nivel) }
         }
     }
 }
 
 @Composable
 fun SectionTitle(text: String) {
-    Text(text, fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(bottom = 8.dp))
+    Text(
+        text,
+        fontFamily = RobotoFlex,
+        fontWeight = FontWeight.Bold,
+        fontSize = 18.sp,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
 }
 
 @Composable
-fun FeelingItem(iconName: String, label: String, isSelected: Boolean, color: Color, onClick: () -> Unit) {
+fun FeelingItem(
+    iconName: String,
+    label: String,
+    isSelected: Boolean,
+    color: Color,
+    onClick: () -> Unit
+) {
     val iconRes = IconMapper.getDrawable(iconName)
     val interactionSource = remember { MutableInteractionSource() }
-
     val applyDynamicTint = iconName.contains("nube") || iconName.contains("sol")
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable(
-            interactionSource = interactionSource,
-            indication = null,
-            onClick = onClick
-        ).padding(4.dp)
+        modifier = Modifier
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+            .padding(4.dp)
+            .widthIn(max = 76.dp)
     ) {
         Box(
-            modifier = Modifier
-                .size(52.dp)
-                .clip(RoundedCornerShape(12.dp))
+            modifier = Modifier.size(52.dp).clip(RoundedCornerShape(12.dp))
                 .background(if (isSelected) color else MaterialTheme.colorScheme.surfaceVariant)
                 .border(3.dp, color, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
-            val iconTint = if (applyDynamicTint) {
-                if (isSelected) Color.White else color
-            } else {
-                Color.Unspecified
-            }
+            val iconTint = if (applyDynamicTint) { if (isSelected) Color.White else color } else Color.Unspecified
             Icon(
                 painter = painterResource(id = iconRes),
                 contentDescription = label,
                 modifier = Modifier.size(28.dp),
-                tint = iconTint
-            )
+                tint = iconTint)
         }
         Spacer(modifier = Modifier.height(4.dp))
-        Text(text = label, fontSize = 11.sp, fontFamily = RobotoFlex, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            fontFamily = RobotoFlex,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            lineHeight = 14.sp
+        )
     }
 }
 
@@ -638,20 +537,37 @@ fun CategoryEditorSheet(
     onDelete: (String) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
     var titulo by rememberSaveable { mutableStateOf(categoriaInicial?.tituloPersonalizado ?: "") }
+
+    val MAX_TITLE_LENGTH = 30
+    val MAX_OPTION_LENGTH = 15
+
+    var showDeleteWarning by remember { mutableStateOf(false) }
 
     val opciones = remember {
         val iniciales = categoriaInicial?.opciones ?: listOf(
-            OpcionCategoria(4, "", "nube_feliz"),
-            OpcionCategoria(3, "", "nube_feliz"),
-            OpcionCategoria(2, "", "nube_triste"),
-            OpcionCategoria(1, "", "sol_triste")
+            OpcionCategoria(4, "", "nube_muy_feliz"), OpcionCategoria(3, "", "nube_feliz"),
+            OpcionCategoria(2, "", "nube_triste"), OpcionCategoria(1, "", "sol_triste")
         )
         mutableStateListOf(*iniciales.toTypedArray())
     }
 
-    var seleccionandoIconoParaIndex by remember { mutableStateOf<Int?>(null) }
+    var selectedStyleIndex by remember { mutableStateOf(0) }
+
+    LaunchedEffect(categoriaInicial) {
+        categoriaInicial?.opciones?.find { it.nivel == 4 }?.iconResName?.let { lvl4Icon ->
+            val index = IconMapper.iconStyles.indexOfFirst { it[0] == lvl4Icon }
+            if (index != -1) selectedStyleIndex = index
+        }
+    }
+
+    LaunchedEffect(selectedStyleIndex) {
+        val styleIcons = IconMapper.iconStyles[selectedStyleIndex]
+        opciones[0] = opciones[0].copy(iconResName = styleIcons[0])
+        opciones[1] = opciones[1].copy(iconResName = styleIcons[1])
+        opciones[2] = opciones[2].copy(iconResName = styleIcons[2])
+        opciones[3] = opciones[3].copy(iconResName = styleIcons[3])
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -675,8 +591,7 @@ fun CategoryEditorSheet(
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
+                modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center
             )
 
             Text(
@@ -688,19 +603,52 @@ fun CategoryEditorSheet(
 
             OutlinedTextField(
                 value = titulo,
-                onValueChange = { titulo = it },
+                onValueChange = { if (it.length <= MAX_TITLE_LENGTH) titulo = it },
                 label = { Text(stringResource(R.string.diary_what_to_measure)) },
                 placeholder = { Text(stringResource(R.string.diary_what_to_measure_placeholder)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                singleLine = true
+                singleLine = true,
+                supportingText = {
+                    Text(
+                        text = "${titulo.length} / $MAX_TITLE_LENGTH",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.End
+                    )
+                }
             )
 
             Text(
-                text = stringResource(R.string.diary_customize_icons),
+                "Selecciona el estilo visual:",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                IconMapper.iconStyles.forEachIndexed { index, styleList ->
+                    val isSelected = selectedStyleIndex == index
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant)
+                            .border(
+                                width = if (isSelected) 2.dp else 0.dp,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .clickable { selectedStyleIndex = index },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val isDynamicTint = styleList[0].contains("nube") || styleList[0].contains("sol")
+                        Icon(
+                            painter = painterResource(id = IconMapper.getDrawable(styleList[0])),
+                            contentDescription = null, tint = if (isDynamicTint) ZeniaTeal else Color.Unspecified,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+            }
 
             opciones.forEachIndexed { index, opcion ->
                 val levelDesc = when (opcion.nivel) {
@@ -708,14 +656,6 @@ fun CategoryEditorSheet(
                     3 -> stringResource(R.string.diary_level_3)
                     2 -> stringResource(R.string.diary_level_2)
                     1 -> stringResource(R.string.diary_level_1)
-                    else -> stringResource(R.string.diary_level_n, opcion.nivel)
-                }
-
-                val ejemploGhost = when (opcion.nivel) {
-                    4 -> stringResource(R.string.diary_level_4_example)
-                    3 -> stringResource(R.string.diary_level_3_example)
-                    2 -> stringResource(R.string.diary_level_2_example)
-                    1 -> stringResource(R.string.diary_level_1_example)
                     else -> ""
                 }
 
@@ -728,14 +668,13 @@ fun CategoryEditorSheet(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .clickable { seleccionandoIconoParaIndex = index },
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
                         contentAlignment = Alignment.Center
                     ) {
                         val applyDynamicTint = opcion.iconResName.contains("nube") || opcion.iconResName.contains("sol")
                         Icon(
                             painter = painterResource(id = IconMapper.getDrawable(opcion.iconResName)),
-                            contentDescription = "Cambiar ícono",
+                            contentDescription = null,
                             tint = if (applyDynamicTint) ZeniaTeal else Color.Unspecified,
                             modifier = Modifier.size(28.dp)
                         )
@@ -743,12 +682,24 @@ fun CategoryEditorSheet(
 
                     OutlinedTextField(
                         value = opcion.nombrePersonalizado,
-                        onValueChange = { nuevoTexto -> opciones[index] = opcion.copy(nombrePersonalizado = nuevoTexto) },
-                        label = { Text(levelDesc) },
-                        placeholder = { Text(ejemploGhost) },
+                        onValueChange = { nt ->
+                            if (nt.length <= MAX_OPTION_LENGTH) {
+                                opciones[index] = opcion.copy(nombrePersonalizado = nt)
+                            }
+                        },
+                        label = {
+                            Text(levelDesc)
+                        },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        supportingText = {
+                            Text(
+                                text = "${opcion.nombrePersonalizado.length} / $MAX_OPTION_LENGTH",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.End
+                            )
+                        }
                     )
                 }
             }
@@ -758,12 +709,14 @@ fun CategoryEditorSheet(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (categoriaInicial != null) {
                     OutlinedButton(
-                        onClick = { onDelete(categoriaInicial.idCategoria) },
-                        modifier = Modifier.weight(1f).height(50.dp),
-                        shape = RoundedCornerShape(12.dp),
+                        onClick = { showDeleteWarning = true },
+                        modifier = Modifier.weight(1f).height(50.dp), shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
                     ) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.diary_delete_desc))
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = stringResource(R.string.diary_delete_desc)
+                        )
                     }
                 }
 
@@ -772,57 +725,41 @@ fun CategoryEditorSheet(
                         val id = categoriaInicial?.idCategoria ?: UUID.randomUUID().toString()
                         onSave(CategoriaDiario(id, titulo, opciones.toList()))
                     },
-                    modifier = Modifier.weight(3f).height(50.dp),
+                    modifier = Modifier
+                        .weight(3f)
+                        .height(50.dp),
                     enabled = titulo.isNotBlank() && opciones.all { it.nombrePersonalizado.isNotBlank() },
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(stringResource(R.string.diary_save_action), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
+                    Text(
+                        stringResource(R.string.diary_save_action),
+                        fontFamily = RobotoFlex,
+                        fontWeight = FontWeight.Bold)
                 }
             }
         }
     }
 
-    if (seleccionandoIconoParaIndex != null) {
+    if (showDeleteWarning) {
         AlertDialog(
-            onDismissRequest = { seleccionandoIconoParaIndex = null },
+            onDismissRequest = { showDeleteWarning = false },
             title = {
-                Text(stringResource(R.string.diary_select_icon), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
+                Text("Eliminar categoría",
+                    fontFamily = RobotoFlex,
+                    fontWeight = FontWeight.Bold)
             },
-            text = {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(4),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.padding(top = 8.dp)
-                ) {
-                    items(IconMapper.availableIcons) { iconName ->
-                        Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant)
-                                .clickable {
-                                    val indexToUpdate = seleccionandoIconoParaIndex!!
-                                    opciones[indexToUpdate] = opciones[indexToUpdate].copy(iconResName = iconName)
-                                    seleccionandoIconoParaIndex = null
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            val applyDynamicTint = iconName.contains("nube") || iconName.contains("sol")
-                            Icon(
-                                painter = painterResource(id = IconMapper.getDrawable(iconName)),
-                                contentDescription = null,
-                                tint = if (applyDynamicTint) ZeniaTeal else Color.Unspecified,
-                                modifier = Modifier.size(32.dp)
-                            )
-                        }
-                    }
-                }
-            },
+            text = { Text("Si eliminas esta categoría, también se borrarán todas las entradas en la BD previas asociadas a ella en días pasados. Esta acción no se puede deshacer.") },
             confirmButton = {
-                TextButton(onClick = { seleccionandoIconoParaIndex = null }) {
-                    Text(stringResource(R.string.cancel), fontFamily = RobotoFlex, color = MaterialTheme.colorScheme.error)
-                }
+                Button(
+                    onClick = {
+                        categoriaInicial?.let { onDelete(it.idCategoria) }
+                        showDeleteWarning = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) { Text("Eliminar definitivamente") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteWarning = false }) { Text("Cancelar") }
             },
             containerColor = MaterialTheme.colorScheme.surface
         )
