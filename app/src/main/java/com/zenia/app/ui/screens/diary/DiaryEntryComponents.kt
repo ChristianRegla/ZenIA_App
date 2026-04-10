@@ -1,5 +1,6 @@
 package com.zenia.app.ui.screens.diary
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,34 +46,49 @@ import java.util.UUID
 
 @Composable
 fun HealthMetricsSection(
-    pasosText: String, onPasosChange: (String) -> Unit,
-    ritmoCardiacoText: String, onRitmoCardiacoChange: (String) -> Unit,
-    suenoText: String, onSuenoChange: (String) -> Unit,
-    hrvText: String, onHrvChange: (String) -> Unit,
+    pasosText: String,
+    onPasosChange: (String) -> Unit,
+    ritmoCardiacoText: String,
+    onRitmoCardiacoChange: (String) -> Unit,
+    suenoText: String,
+    onSuenoChange: (String) -> Unit,
+    hrvText: String,
+    onHrvChange: (String) -> Unit,
     isPremium: Boolean,
     onReloadHealthData: () -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = stringResource(R.string.diary_activity_health_title), fontFamily = RobotoFlex,
-                fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface,
+                text = stringResource(R.string.diary_activity_health_title),
+                fontFamily = RobotoFlex,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
             Text(
                 text = stringResource(R.string.diary_activity_health_desc),
-                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         IconButton(
             onClick = onReloadHealthData,
-            modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer, CircleShape).size(40.dp)
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                .size(40.dp)
         ) {
-            Icon(Icons.Default.Refresh, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+            Icon(
+                imageVector = Icons.Default.Refresh,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer)
         }
     }
 
@@ -83,40 +99,122 @@ fun HealthMetricsSection(
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
-                    value = pasosText, onValueChange = onPasosChange,
-                    label = { Text(stringResource(R.string.diary_steps), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    leadingIcon = { Icon(Icons.AutoMirrored.Filled.DirectionsWalk, null) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp), enabled = isPremium, singleLine = true
+                    value = pasosText,
+                    onValueChange = onPasosChange,
+                    label = {
+                        Text(stringResource(R.string.diary_steps),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis)
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.DirectionsWalk,
+                            null
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = isPremium,
+                    singleLine = true
                 )
                 OutlinedTextField(
-                    value = ritmoCardiacoText, onValueChange = onRitmoCardiacoChange,
-                    label = { Text(stringResource(R.string.diary_heart_rate), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    leadingIcon = { Icon(Icons.Default.Favorite, null) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp), enabled = isPremium, singleLine = true
+                    value = ritmoCardiacoText,
+                    onValueChange = onRitmoCardiacoChange,
+                    label = {
+                        Text(
+                            stringResource(R.string.diary_heart_rate),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Favorite,
+                            null
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = isPremium,
+                    singleLine = true
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
-                    value = suenoText, onValueChange = onSuenoChange,
-                    label = { Text(stringResource(R.string.diary_sleep_mins), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    leadingIcon = { Icon(Icons.Default.Bedtime, null) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp), enabled = isPremium, singleLine = true
+                    value = suenoText,
+                    onValueChange = onSuenoChange,
+                    label = {
+                        Text(
+                            stringResource(R.string.diary_sleep_mins),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Bedtime,
+                            null
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = isPremium,
+                    singleLine = true
                 )
                 OutlinedTextField(
-                    value = hrvText, onValueChange = onHrvChange,
-                    label = { Text(stringResource(R.string.diary_hrv), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    leadingIcon = { Icon(Icons.AutoMirrored.Filled.ShowChart, null) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp), enabled = isPremium, singleLine = true
+                    value = hrvText,
+                    onValueChange = onHrvChange,
+                    label = {
+                        Text(
+                            stringResource(R.string.diary_hrv),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    leadingIcon = { Icon(Icons.AutoMirrored.Filled.ShowChart, null) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = isPremium,
+                    singleLine = true
                 )
             }
         }
         if (!isPremium) {
-            Box(modifier = Modifier.matchParentSize().clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = { }), contentAlignment = Alignment.Center) {
-                Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(16.dp), border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFD700)), shadowElevation = 8.dp) {
-                    Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.WorkspacePremium, null, tint = Color(0xFFFFD700))
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() }
+                        , indication = null,
+                        onClick = { }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, Color(0xFFFFD700)),
+                    shadowElevation = 8.dp) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.WorkspacePremium,
+                            null,
+                            tint = Color(0xFFFFD700)
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.diary_premium_exclusive), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                        Text(
+                            stringResource(R.string.diary_premium_exclusive),
+                            fontFamily = RobotoFlex,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             }
@@ -137,24 +235,63 @@ fun SectionTitle(text: String) {
 }
 
 @Composable
-fun SelectionSection(categoria: CategoriaDiario, selectedNivel: Int?, color: Color, onSelect: (Int) -> Unit, onEdit: () -> Unit) {
+fun SelectionSection(
+    categoria: CategoriaDiario,
+    selectedNivel: Int?,
+    color: Color,
+    onSelect: (Int) -> Unit,
+    onEdit: () -> Unit
+) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = categoria.tituloPersonalizado, fontFamily = RobotoFlex, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface)
-        IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
-            Icon(Icons.Default.Settings, stringResource(R.string.diary_edit_desc), tint = MaterialTheme.colorScheme.primary)
+        Text(
+            text = categoria.tituloPersonalizado,
+            fontFamily = RobotoFlex,
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        IconButton(
+            onClick = onEdit,
+            modifier = Modifier.size(32.dp)
+        ) {
+            Icon(
+                Icons.Default.Settings,
+                stringResource(R.string.diary_edit_desc),
+                tint = MaterialTheme.colorScheme.primary
+            )
         }
     }
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
         categoria.opciones.forEach { opcion ->
-            FeelingItem(iconName = opcion.iconResName, label = opcion.nombrePersonalizado, isSelected = selectedNivel == opcion.nivel, color = color) { onSelect(opcion.nivel) }
+            FeelingItem(
+                iconName = opcion.iconResName,
+                label = opcion.nombrePersonalizado,
+                isSelected = selectedNivel == opcion.nivel,
+                color = color
+            ) {
+                onSelect(opcion.nivel)
+            }
         }
     }
 }
 
 @Composable
-fun FeelingItem(iconName: String, label: String, isSelected: Boolean, color: Color, onClick: () -> Unit) {
+fun FeelingItem(
+    iconName: String,
+    label: String,
+    isSelected: Boolean,
+    color: Color,
+    onClick: () -> Unit
+) {
     val iconRes = IconMapper.getDrawable(iconName)
     val interactionSource = remember { MutableInteractionSource() }
     val applyDynamicTint = iconName.contains("nube") || iconName.contains("sol")
@@ -232,22 +369,52 @@ fun CategoryEditorSheet(
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState, containerColor = MaterialTheme.colorScheme.surface) {
         val scrollState = rememberScrollState()
 
-        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 32.dp).imePadding().verticalScroll(scrollState), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+                .imePadding()
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             Text(
                 text = if (categoriaInicial == null) stringResource(R.string.diary_create_own_category) else stringResource(R.string.diary_edit_category),
-                fontFamily = RobotoFlex, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center
+                fontFamily = RobotoFlex,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
 
-            Text(text = stringResource(R.string.diary_category_instructions), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
+            Text(
+                text = stringResource(R.string.diary_category_instructions),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
 
             OutlinedTextField(
-                value = titulo, onValueChange = { if (it.length <= MAX_TITLE_LENGTH) titulo = it },
-                label = { Text(stringResource(R.string.diary_what_to_measure)) }, placeholder = { Text(stringResource(R.string.diary_what_to_measure_placeholder)) },
-                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), singleLine = true,
-                supportingText = { Text("${titulo.length} / $MAX_TITLE_LENGTH", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) }
+                value = titulo,
+                onValueChange = { if (it.length <= MAX_TITLE_LENGTH) titulo = it },
+                label = { Text(stringResource(R.string.diary_what_to_measure)) },
+                placeholder = { Text(stringResource(R.string.diary_what_to_measure_placeholder)) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                supportingText = {
+                    Text("${titulo.length} / $MAX_TITLE_LENGTH",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.End)
+                }
             )
 
-            Text(stringResource(R.string.diary_select_visual_style), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                stringResource(R.string.diary_select_visual_style),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 IconMapper.iconStyles.forEachIndexed { index, styleList ->
@@ -255,12 +422,21 @@ fun CategoryEditorSheet(
                     Box(
                         modifier = Modifier.size(56.dp).clip(RoundedCornerShape(12.dp))
                             .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant)
-                            .border(width = if (isSelected) 2.dp else 0.dp, color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent, shape = RoundedCornerShape(12.dp))
+                            .border(
+                                width = if (isSelected) 2.dp else 0.dp,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                shape = RoundedCornerShape(12.dp)
+                            )
                             .clickable { selectedStyleIndex = index },
                         contentAlignment = Alignment.Center
                     ) {
                         val isDynamicTint = styleList[0].contains("nube") || styleList[0].contains("sol")
-                        Icon(painter = painterResource(id = IconMapper.getDrawable(styleList[0])), contentDescription = null, tint = if (isDynamicTint) ZeniaTeal else Color.Unspecified, modifier = Modifier.size(32.dp))
+                        Icon(
+                            painter = painterResource(id = IconMapper.getDrawable(styleList[0])),
+                            contentDescription = null,
+                            tint = if (isDynamicTint) ZeniaTeal else Color.Unspecified,
+                            modifier = Modifier.size(32.dp)
+                        )
                     }
                 }
             }
@@ -275,9 +451,20 @@ fun CategoryEditorSheet(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    Box(modifier = Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
                         val applyDynamicTint = opcion.iconResName.contains("nube") || opcion.iconResName.contains("sol")
-                        Icon(painter = painterResource(id = IconMapper.getDrawable(opcion.iconResName)), contentDescription = null, tint = if (applyDynamicTint) ZeniaTeal else Color.Unspecified, modifier = Modifier.size(28.dp))
+                        Icon(
+                            painter = painterResource(id = IconMapper.getDrawable(opcion.iconResName)),
+                            contentDescription = null,
+                            tint = if (applyDynamicTint) ZeniaTeal else Color.Unspecified,
+                            modifier = Modifier.size(28.dp)
+                        )
                     }
 
                     OutlinedTextField(
@@ -312,7 +499,12 @@ fun CategoryEditorSheet(
             title = { Text(stringResource(R.string.diary_delete_category_title), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold) },
             text = { Text(stringResource(R.string.diary_delete_category_warning)) },
             confirmButton = {
-                Button(onClick = { categoriaInicial?.let { onDelete(it.idCategoria) }; showDeleteWarning = false }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) { Text(stringResource(R.string.diary_delete_permanently)) }
+                Button(
+                    onClick = { categoriaInicial?.let { onDelete(it.idCategoria) }; showDeleteWarning = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text(stringResource(R.string.diary_delete_permanently))
+                }
             },
             dismissButton = { TextButton(onClick = { showDeleteWarning = false }) { Text(stringResource(R.string.diary_cancel)) } }, containerColor = MaterialTheme.colorScheme.surface
         )

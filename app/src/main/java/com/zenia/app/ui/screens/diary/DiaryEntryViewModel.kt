@@ -1,5 +1,6 @@
 package com.zenia.app.ui.screens.diary
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.R
@@ -10,6 +11,7 @@ import com.zenia.app.model.CategoriaDiario
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.model.OpcionCategoria
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,7 +41,8 @@ data class HealthDataResult(
 class DiaryEntryViewModel @Inject constructor(
     private val diaryRepository: DiaryRepository,
     private val healthConnectRepository: HealthConnectRepository?,
-    sessionManager: UserSessionManager
+    sessionManager: UserSessionManager,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<DiaryEntryUiState>(DiaryEntryUiState.Idle)
@@ -75,29 +78,29 @@ class DiaryEntryViewModel @Inject constructor(
     val limiteCategorias = 7
 
     private val defaultsCategorias = listOf(
-        CategoriaDiario("estadoAnimo", "Estado de Ánimo", listOf(
-            OpcionCategoria(4, "Increíble", "sol_muy_feliz"),
-            OpcionCategoria(3, "Bien", "sol_feliz"),
-            OpcionCategoria(2, "Desanimado", "sol_mid"),
-            OpcionCategoria(1, "Terrible", "sol_triste")
+        CategoriaDiario("estadoAnimo", context.getString(R.string.category_mood), listOf(
+            OpcionCategoria(4, context.getString(R.string.mood_incredible), "sol_muy_feliz"),
+            OpcionCategoria(3, context.getString(R.string.mood_good), "sol_feliz"),
+            OpcionCategoria(2, context.getString(R.string.mood_down), "sol_mid"),
+            OpcionCategoria(1, context.getString(R.string.mood_terrible), "sol_triste")
         )),
-        CategoriaDiario("calidadSueno", "Calidad del Sueño", listOf(
-            OpcionCategoria(4, "Muy bien", "nube_muy_feliz"),
-            OpcionCategoria(3, "Descansado", "nube_feliz"),
-            OpcionCategoria(2, "Cansado", "nube_mid"),
-            OpcionCategoria(1, "Insomnio", "nube_triste")
+        CategoriaDiario("calidadSueno", context.getString(R.string.category_sleep), listOf(
+            OpcionCategoria(4, context.getString(R.string.sleep_very_good), "nube_muy_feliz"),
+            OpcionCategoria(3, context.getString(R.string.sleep_rested), "nube_feliz"),
+            OpcionCategoria(2, context.getString(R.string.sleep_tired), "nube_mid"),
+            OpcionCategoria(1, context.getString(R.string.sleep_insomnia), "nube_triste")
         )),
-        CategoriaDiario("estadoMental", "Estado Mental", listOf(
-            OpcionCategoria(4, "Claridad", "superhappy"),
-            OpcionCategoria(3, "Tranquilidad", "happyface"),
-            OpcionCategoria(2, "Estrés", "sadface"),
-            OpcionCategoria(1, "Caos", "supersad")
+        CategoriaDiario("estadoMental", context.getString(R.string.category_mental), listOf(
+            OpcionCategoria(4, context.getString(R.string.mental_clarity), "superhappy"),
+            OpcionCategoria(3, context.getString(R.string.mental_calm), "happyface"),
+            OpcionCategoria(2, context.getString(R.string.mental_stress), "sadface"),
+            OpcionCategoria(1, context.getString(R.string.mental_chaos), "supersad")
         )),
-        CategoriaDiario("ejercicio", "Intensidad del Ejercicio", listOf(
-            OpcionCategoria(4, "Intenso", "happy1"),
-            OpcionCategoria(3, "Moderado", "happy2"),
-            OpcionCategoria(2, "Ligero", "sad"),
-            OpcionCategoria(1, "Nada", "sad2")
+        CategoriaDiario("ejercicio", context.getString(R.string.category_exercise), listOf(
+            OpcionCategoria(4, context.getString(R.string.exercise_intense), "happy1"),
+            OpcionCategoria(3, context.getString(R.string.exercise_moderate), "happy2"),
+            OpcionCategoria(2, context.getString(R.string.exercise_light), "sad"),
+            OpcionCategoria(1, context.getString(R.string.exercise_none), "sad2")
         ))
     )
 

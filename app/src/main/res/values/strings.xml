@@ -164,15 +164,11 @@
     <string name="diary_day_saturday_short">S</string>
     <string name="diary_day_sunday_short">D</string>
 
-    <string name="mood_good">Bien</string>
     <string name="mood_happy">Feliz</string>
     <string name="mood_discouraged">Desanimado</string>
     <string name="mood_joyful">Alegre</string>
 
-    <string name="sleep_rested">Descansado</string>
     <string name="sleep_energetic">Energético</string>
-    <string name="sleep_tired">Cansado</string>
-    <string name="sleep_very_good">Muy bien</string>
 
     <string name="mind_calm">Tranquilidad</string>
     <string name="mind_clarity">Claridad</string>
@@ -180,9 +176,6 @@
     <string name="mind_stressed">Estresado</string>
 
     <string name="exercise_walk">Caminata</string>
-    <string name="exercise_intense">Intenso</string>
-    <string name="exercise_none">Nada</string>
-    <string name="exercise_light">Ligero</string>
 
     <string name="activity_work">Trabajo</string>
     <string name="activity_exercise">Ejercicio</string>
@@ -575,4 +568,27 @@
     <string name="diary_delete_permanently">Eliminar definitivamente</string>
     <string name="diary_cancel">Cancelar</string>
 
+    <string name="category_mood">Estado de Ánimo</string>
+    <string name="mood_incredible">Increíble</string>
+    <string name="mood_good">Bien</string>
+    <string name="mood_down">Desanimado</string>
+    <string name="mood_terrible">Terrible</string>
+
+    <string name="category_sleep">Calidad del Sueño</string>
+    <string name="sleep_very_good">Muy bien</string>
+    <string name="sleep_rested">Descansado</string>
+    <string name="sleep_tired">Cansado</string>
+    <string name="sleep_insomnia">Insomnio</string>
+
+    <string name="category_mental">Estado Mental</string>
+    <string name="mental_clarity">Claridad</string>
+    <string name="mental_calm">Tranquilidad</string>
+    <string name="mental_stress">Estrés</string>
+    <string name="mental_chaos">Caos</string>
+
+    <string name="category_exercise">Intensidad del Ejercicio</string>
+    <string name="exercise_intense">Intenso</string>
+    <string name="exercise_moderate">Moderado</string>
+    <string name="exercise_light">Ligero</string>
+    <string name="exercise_none">Nada</string>
 </resources>

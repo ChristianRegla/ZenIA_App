@@ -167,15 +167,11 @@
     <string name="diary_day_saturday_short">S</string>
     <string name="diary_day_sunday_short">S</string>
 
-    <string name="mood_good">Good</string>
     <string name="mood_happy">Happy</string>
     <string name="mood_discouraged">Discouraged</string>
     <string name="mood_joyful">Joyful</string>
 
-    <string name="sleep_rested">Rested</string>
     <string name="sleep_energetic">Energetic</string>
-    <string name="sleep_tired">Tired</string>
-    <string name="sleep_very_good">Very good</string>
 
     <string name="mind_calm">Calmness</string>
     <string name="mind_clarity">Clarity</string>
@@ -183,9 +179,6 @@
     <string name="mind_stressed">Stressed</string>
 
     <string name="exercise_walk">Walk</string>
-    <string name="exercise_intense">Intense</string>
-    <string name="exercise_none">None</string>
-    <string name="exercise_light">Light</string>
 
     <string name="activity_work">Work</string>
     <string name="activity_exercise">Exercise</string>
@@ -581,5 +574,29 @@
     <string name="diary_delete_category_warning">If you delete this category, all previous DB entries associated with it on past days will also be deleted. This action cannot be undone.</string>
     <string name="diary_delete_permanently">Delete permanently</string>
     <string name="diary_cancel">Cancel</string>
+
+    <string name="category_mood">Mood</string>
+    <string name="mood_incredible">Incredible</string>
+    <string name="mood_good">Good</string>
+    <string name="mood_down">Down</string>
+    <string name="mood_terrible">Terrible</string>
+
+    <string name="category_sleep">Sleep Quality</string>
+    <string name="sleep_very_good">Very Good</string>
+    <string name="sleep_rested">Rested</string>
+    <string name="sleep_tired">Tired</string>
+    <string name="sleep_insomnia">Insomnia</string>
+
+    <string name="category_mental">Mental State</string>
+    <string name="mental_clarity">Clarity</string>
+    <string name="mental_calm">Calmness</string>
+    <string name="mental_stress">Stress</string>
+    <string name="mental_chaos">Chaos</string>
+
+    <string name="category_exercise">Exercise Intensity</string>
+    <string name="exercise_intense">Intense</string>
+    <string name="exercise_moderate">Moderate</string>
+    <string name="exercise_light">Light</string>
+    <string name="exercise_none">None</string>
 
 </resources>
