@@ -514,7 +514,6 @@
     <string name="diary_heart_rate">Ritmo Card. (bpm)</string>
     <string name="diary_sleep_mins">Sueño (mins)</string>
     <string name="diary_hrv">HRV (ms)</string>
-    <string name="diary_premium_exclusive">Exclusivo Premium</string>
     <string name="diary_add_custom_category">+ Añadir Categoría Personalizada</string>
     <string name="diary_what_have_you_done">¿Qué has hecho?</string>
     <string name="diary_inspiration_desc">Inspiración</string>
@@ -568,5 +567,12 @@
     <string name="premium_exclusive">Exclusivo Premium</string>
 
     <string name="close">Cerrar</string>
+
+    <string name="diary_premium_exclusive">Exclusivo Premium</string>
+    <string name="diary_select_visual_style">Selecciona el estilo visual:</string>
+    <string name="diary_delete_category_title">Eliminar categoría</string>
+    <string name="diary_delete_category_warning">Si eliminas esta categoría, también se borrarán todas las entradas en la BD previas asociadas a ella en días pasados. Esta acción no se puede deshacer.</string>
+    <string name="diary_delete_permanently">Eliminar definitivamente</string>
+    <string name="diary_cancel">Cancelar</string>
 
 </resources>
