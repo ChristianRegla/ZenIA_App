@@ -30,6 +30,10 @@ fun MoreSettingsRoute(
 
     val isNotificationsEnabled by settingsViewModel.isNotificationsEnabled.collectAsStateWithLifecycle()
     val isStreakEnabled by settingsViewModel.isStreakEnabled.collectAsStateWithLifecycle()
+
+    val streakHour by settingsViewModel.streakReminderHour.collectAsStateWithLifecycle()
+    val streakMinute by settingsViewModel.streakReminderMinute.collectAsStateWithLifecycle()
+
     val isAdviceEnabled by settingsViewModel.isAdviceEnabled.collectAsStateWithLifecycle()
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -56,6 +60,8 @@ fun MoreSettingsRoute(
         onNavigateToExport = onNavigateToExport,
         isNotificationsEnabled = isNotificationsEnabled,
         isStreakEnabled = isStreakEnabled,
+        streakHour = streakHour,
+        streakMinute = streakMinute,
         isAdviceEnabled = isAdviceEnabled,
         onToggleNotifications = { enabled ->
             if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -65,6 +71,7 @@ fun MoreSettingsRoute(
             }
         },
         onToggleStreak = { settingsViewModel.setStreakReminderEnabled(it) },
+        onTimeChange = { hour, minute -> settingsViewModel.setStreakReminderTime(hour, minute) },
         onToggleAdvice = { settingsViewModel.setMorningAdviceEnabled(it) }
     )
 }

@@ -468,7 +468,7 @@
 
     <string name="settings_notifications_title">Notifications</string>
     <string name="settings_notifications_enable">Enable notifications</string>
-    <string name="settings_streak_reminder">Streak reminder (8:00 PM)</string>
+    <string name="settings_streak_reminder">Streak reminder</string>
     <string name="settings_morning_advice">Morning advice</string>
     <string name="settings_advice_desc">Receive a tip based on your previous day\'s entry.</string>
 
@@ -598,5 +598,15 @@
     <string name="exercise_moderate">Moderate</string>
     <string name="exercise_light">Light</string>
     <string name="exercise_none">None</string>
+
+    <string name="settings_reminder_time">Reminder time:</string>
+    <string name="settings_choose_reminder_time">Choose reminder time</string>
+    <string name="action_accept">Accept</string>
+    <string name="action_cancel">Cancel</string>
+
+    <string name="notifications_receive">Receive notifications</string>
+    <string name="notifications_enabled_status">Enabled</string>
+    <string name="notifications_disabled_status">Disabled</string>
+    <string name="notifications_empty_state">You have no notifications</string>
 
 </resources>

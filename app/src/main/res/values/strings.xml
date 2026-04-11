@@ -461,7 +461,7 @@
 
     <string name="settings_notifications_title">Notificaciones</string>
     <string name="settings_notifications_enable">Permitir notificaciones</string>
-    <string name="settings_streak_reminder">Recordatorio de racha (8:00 PM)</string>
+    <string name="settings_streak_reminder">Recordatorio de racha</string>
     <string name="settings_morning_advice">Consejo matutino</string>
     <string name="settings_advice_desc">Recibe un tip basado en tu entrada del día anterior.</string>
 
@@ -591,4 +591,14 @@
     <string name="exercise_moderate">Moderado</string>
     <string name="exercise_light">Ligero</string>
     <string name="exercise_none">Nada</string>
+
+    <string name="settings_reminder_time">Hora del recordatorio:</string>
+    <string name="settings_choose_reminder_time">Elegir hora de recordatorio</string>
+    <string name="action_accept">Aceptar</string>
+    <string name="action_cancel">Cancelar</string>
+
+    <string name="notifications_receive">Recibir notificaciones</string>
+    <string name="notifications_enabled_status">Activadas</string>
+    <string name="notifications_disabled_status">Desactivadas</string>
+    <string name="notifications_empty_state">No tienes notificaciones</string>
 </resources>

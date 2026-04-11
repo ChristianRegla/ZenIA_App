@@ -13,15 +13,21 @@ import androidx.work.WorkerParameters
 import com.zenia.app.MainActivity
 import com.zenia.app.R
 import com.zenia.app.data.DiaryRepository
+import com.zenia.app.data.UserPreferencesRepository
+import com.zenia.app.data.session.UserSessionManager
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import java.time.LocalDate
 
 @HiltWorker
 class StreakReminderWorker @AssistedInject constructor(
     @Assisted private val appContext: Context,
     @Assisted workerParams: WorkerParameters,
-    private val diaryRepository: DiaryRepository
+    private val diaryRepository: DiaryRepository,
+    private val sessionManager: UserSessionManager,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
@@ -32,10 +38,19 @@ class StreakReminderWorker @AssistedInject constructor(
             val hasEntryToday = entryToday != null
 
             if (!hasEntryToday) {
+                val user = sessionManager.user.firstOrNull()
+                val apodo = if (!user?.apodo.isNullOrBlank()) "${user?.apodo}, n" else "N"
                 showNotification(
                     title = "¡No rompas tu racha! 🔥",
-                    message = "Tómate un minuto para registrar cómo te has sentido hoy en ZenIA."
+                    message = "${apodo}o olvides tomarte un minuto para registrar cómo te has sentido hoy."
                 )
+            }
+
+            val isEnabled = userPreferencesRepository.streakReminderEnabled.first()
+            if (isEnabled) {
+                val hour = userPreferencesRepository.streakReminderHour.first()
+                val minute = userPreferencesRepository.streakReminderMinute.first()
+                NotificationScheduler.scheduleStreakReminder(appContext, hour, minute)
             }
 
             Result.success()
@@ -71,7 +86,7 @@ class StreakReminderWorker @AssistedInject constructor(
         )
 
         val notification = NotificationCompat.Builder(appContext, channelId)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.logo_zenia)
             .setContentTitle(title)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

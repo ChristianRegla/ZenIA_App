@@ -205,6 +205,7 @@ private fun AuthContent(
     contentAlignment: Alignment
 ) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    var confirmPasswordVisible by rememberSaveable {mutableStateOf(false) }
     var isPasswordFocused by remember { mutableStateOf(false) }
     var showPasswordPanel by remember { mutableStateOf(false) }
 
@@ -413,7 +414,27 @@ private fun AuthContent(
                         onValueChange = actions.onConfirmPasswordChange,
                         label = stringResource(R.string.confirmPassword),
                         enabled = !isLoading,
-                        visualTransformation = PasswordVisualTransformation(),
+                        visualTransformation =
+                            if (confirmPasswordVisible)
+                                VisualTransformation.None
+                            else
+                                PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(
+                                onClick = { confirmPasswordVisible = !confirmPasswordVisible },
+                                enabled = !isLoading
+                            ) {
+                                Icon(
+                                    imageVector =
+                                        if (confirmPasswordVisible)
+                                            Icons.Filled.Visibility
+                                        else
+                                            Icons.Filled.VisibilityOff,
+                                    contentDescription = null,
+                                    tint = ZeniaInputLabel
+                                )
+                            }
+                        },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Password,
                             imeAction = ImeAction.Done
