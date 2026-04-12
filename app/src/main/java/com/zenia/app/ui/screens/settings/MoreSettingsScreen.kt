@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material3.AlertDialog
@@ -38,11 +39,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
+import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZeniaLightGrey
 import com.zenia.app.ui.theme.ZeniaTeal
 
@@ -68,6 +75,7 @@ fun MoreSettingsScreen(
     onToggleAdvice: (Boolean) -> Unit
 ) {
     var showTimePicker by remember { mutableStateOf(false) }
+    var showCreditsDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -176,6 +184,14 @@ fun MoreSettingsScreen(
                             title = stringResource(R.string.settings_changelog),
                             subtitle = stringResource(R.string.settings_changelog_desc),
                             onClick = { /* TODO: Changelog */ },
+                            showDivider = true
+                        )
+
+                        SettingsItem(
+                            icon = Icons.Default.Brush,
+                            title = stringResource(R.string.settings_credits_title),
+                            subtitle = stringResource(R.string.settings_credits_subtitle),
+                            onClick = { showCreditsDialog = true },
                             showDivider = false
                         )
                     }
@@ -269,6 +285,46 @@ fun MoreSettingsScreen(
                     TextButton(onClick = { showTimePicker = false }) { Text(stringResource(R.string.action_cancel)) }
                 },
                 containerColor = ZeniaLightGrey
+            )
+        }
+        if (showCreditsDialog) {
+            val uriHandler = LocalUriHandler.current
+
+            AlertDialog(
+                onDismissRequest = { showCreditsDialog = false },
+                title = {
+                    Text(stringResource(R.string.settings_credits_title), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
+                },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Text(stringResource(R.string.settings_credits_thanks))
+
+                        Text(
+                            text = buildAnnotatedString {
+                                append(stringResource(R.string.settings_credits_freepik))
+                                withStyle(
+                                    style = SpanStyle(
+                                        color = ZeniaTeal,
+                                        textDecoration = TextDecoration.Underline,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                ) {
+                                    append(stringResource(R.string.settings_credits_freepik_link))
+                                }
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.clickable {
+                                uriHandler.openUri("https://www.freepik.com")
+                            }
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showCreditsDialog = false }) {
+                        Text(stringResource(R.string.action_close))
+                    }
+                },
+                containerColor = MaterialTheme.colorScheme.surface
             )
         }
     }

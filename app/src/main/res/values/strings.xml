@@ -601,4 +601,11 @@
     <string name="notifications_enabled_status">Activadas</string>
     <string name="notifications_disabled_status">Desactivadas</string>
     <string name="notifications_empty_state">No tienes notificaciones</string>
+
+    <string name="settings_credits_title">Créditos y Licencias</string>
+    <string name="settings_credits_subtitle">Reconocimientos de recursos visuales</string>
+    <string name="settings_credits_thanks">Agradecemos a los creadores que hacen posible que ZenIA se vea increíble.</string>
+    <string name="settings_credits_freepik">Diseño de avatares: </string>
+    <string name="settings_credits_freepik_link">Designed by Freepik</string>
+    <string name="action_close">Cerrar</string>
 </resources>

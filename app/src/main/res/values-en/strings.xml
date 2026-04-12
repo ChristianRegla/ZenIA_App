@@ -609,4 +609,11 @@
     <string name="notifications_disabled_status">Disabled</string>
     <string name="notifications_empty_state">You have no notifications</string>
 
+    <string name="settings_credits_title">Credits &amp; Licenses</string>
+    <string name="settings_credits_subtitle">Visual resources acknowledgments</string>
+    <string name="settings_credits_thanks">We thank the creators who make ZenIA look amazing.</string>
+    <string name="settings_credits_freepik">Avatars design: </string>
+    <string name="settings_credits_freepik_link">Designed by Freepik</string>
+    <string name="action_close">Close</string>
+
 </resources>
