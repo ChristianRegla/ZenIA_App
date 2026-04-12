@@ -43,7 +43,7 @@ class CommunityRepository @Inject constructor(
         isPremium: Boolean,
         content: String,
         category: String
-    ): Result<Unit> {
+    ): Result<CommunityPost> {
         return try {
             if (profanityFilter.hasProfanity(content)) {
                 return Result.failure(Exception("El contenido contiene palabras prohibidas"))
@@ -62,7 +62,8 @@ class CommunityRepository @Inject constructor(
             )
 
             postsCollection.document(postId).set(post).await()
-            Result.success(Unit)
+
+            Result.success(post)
         } catch (e: Exception) {
             Result.failure(e)
         }

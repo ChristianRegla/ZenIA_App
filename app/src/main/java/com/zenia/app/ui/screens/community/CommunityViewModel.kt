@@ -140,8 +140,22 @@ class CommunityViewModel @Inject constructor(
                 )
 
                 if (result.isSuccess) {
-                    loadPosts(reset = true)
-                    _uiState.update { it.copy(isPostLoading = false) }
+                    val newPost = result.getOrNull()
+
+                    _uiState.update { state ->
+                        val updatedPosts = if (newPost != null) {
+                            listOf(newPost) + state.posts
+                        } else {
+                            state.posts
+                        }
+
+                        state.copy(
+                            posts = updatedPosts,
+                            isPostLoading = false,
+                            actionMessage = "Publicación creada con éxito"
+                        )
+                    }
+
                 } else {
                     _uiState.update { it.copy(isPostLoading = false, postCreationError = result.exceptionOrNull()?.message) }
                 }

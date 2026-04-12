@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -49,6 +50,7 @@ val AVATAR_LIST = listOf(
 @Composable
 fun CommunityScreen(
     uiState: CommunityViewModel.UiState,
+    listState: LazyListState,
     currentUserId: String?,
     onNavigateBack: () -> Unit,
     onLoadMore: () -> Unit,
@@ -58,7 +60,6 @@ fun CommunityScreen(
     onBlockClick: (String) -> Unit,
     onReportClick: (CommunityPost) -> Unit
 ) {
-    val listState = rememberLazyListState()
 
     val isAtBottom by remember {
         derivedStateOf {
