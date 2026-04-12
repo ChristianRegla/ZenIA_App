@@ -22,12 +22,15 @@ class CommunityViewModel @Inject constructor(
     private val sessionManager: UserSessionManager
 ) : ViewModel() {
 
+    val currentUserIdFlow = sessionManager.userId
+
     data class UiState(
         val posts: List<CommunityPost> = emptyList(),
         val isLoading: Boolean = false,
         val error: String? = null,
         val isPostLoading: Boolean = false,
-        val postCreationError: String? = null
+        val postCreationError: String? = null,
+        val actionMessage: String? = null
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -35,9 +38,25 @@ class CommunityViewModel @Inject constructor(
 
     private var lastVisibleDocument: DocumentSnapshot? = null
     private var isLastPage = false
+    private val blockedUserIds = mutableSetOf<String>()
 
     init {
-        loadPosts(reset= true)
+        initializeData()
+    }
+
+    private fun initializeData() {
+        viewModelScope.launch {
+            val userId = sessionManager.currentUserId
+
+            if (userId != null) {
+                val result = communityRepository.getBlockedUsers(userId)
+                if (result.isSuccess) {
+                    blockedUserIds.clear()
+                    blockedUserIds.addAll(result.getOrDefault(emptyList()))
+                }
+            }
+            loadPosts(reset = true)
+        }
     }
 
     fun loadPosts(reset: Boolean = false) {
@@ -48,22 +67,39 @@ class CommunityViewModel @Inject constructor(
                 _uiState.update { it.copy(isLoading = true, posts = emptyList(), error = null) }
                 lastVisibleDocument = null
                 isLastPage = false
+            } else {
+                _uiState.update { it.copy(isLoading = true, error = null) }
             }
 
             try {
-                val (newPosts, newLastVisible) = communityRepository.getPosts(lastVisibleDocument)
+                var currentPosts = if (reset) emptyList() else _uiState.value.posts
+                var attempts = 0
+                var fetchedValidPosts = false
 
-                if (newPosts.isEmpty()) {
-                    isLastPage = true
-                } else {
-                    lastVisibleDocument = newLastVisible
-                    _uiState.update {
-                        it.copy(
-                            posts = if (reset) newPosts else it.posts + newPosts,
-                            isLoading = false
-                        )
+                while (attempts < 3 && !isLastPage && !fetchedValidPosts) {
+                    val (newPosts, newLastVisible) = communityRepository.getPosts(lastVisibleDocument)
+
+                    if (newPosts.isEmpty()) {
+                        isLastPage = true
+                    } else {
+                        lastVisibleDocument = newLastVisible
+                        val filteredPosts = newPosts.filter { it.authorId !in blockedUserIds }
+
+                        if (filteredPosts.isNotEmpty()) {
+                            currentPosts = currentPosts + filteredPosts
+                            fetchedValidPosts = true
+                        }
                     }
+                    attempts++
                 }
+
+                _uiState.update {
+                    it.copy(
+                        posts = currentPosts,
+                        isLoading = false
+                    )
+                }
+
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
@@ -120,7 +156,7 @@ class CommunityViewModel @Inject constructor(
     }
 
     fun onLikeClick(post: CommunityPost) {
-        val userId = sessionManager.userId.value ?: return
+        val userId = sessionManager.currentUserId ?: return
 
         val newIsLiked = !post.isLikedByCurrentUser
         val newCount = if (newIsLiked) post.likesCount + 1 else post.likesCount - 1
@@ -138,8 +174,78 @@ class CommunityViewModel @Inject constructor(
             val result = communityRepository.toggleLike(post.id, userId)
 
             if (result.isFailure) {
-                // Revertir optimistic update...
+                _uiState.update { state ->
+                    val revertedPosts = state.posts.map {
+                        if (it.id == post.id) {
+                            it.copy(
+                                isLikedByCurrentUser = !newIsLiked,
+                                likesCount = if (newIsLiked) newCount - 1 else newCount + 1
+                            )
+                        } else it
+                    }
+                    state.copy(
+                        posts = revertedPosts,
+                        error = "Error de conexión. No se pudo guardar el me gusta."
+                    )
+                }
             }
         }
+    }
+
+    fun deletePost(post: CommunityPost) {
+        viewModelScope.launch {
+            val result = communityRepository.deletePost(post.id)
+            if (result.isSuccess) {
+                _uiState.update { state ->
+                    state.copy(
+                        posts = state.posts.filter { it.id != post.id },
+                        actionMessage = "Publicación eliminada"
+                    )
+                }
+            } else {
+                _uiState.update { it.copy(error = "No se pudo eliminar la publicación") }
+            }
+        }
+    }
+
+    fun reportPost(post: CommunityPost) {
+        viewModelScope.launch {
+            val result = communityRepository.reportPost(post.content, post.authorId)
+            if (result.isSuccess) {
+                _uiState.update { it.copy(actionMessage = "Gracias por reportar. Revisaremos el contenido.") }
+            } else {
+                _uiState.update { it.copy(error = "Error al enviar el reporte") }
+            }
+        }
+    }
+
+    fun blockUser(authorId: String) {
+        val currentUserId = sessionManager.currentUserId ?: return
+
+        viewModelScope.launch {
+            val result = communityRepository.blockUser(currentUserId, authorId)
+            if (result.isSuccess) {
+                blockedUserIds.add(authorId)
+
+                _uiState.update { state ->
+                    val remainingPosts = state.posts.filter { it.authorId != authorId }
+                    state.copy(
+                        posts = remainingPosts,
+                        actionMessage = "Usuario bloqueado. Ya no verás sus publicaciones."
+                    )
+                }
+
+                if (_uiState.value.posts.isEmpty() && !isLastPage) {
+                    loadPosts()
+                }
+
+            } else {
+                _uiState.update { it.copy(error = "Error al bloquear al usuario") }
+            }
+        }
+    }
+
+    fun clearActionMessage() {
+        _uiState.update { it.copy(actionMessage = null, error = null) }
     }
 }

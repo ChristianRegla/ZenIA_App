@@ -95,4 +95,57 @@ class CommunityRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+    suspend fun deletePost(postId: String): Result<Unit> {
+        return try {
+            postsCollection.document(postId).delete().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun reportPost(content: String, authorId: String): Result<Unit> {
+        return try {
+            val reportData = mapOf(
+                "content" to content,
+                "reportedUserId" to authorId,
+                "timestamp" to FieldValue.serverTimestamp()
+            )
+            firestore.collection("reported_posts").add(reportData).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun blockUser(currentUserId: String, authorIdToBlock: String): Result<Unit> {
+        return try {
+            // Se guarda en una subcolección privada del usuario
+            val blockRef = firestore.collection("usuarios")
+                .document(currentUserId)
+                .collection("blocked_users")
+                .document(authorIdToBlock)
+
+            blockRef.set(mapOf("timestamp" to FieldValue.serverTimestamp())).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getBlockedUsers(currentUserId: String): Result<List<String>> {
+        return try {
+            val snapshot = firestore.collection("usuarios")
+                .document(currentUserId)
+                .collection("blocked_users")
+                .get()
+                .await()
+
+            val blockedIds = snapshot.documents.map { it.id }
+            Result.success(blockedIds)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

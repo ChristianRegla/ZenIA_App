@@ -14,6 +14,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
@@ -46,10 +49,14 @@ val AVATAR_LIST = listOf(
 @Composable
 fun CommunityScreen(
     uiState: CommunityViewModel.UiState,
+    currentUserId: String?,
     onNavigateBack: () -> Unit,
     onLoadMore: () -> Unit,
     onFabClick: () -> Unit,
-    onLikeClick: (CommunityPost) -> Unit
+    onLikeClick: (CommunityPost) -> Unit,
+    onDeleteClick: (CommunityPost) -> Unit,
+    onBlockClick: (String) -> Unit,
+    onReportClick: (CommunityPost) -> Unit
 ) {
     val listState = rememberLazyListState()
 
@@ -90,9 +97,16 @@ fun CommunityScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.fillMaxSize()
-                ) {
-                    items(uiState.posts) { post ->
-                        CommunityPostItem(post = post, onLikeClick = { onLikeClick(post) })
+                ){
+                    items(uiState.posts, key = { it.id }) { post ->
+                        CommunityPostItem(
+                            post = post,
+                            currentUserId = currentUserId,
+                            onLikeClick = { onLikeClick(post) },
+                            onDeleteClick = { onDeleteClick(post) },
+                            onBlockClick = { onBlockClick(post.authorId) },
+                            onReportClick = { onReportClick(post) }
+                        )
                     }
 
                     if (uiState.isLoading) {
@@ -111,8 +125,14 @@ fun CommunityScreen(
 @Composable
 fun CommunityPostItem(
     post: CommunityPost,
-    onLikeClick: () -> Unit
+    currentUserId: String?,
+    onLikeClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onBlockClick: () -> Unit,
+    onReportClick: () -> Unit
 ) {
+    var expandedMenu by remember { mutableStateOf(false) }
+    val isOwnPost = currentUserId != null && post.authorId == currentUserId
 
     val scale by animateFloatAsState(
         targetValue = if (post.isLikedByCurrentUser) 1.2f else 1.0f,
@@ -130,7 +150,10 @@ fun CommunityPostItem(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 UserAvatar(
                     avatarIndex = post.authorAvatarIndex,
                     isPremium = post.authorIsPremium,
@@ -139,7 +162,7 @@ fun CommunityPostItem(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                Column {
+                Column (modifier = Modifier.weight(1f)) {
                     Text(
                         text = post.authorApodo,
                         style = MaterialTheme.typography.titleMedium,
@@ -152,6 +175,45 @@ fun CommunityPostItem(
                             style = MaterialTheme.typography.labelSmall,
                             color = ZeniaPremiumPurple
                         )
+                    }
+                }
+                Box {
+                    IconButton(onClick = { expandedMenu = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Opciones del post",
+                            tint = ZeniaSlateGrey
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = expandedMenu,
+                        onDismissRequest = { expandedMenu = false },
+                        containerColor = Color.White
+                    ) {
+                        if (isOwnPost) {
+                            DropdownMenuItem(
+                                text = { Text("Eliminar publicación", color = MaterialTheme.colorScheme.error) },
+                                onClick = {
+                                    expandedMenu = false
+                                    onDeleteClick()
+                                }
+                            )
+                        } else {
+                            DropdownMenuItem(
+                                text = { Text("Reportar contenido", color = ZeniaDark) },
+                                onClick = {
+                                    expandedMenu = false
+                                    onReportClick()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Bloquear usuario", color = MaterialTheme.colorScheme.error) },
+                                onClick = {
+                                    expandedMenu = false
+                                    onBlockClick()
+                                }
+                            )
+                        }
                     }
                 }
             }
