@@ -41,6 +41,23 @@ fun CommunityRoute(
     var showCreateDialog by remember { mutableStateOf(false) }
     var postToDelete by remember { mutableStateOf<CommunityPost?>(null) }
 
+    var wasRefreshing by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.isRefreshing) {
+        if (uiState.isRefreshing) {
+            wasRefreshing = true
+        } else if (wasRefreshing) {
+            wasRefreshing = false
+
+            coroutineScope.launch {
+                kotlinx.coroutines.delay(100)
+                if (listState.layoutInfo.totalItemsCount > 0) {
+                    listState.animateScrollToItem(0)
+                }
+            }
+        }
+    }
+
     LaunchedEffect(uiState.actionMessage, uiState.error) {
         uiState.actionMessage?.let {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
@@ -132,6 +149,8 @@ fun CommunityRoute(
         onLikeClick = { viewModel.onLikeClick(it) },
         onDeleteClick = { post -> postToDelete = post },
         onBlockClick = { viewModel.blockUser(it) },
-        onReportClick = { viewModel.reportPost(it) }
+        onReportClick = { viewModel.reportPost(it) },
+        isRefreshing = uiState.isRefreshing,
+        onRefresh = { viewModel.refreshPosts() }
     )
 }

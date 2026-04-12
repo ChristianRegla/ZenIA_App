@@ -27,6 +27,7 @@ class CommunityViewModel @Inject constructor(
     data class UiState(
         val posts: List<CommunityPost> = emptyList(),
         val isLoading: Boolean = false,
+        val isRefreshing: Boolean = false,
         val error: String? = null,
         val isPostLoading: Boolean = false,
         val postCreationError: String? = null,
@@ -261,5 +262,32 @@ class CommunityViewModel @Inject constructor(
 
     fun clearActionMessage() {
         _uiState.update { it.copy(actionMessage = null, error = null) }
+    }
+
+    fun refreshPosts() {
+        if (_uiState.value.isRefreshing || _uiState.value.isLoading) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
+
+            try {
+                val (newPosts, newLastVisible) = communityRepository.getPosts(null)
+
+                lastVisibleDocument = newLastVisible
+                isLastPage = newPosts.isEmpty()
+
+                val filteredPosts = newPosts.filter { it.authorId !in blockedUserIds }
+
+                _uiState.update {
+                    it.copy(
+                        posts = filteredPosts,
+                        isRefreshing = false
+                    )
+                }
+
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isRefreshing = false, error = e.message) }
+            }
+        }
     }
 }

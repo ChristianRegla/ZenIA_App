@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,6 +21,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,9 +58,10 @@ fun CommunityScreen(
     onLikeClick: (CommunityPost) -> Unit,
     onDeleteClick: (CommunityPost) -> Unit,
     onBlockClick: (String) -> Unit,
-    onReportClick: (CommunityPost) -> Unit
+    onReportClick: (CommunityPost) -> Unit,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit
 ) {
-
     val isAtBottom by remember {
         derivedStateOf {
             val layoutInfo = listState.layoutInfo
@@ -74,7 +75,9 @@ fun CommunityScreen(
     }
 
     LaunchedEffect(isAtBottom) {
-        if (isAtBottom) onLoadMore()
+        if (isAtBottom && !uiState.isLoading && !uiState.isRefreshing) {
+            onLoadMore()
+        }
     }
 
     Scaffold(
@@ -89,16 +92,24 @@ fun CommunityScreen(
             }
         }
     ) { padding ->
-        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+        PullToRefreshBox(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize(),
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh
+        ) {
             if (uiState.isLoading && uiState.posts.isEmpty()) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             } else {
                 LazyColumn(
                     state = listState,
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.fillMaxSize()
-                ){
+                ) {
                     items(uiState.posts, key = { it.id }) { post ->
                         CommunityPostItem(
                             post = post,
@@ -110,9 +121,14 @@ fun CommunityScreen(
                         )
                     }
 
-                    if (uiState.isLoading) {
+                    if (uiState.isLoading && !isRefreshing) {
                         item {
-                            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 CircularProgressIndicator(modifier = Modifier.size(24.dp))
                             }
                         }
