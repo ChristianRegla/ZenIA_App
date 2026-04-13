@@ -8,10 +8,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
-import android.widget.Toast
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalContext
 import com.zenia.app.model.CommunityPost
 import com.zenia.app.ui.theme.ZeniaSlateGrey
 import kotlinx.coroutines.launch
@@ -25,6 +23,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.zenia.app.ui.components.SnackbarState
+import com.zenia.app.ui.components.ZeniaSnackbarController
+import com.zenia.app.ui.components.ZeniaSnackbarData
 
 @Composable
 fun CommunityRoute(
@@ -33,14 +34,12 @@ fun CommunityRoute(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val currentUserId by viewModel.currentUserIdFlow.collectAsState()
-    val context = LocalContext.current
 
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
     var showCreateDialog by remember { mutableStateOf(false) }
     var postToDelete by remember { mutableStateOf<CommunityPost?>(null) }
-
     var wasRefreshing by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.isRefreshing) {
@@ -60,11 +59,21 @@ fun CommunityRoute(
 
     LaunchedEffect(uiState.actionMessage, uiState.error) {
         uiState.actionMessage?.let {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            ZeniaSnackbarController.showMessage(
+                ZeniaSnackbarData(
+                    message = it,
+                    state = SnackbarState.SUCCESS
+                )
+            )
             viewModel.clearActionMessage()
         }
         uiState.error?.let {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            ZeniaSnackbarController.showMessage(
+                ZeniaSnackbarData(
+                    message = it,
+                    state = SnackbarState.ERROR
+                )
+            )
             viewModel.clearActionMessage()
         }
     }
