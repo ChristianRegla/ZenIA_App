@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -53,6 +54,7 @@ data class AccountScreenState(
 
 data class AccountScreenActions(
     val onNavigateBack: () -> Unit,
+    val onNavigateToBlockedUsers: () -> Unit,
     val onResendVerification: () -> Unit,
     val onChangePassword: () -> Unit,
     val onDeleteAccountRequest: () -> Unit,
@@ -127,6 +129,15 @@ fun AccountScreen(
                                 isLast = true
                             )
                         }
+                    }
+
+                    AccountSection(title = "Privacidad") {
+                        AccountActionItem(
+                            icon = Icons.Default.Block,
+                            text = "Usuarios Bloqueados",
+                            onClick = actions.onNavigateToBlockedUsers,
+                            isLast = true
+                        )
                     }
 
                     AccountSection(title = stringResource(R.string.account_danger_zone_title)) {
@@ -418,7 +429,7 @@ fun AccountScreenPreview() {
                 showDeleteDialog = false,
                 snackbarHostState = SnackbarHostState()
             ),
-            actions = AccountScreenActions({}, {}, {}, {}, {}, {})
+            actions = AccountScreenActions({}, {}, {}, {}, {}, {}, {})
         )
     }
 }

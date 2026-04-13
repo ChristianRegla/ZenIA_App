@@ -12,6 +12,8 @@ object Destinations {
     const val RELAX_ROUTE = "relax_tab"
     const val RECURSOS_ROUTE = "recursos_tab"
 
+    const val BLOCKED_USERS_ROUTE = "blocked_users"
+
     const val SOS = "sos"
     const val ACCOUNT_ROUTE = "account"
     const val LOCK_ROUTE = "lock"

@@ -164,7 +164,20 @@ fun NavGraphBuilder.settingsGraph(navController: NavController, mainViewModel: M
                 navController.navigate(Destinations.AUTH_ROUTE) {
                     popUpTo(Destinations.HOME_ROUTE) { inclusive = true }
                 }
-            }
+            },
+            onNavigateToBlockedUsers = { navController.safeNavigate(Destinations.BLOCKED_USERS_ROUTE) }
+        )
+    }
+
+    composable(
+        route = Destinations.BLOCKED_USERS_ROUTE,
+        enterTransition = { slideIn() },
+        exitTransition = { slideOut() },
+        popEnterTransition = { popSlideIn() },
+        popExitTransition = { popSlideOut() }
+    ) {
+        com.zenia.app.ui.screens.account.BlockedUsersRoute(
+            onNavigateBack = { navController.popBackStack() }
         )
     }
 

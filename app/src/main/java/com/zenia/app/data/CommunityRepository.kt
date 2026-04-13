@@ -4,6 +4,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.zenia.app.model.BlockedUserProfile
 import com.zenia.app.model.CommunityPost
 import com.zenia.app.util.ProfanityFilter
 import kotlinx.coroutines.tasks.await
@@ -31,7 +32,8 @@ class CommunityRepository @Inject constructor(
 
         val snapshot = query.get().await()
         val posts = snapshot.toObjects(CommunityPost::class.java)
-        val newLastVisible = if (snapshot.documents.isNotEmpty()) snapshot.documents.last() else null
+        val newLastVisible =
+            if (snapshot.documents.isNotEmpty()) snapshot.documents.last() else null
 
         return Pair(posts, newLastVisible)
     }
@@ -145,6 +147,41 @@ class CommunityRepository @Inject constructor(
 
             val blockedIds = snapshot.documents.map { it.id }
             Result.success(blockedIds)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun unblockUser(currentUserId: String, authorId: String): Result<Unit> {
+        return try {
+            firestore.collection("usuarios").document(currentUserId)
+                .collection("blocked_users").document(authorId).delete().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getDetailedBlockedUsers(currentUserId: String): Result<List<BlockedUserProfile>> {
+        return try {
+            val blockedIds = firestore.collection("usuarios").document(currentUserId)
+                .collection("blocked_users").get().await().documents.map { it.id }
+
+            if (blockedIds.isEmpty()) return Result.success(emptyList())
+
+            val users = firestore.collection("usuarios")
+                .whereIn(com.google.firebase.firestore.FieldPath.documentId(), blockedIds)
+                .get().await().toObjects(com.zenia.app.model.Usuario::class.java)
+
+            val profiles = users.map {
+                BlockedUserProfile(
+                    it.id,
+                    it.apodo ?: "Usuario",
+                    it.avatarIndex,
+                    it.suscripcion == com.zenia.app.model.SubscriptionType.PREMIUM
+                )
+            }
+            Result.success(profiles)
         } catch (e: Exception) {
             Result.failure(e)
         }
