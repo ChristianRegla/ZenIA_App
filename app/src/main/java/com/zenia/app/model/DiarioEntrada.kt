@@ -18,5 +18,7 @@ data class DiarioEntrada(
     val hcPasos: Int? = null,
     val hcRitmoCardiaco: Int? = null,
     val hcMinutosSueno: Int? = null,
-    val hcHrv: Int? = null
+    val hcHrv: Int? = null,
+
+    val isFavorite: Boolean = false
 )

@@ -21,6 +21,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -255,6 +257,8 @@ fun MonthHeader(monthState: MonthState) {
 fun MiniCalendarTopBar(
     selectedDate: LocalDate,
     entries: List<DiarioEntrada>,
+    isFavorite: Boolean = false,
+    onFavoriteClick: (() -> Unit)? = null,
     onBackClick: () -> Unit,
     onDateClick: (LocalDate) -> Unit
 ) {
@@ -323,7 +327,18 @@ fun MiniCalendarTopBar(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(48.dp))
+
+            if (onFavoriteClick != null) {
+                IconButton(onClick = onFavoriteClick) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Default.Star else Icons.Outlined.StarBorder,
+                        contentDescription = "Favorito",
+                        tint = if (isFavorite) Color(0xFFFFC107) else MaterialTheme.colorScheme.surfaceVariant
+                    )
+                }
+            } else {
+                Spacer(modifier = Modifier.width(48.dp))
+            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -406,6 +421,7 @@ fun DayCell(
 
     val borderModifier = when {
         isSelected -> Modifier.border(2.dp, Color.Black, RoundedCornerShape(5.dp))
+        dayState.isFavorite -> Modifier.border(2.dp, Color(0xFFFFC107), RoundedCornerShape(5.dp))
         !dayState.hasEntry && !dayState.isFuture -> Modifier.border(1.dp, Color.LightGray, RoundedCornerShape(5.dp))
         else -> Modifier
     }

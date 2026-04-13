@@ -136,6 +136,9 @@ class DiaryEntryViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = DiaryEntryUiState.Loading
 
+            val currentDbEntry = diaryRepository.getDiaryEntryByDate(date.toString())
+            val isFav = currentDbEntry?.isFavorite ?: false
+
             val categoriasBase = listOf("estadoAnimo", "calidadSueno", "estadoMental", "ejercicio")
             val extras = selecciones.filterKeys { it !in categoriasBase }
 
@@ -152,7 +155,8 @@ class DiaryEntryViewModel @Inject constructor(
                 hcPasos = hcPasos,
                 hcRitmoCardiaco = hcRitmoCardiaco,
                 hcMinutosSueno = hcMinutosSueno,
-                hcHrv = hcHrv
+                hcHrv = hcHrv,
+                isFavorite = isFav
             )
 
             val entradaActual = _existingEntry.value
@@ -202,6 +206,20 @@ class DiaryEntryViewModel @Inject constructor(
                 _existingEntry.value = null
                 _uiState.value = DiaryEntryUiState.Idle
                 e.printStackTrace()
+            }
+        }
+    }
+
+    fun toggleFavoriteDirect(date: LocalDate) {
+        viewModelScope.launch {
+            val dateStr = date.toString()
+            val existingEntry = diaryRepository.getDiaryEntryByDate(dateStr)
+
+            if (existingEntry != null) {
+                diaryRepository.saveDiaryEntry(existingEntry.copy(isFavorite = !existingEntry.isFavorite))
+            } else {
+                val newEntry = DiarioEntrada(fecha = dateStr, isFavorite = true)
+                diaryRepository.saveDiaryEntry(newEntry)
             }
         }
     }

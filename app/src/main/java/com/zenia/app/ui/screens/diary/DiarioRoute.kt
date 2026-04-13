@@ -26,6 +26,7 @@ fun DiarioRoute(
         onYearChange = { increment -> viewModel.changeYear(increment) },
         onJumpToToday = { viewModel.jumpToToday() },
         onScrollConsumed = { viewModel.resetScrollTarget() },
+        onToggleFavorite = { date -> viewModel.toggleFavorite(date) },
         entryContent = { date ->
             ConnectedDiaryEntry(
                 date = date,
