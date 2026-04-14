@@ -79,7 +79,11 @@ class PostDetailViewModel @Inject constructor(
             try {
                 var currentComments: List<CommunityComment> = if (reset) emptyList() else _uiState.value.comments
 
-                val response = communityRepository.getComments(postId, lastVisibleDocument)
+                val response = communityRepository.getComments(
+                    postId = postId,
+                    lastVisible = lastVisibleDocument,
+                    currentUserId = sessionManager.currentUserId
+                )
 
                 val newComments: List<CommunityComment> = response.first
                 val newLastVisible: DocumentSnapshot? = response.second
@@ -151,12 +155,17 @@ class PostDetailViewModel @Inject constructor(
         val newIsLiked = !post.isLikedByCurrentUser
         val newCount = if (newIsLiked) post.likesCount + 1 else post.likesCount - 1
 
+        val updatedPost = post.copy(isLikedByCurrentUser = newIsLiked, likesCount = newCount)
+
         _uiState.update {
-            it.copy(mainPost = post.copy(isLikedByCurrentUser = newIsLiked, likesCount = newCount))
+            it.copy(mainPost = updatedPost)
         }
 
         viewModelScope.launch {
+            communityRepository.emitPostUpdate(updatedPost)
+
             val result = communityRepository.toggleLike(post.id, userId)
+
             if (result.isFailure) {
                 _uiState.update { state ->
                     state.copy(
@@ -164,6 +173,7 @@ class PostDetailViewModel @Inject constructor(
                         error = "Error de conexión. No se pudo guardar el me gusta."
                     )
                 }
+                communityRepository.emitPostUpdate(post)
             }
         }
     }

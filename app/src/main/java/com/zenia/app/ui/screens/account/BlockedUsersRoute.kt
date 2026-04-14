@@ -32,7 +32,6 @@ fun BlockedUsersRoute(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // Estado para controlar el diálogo de confirmación
     var userToUnblock by remember { mutableStateOf<BlockedUserProfile?>(null) }
 
     LaunchedEffect(uiState.actionMessage, uiState.error) {
@@ -46,7 +45,6 @@ fun BlockedUsersRoute(
         }
     }
 
-    // Diálogo de confirmación
     if (userToUnblock != null) {
         AlertDialog(
             onDismissRequest = { userToUnblock = null },
@@ -88,6 +86,6 @@ fun BlockedUsersRoute(
     BlockedUsersScreen(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
-        onUnblockClick = { user -> userToUnblock = user } // Abrimos el diálogo en lugar de ejecutar la acción directa
+        onUnblockClick = { user -> userToUnblock = user }
     )
 }

@@ -47,7 +47,6 @@ fun BlockedUsersScreen(
                                 Spacer(Modifier.width(12.dp))
                                 Text(user.apodo, Modifier.weight(1f), fontWeight = FontWeight.Medium, color = ZeniaDark)
 
-                                // Cambio a OutlinedButton para el delineado
                                 OutlinedButton(
                                     onClick = { onUnblockClick(user) },
                                     border = BorderStroke(1.dp, ZeniaTeal),

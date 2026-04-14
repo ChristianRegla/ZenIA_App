@@ -8,9 +8,14 @@ import com.zenia.app.model.BlockedUserProfile
 import com.zenia.app.model.CommunityComment
 import com.zenia.app.model.CommunityPost
 import com.zenia.app.util.ProfanityFilter
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 @Singleton
 class CommunityRepository @Inject constructor(
@@ -19,9 +24,17 @@ class CommunityRepository @Inject constructor(
 ) {
     private val postsCollection = firestore.collection(FirestoreCollections.POSTS)
 
+    private val _postUpdates = MutableSharedFlow<CommunityPost>(extraBufferCapacity = 1)
+    val postUpdates = _postUpdates.asSharedFlow()
+
+    suspend fun emitPostUpdate(post: CommunityPost) {
+        _postUpdates.emit(post)
+    }
+
     suspend fun getPosts(
         lastVisible: DocumentSnapshot?,
-        limit: Long = 10
+        limit: Long = 10,
+        currentUserId: String? = null
     ): Pair<List<CommunityPost>, DocumentSnapshot?> {
         var query = postsCollection
             .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -32,7 +45,22 @@ class CommunityRepository @Inject constructor(
         }
 
         val snapshot = query.get().await()
-        val posts = snapshot.toObjects(CommunityPost::class.java)
+        var posts = snapshot.toObjects(CommunityPost::class.java)
+
+        if (currentUserId != null && posts.isNotEmpty()) {
+            posts = coroutineScope {
+                posts.map { post ->
+                    async {
+                        val likeSnapshot = postsCollection.document(post.id)
+                            .collection("likes").document(currentUserId)
+                            .get().await()
+
+                        post.copy(isLikedByCurrentUser = likeSnapshot.exists())
+                    }
+                }.awaitAll()
+            }
+        }
+
         val newLastVisible =
             if (snapshot.documents.isNotEmpty()) snapshot.documents.last() else null
 
@@ -191,7 +219,8 @@ class CommunityRepository @Inject constructor(
     suspend fun getComments(
         postId: String,
         lastVisible: DocumentSnapshot?,
-        limit: Long = 15
+        limit: Long = 15,
+        currentUserId: String? = null
     ): Pair<List<CommunityComment>, DocumentSnapshot?> {
         var query = postsCollection.document(postId)
             .collection("comments")
@@ -203,7 +232,23 @@ class CommunityRepository @Inject constructor(
         }
 
         val snapshot = query.get().await()
-        val comments = snapshot.toObjects(CommunityComment::class.java)
+        var comments = snapshot.toObjects(CommunityComment::class.java)
+
+        if (currentUserId != null && comments.isNotEmpty()) {
+            comments = coroutineScope {
+                comments.map { comment ->
+                    async {
+                        val likeSnapshot = postsCollection.document(postId)
+                            .collection("comments").document(comment.id)
+                            .collection("likes").document(currentUserId)
+                            .get().await()
+
+                        comment.copy(isLikedByCurrentUser = likeSnapshot.exists())
+                    }
+                }.awaitAll()
+            }
+        }
+
         val newLastVisible =
             if (snapshot.documents.isNotEmpty()) snapshot.documents.last() else null
 

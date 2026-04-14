@@ -43,6 +43,7 @@ class CommunityViewModel @Inject constructor(
 
     init {
         initializeData()
+        observePostUpdates()
     }
 
     private fun initializeData() {
@@ -78,7 +79,10 @@ class CommunityViewModel @Inject constructor(
                 var fetchedValidPosts = false
 
                 while (attempts < 3 && !isLastPage && !fetchedValidPosts) {
-                    val (newPosts, newLastVisible) = communityRepository.getPosts(lastVisibleDocument)
+                    val (newPosts, newLastVisible) = communityRepository.getPosts(
+                        lastVisible = lastVisibleDocument,
+                        currentUserId = sessionManager.currentUserId
+                    )
 
                     if (newPosts.isEmpty()) {
                         isLastPage = true
@@ -271,7 +275,10 @@ class CommunityViewModel @Inject constructor(
             _uiState.update { it.copy(isRefreshing = true, error = null) }
 
             try {
-                val (newPosts, newLastVisible) = communityRepository.getPosts(null)
+                val (newPosts, newLastVisible) = communityRepository.getPosts(
+                    lastVisible = null,
+                    currentUserId = sessionManager.currentUserId
+                )
 
                 lastVisibleDocument = newLastVisible
                 isLastPage = newPosts.isEmpty()
@@ -307,6 +314,19 @@ class CommunityViewModel @Inject constructor(
                     state.copy(
                         posts = filteredPosts
                     )
+                }
+            }
+        }
+    }
+
+    private fun observePostUpdates() {
+        viewModelScope.launch {
+            communityRepository.postUpdates.collect { updatedPost ->
+                _uiState.update { state ->
+                    val updatedPosts = state.posts.map { currentPost ->
+                        if (currentPost.id == updatedPost.id) updatedPost else currentPost
+                    }
+                    state.copy(posts = updatedPosts)
                 }
             }
         }
