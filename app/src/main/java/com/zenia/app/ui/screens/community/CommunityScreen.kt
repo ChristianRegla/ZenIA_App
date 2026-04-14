@@ -14,6 +14,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ChatBubble
+import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -60,7 +63,8 @@ fun CommunityScreen(
     onBlockClick: (String) -> Unit,
     onReportClick: (CommunityPost) -> Unit,
     isRefreshing: Boolean,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    onCommentClick: (CommunityPost) -> Unit
 ) {
     val isAtBottom by remember {
         derivedStateOf {
@@ -117,7 +121,8 @@ fun CommunityScreen(
                             onLikeClick = { onLikeClick(post) },
                             onDeleteClick = { onDeleteClick(post) },
                             onBlockClick = { onBlockClick(post.authorId) },
-                            onReportClick = { onReportClick(post) }
+                            onReportClick = { onReportClick(post) },
+                            onCommentClick = { onCommentClick(post) }
                         )
                     }
 
@@ -146,7 +151,8 @@ fun CommunityPostItem(
     onLikeClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onBlockClick: () -> Unit,
-    onReportClick: () -> Unit
+    onReportClick: () -> Unit,
+    onCommentClick: (() -> Unit)? = null
 ) {
     var expandedMenu by remember { mutableStateOf(false) }
     val isOwnPost = currentUserId != null && post.authorId == currentUserId
@@ -251,24 +257,42 @@ fun CommunityPostItem(
                 modifier = Modifier.padding(top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onLikeClick) {
-                    Icon(
-                        imageVector = if (post.isLikedByCurrentUser) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = "Like",
-                        tint = if (post.isLikedByCurrentUser) Color(0xFFFF5252) else ZeniaSlateGrey,
-                        modifier = Modifier.graphicsLayer {
-                            scaleX = if (post.isLikedByCurrentUser) scale else 1f
-                            scaleY = if (post.isLikedByCurrentUser) scale else 1f
-                        }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onLikeClick) {
+                        Icon(
+                            imageVector = if (post.isLikedByCurrentUser) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Like",
+                            tint = if (post.isLikedByCurrentUser) Color(0xFFFF5252) else ZeniaSlateGrey,
+                            modifier = Modifier.graphicsLayer {
+                                scaleX = if (post.isLikedByCurrentUser) scale else 1f
+                                scaleY = if (post.isLikedByCurrentUser) scale else 1f
+                            }
+                        )
+                    }
+                    Text(
+                        text = "${post.likesCount}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (post.isLikedByCurrentUser) Color(0xFFFF5252) else ZeniaSlateGrey,
+                        fontWeight = if (post.isLikedByCurrentUser) FontWeight.Bold else FontWeight.Normal
                     )
                 }
 
-                Text(
-                    text = "${post.likesCount}",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = if (post.isLikedByCurrentUser) Color(0xFFFF5252) else ZeniaSlateGrey,
-                    fontWeight = if (post.isLikedByCurrentUser) FontWeight.Bold else FontWeight.Normal
-                )
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { onCommentClick?.invoke() }) {
+                        Icon(
+                            imageVector = Icons.Default.ChatBubbleOutline,
+                            contentDescription = "Responder",
+                            tint = ZeniaSlateGrey
+                        )
+                    }
+                    Text(
+                        text = "${post.commentsCount}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = ZeniaSlateGrey
+                    )
+                }
             }
         }
     }

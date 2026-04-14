@@ -5,6 +5,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.zenia.app.model.BlockedUserProfile
+import com.zenia.app.model.CommunityComment
 import com.zenia.app.model.CommunityPost
 import com.zenia.app.util.ProfanityFilter
 import kotlinx.coroutines.tasks.await
@@ -182,6 +183,119 @@ class CommunityRepository @Inject constructor(
                 )
             }
             Result.success(profiles)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getComments(
+        postId: String,
+        lastVisible: DocumentSnapshot?,
+        limit: Long = 15
+    ): Pair<List<CommunityComment>, DocumentSnapshot?> {
+        var query = postsCollection.document(postId)
+            .collection("comments")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .limit(limit)
+
+        if (lastVisible != null) {
+            query = query.startAfter(lastVisible)
+        }
+
+        val snapshot = query.get().await()
+        val comments = snapshot.toObjects(CommunityComment::class.java)
+        val newLastVisible =
+            if (snapshot.documents.isNotEmpty()) snapshot.documents.last() else null
+
+        return Pair(comments, newLastVisible)
+    }
+
+    suspend fun createComment(
+        postId: String,
+        userId: String,
+        apodo: String,
+        avatarIndex: Int,
+        isPremium: Boolean,
+        content: String
+    ): Result<CommunityComment> {
+        return try {
+            if (profanityFilter.hasProfanity(content)) {
+                return Result.failure(Exception("El contenido contiene palabras prohibidas"))
+            }
+
+            val postRef = postsCollection.document(postId)
+            val commentRef = postRef.collection("comments").document()
+            val commentId = commentRef.id
+
+            val comment = CommunityComment(
+                id = commentId,
+                postId = postId,
+                authorId = userId,
+                authorApodo = apodo,
+                authorAvatarIndex = avatarIndex,
+                authorIsPremium = isPremium,
+                content = content
+            )
+
+            firestore.runTransaction { transaction ->
+                val postSnapshot = transaction.get(postRef)
+                if (postSnapshot.exists()) {
+                    transaction.set(commentRef, comment)
+                    transaction.update(postRef, "commentsCount", FieldValue.increment(1))
+                } else {
+                    throw Exception("El post original ya no existe.")
+                }
+            }.await()
+
+            Result.success(comment)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteComment(postId: String, commentId: String): Result<Unit> {
+        return try {
+            val postRef = postsCollection.document(postId)
+            val commentRef = postRef.collection("comments").document(commentId)
+
+            firestore.runTransaction { transaction ->
+                val commentSnapshot = transaction.get(commentRef)
+                if (commentSnapshot.exists()) {
+                    transaction.delete(commentRef)
+                    transaction.update(postRef, "commentsCount", FieldValue.increment(-1))
+                }
+            }.await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun toggleCommentLike(
+        postId: String,
+        commentId: String,
+        userId: String
+    ): Result<Boolean> {
+        val commentRef = postsCollection.document(postId).collection("comments").document(commentId)
+        val likeRef = commentRef.collection("likes").document(userId)
+
+        return try {
+            val isLikedNow = firestore.runTransaction { transaction ->
+                val snapshot = transaction.get(likeRef)
+
+                if (snapshot.exists()) {
+                    transaction.delete(likeRef)
+                    transaction.update(commentRef, "likesCount", FieldValue.increment(-1))
+                    false
+                } else {
+                    transaction.set(likeRef, mapOf("timestamp" to FieldValue.serverTimestamp()))
+                    transaction.update(commentRef, "likesCount", FieldValue.increment(1))
+                    true
+                }
+            }.await()
+
+            Result.success(isLikedNow)
         } catch (e: Exception) {
             Result.failure(e)
         }

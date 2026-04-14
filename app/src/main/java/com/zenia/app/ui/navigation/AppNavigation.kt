@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -16,6 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.zenia.app.model.CommunityPost
 import com.zenia.app.ui.screens.MainScreen
 import com.zenia.app.ui.screens.analytics.AnalyticsRoute
 import com.zenia.app.ui.screens.analytics.AnalyticsViewModel
@@ -274,8 +276,36 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
             popExitTransition = { popSlideOut() }
         ) {
             CommunityRoute(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPostDetail = { post ->
+                    navController.currentBackStackEntry?.savedStateHandle?.set("mainPost", post)
+                    navController.safeNavigate(Destinations.createPostDetailRoute(post.id))
+                }
             )
+        }
+
+        composable(
+            route = Destinations.POST_DETAIL_ROUTE,
+            arguments = listOf(navArgument(NavArgs.POST_ID) { type = NavType.StringType }),
+            enterTransition = { slideIn() },
+            exitTransition = { slideOut() },
+            popEnterTransition = { popSlideIn() },
+            popExitTransition = { popSlideOut() }
+        ) {
+            val mainPost = remember {
+                navController.previousBackStackEntry?.savedStateHandle?.get<CommunityPost>("mainPost")
+            }
+
+            if (mainPost != null) {
+                com.zenia.app.ui.screens.community.PostDetailRoute(
+                    mainPost = mainPost,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            } else {
+                LaunchedEffect(Unit) {
+                    navController.popBackStack()
+                }
+            }
         }
 
         composable(

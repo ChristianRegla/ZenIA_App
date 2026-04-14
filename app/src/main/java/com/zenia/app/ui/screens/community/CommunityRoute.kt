@@ -30,6 +30,7 @@ import com.zenia.app.ui.components.ZeniaSnackbarData
 @Composable
 fun CommunityRoute(
     onNavigateBack: () -> Unit,
+    onNavigateToPostDetail: (CommunityPost) -> Unit,
     viewModel: CommunityViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -159,6 +160,7 @@ fun CommunityRoute(
         onDeleteClick = { post -> postToDelete = post },
         onBlockClick = { viewModel.blockUser(it) },
         onReportClick = { viewModel.reportPost(it) },
+        onCommentClick = { post -> onNavigateToPostDetail(post) },
         isRefreshing = uiState.isRefreshing,
         onRefresh = { viewModel.refreshPosts() }
     )
