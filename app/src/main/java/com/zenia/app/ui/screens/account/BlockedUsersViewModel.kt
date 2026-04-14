@@ -57,6 +57,8 @@ class BlockedUsersViewModel @Inject constructor(
         }
     }
 
+    // ... (Imports idénticos) ...
+
     fun unblockUser(user: BlockedUserProfile) {
         val currentUserId = sessionManager.currentUserId ?: return
         viewModelScope.launch {
@@ -68,9 +70,18 @@ class BlockedUsersViewModel @Inject constructor(
                         actionMessage = "Usuario desbloqueado"
                     )
                 }
+            } else {
+                // Se agrega manejo de error para mostrar en el Snackbar personalizado
+                _uiState.update { state ->
+                    state.copy(
+                        error = "No se pudo desbloquear al usuario. Intenta nuevamente."
+                    )
+                }
             }
         }
     }
+
+// ... (Resto del código idéntico) ...
 
     fun clearMessages() {
         _uiState.update { it.copy(actionMessage = null, error = null) }
