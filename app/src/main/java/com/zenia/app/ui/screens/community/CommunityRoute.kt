@@ -40,7 +40,11 @@ fun CommunityRoute(
     val coroutineScope = rememberCoroutineScope()
 
     var showCreateDialog by remember { mutableStateOf(false) }
+
     var postToDelete by remember { mutableStateOf<CommunityPost?>(null) }
+    var userToBlock by remember { mutableStateOf<String?>(null) }
+    var postToReport by remember { mutableStateOf<CommunityPost?>(null) }
+
     var wasRefreshing by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.isRefreshing) {
@@ -149,6 +153,86 @@ fun CommunityRoute(
         )
     }
 
+    if (userToBlock != null) {
+        AlertDialog(
+            onDismissRequest = { userToBlock = null },
+            title = {
+                Text(
+                    text = "Bloquear usuario",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "¿Estás seguro de que deseas bloquear a este usuario? Ya no verás sus publicaciones.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = ZeniaSlateGrey
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        userToBlock?.let { viewModel.blockUser(it) }
+                        userToBlock = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Bloquear")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { userToBlock = null }) {
+                    Text("Cancelar", color = ZeniaSlateGrey)
+                }
+            },
+            containerColor = Color.White,
+            tonalElevation = 0.dp,
+            shape = RoundedCornerShape(24.dp)
+        )
+    }
+
+    if (postToReport != null) {
+        AlertDialog(
+            onDismissRequest = { postToReport = null },
+            title = {
+                Text(
+                    text = "Reportar publicación",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "¿Deseas reportar esta publicación? Nuestro equipo la revisará.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = ZeniaSlateGrey
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        postToReport?.let { viewModel.reportPost(it) }
+                        postToReport = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Reportar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { postToReport = null }) {
+                    Text("Cancelar", color = ZeniaSlateGrey)
+                }
+            },
+            containerColor = Color.White,
+            tonalElevation = 0.dp,
+            shape = RoundedCornerShape(24.dp)
+        )
+    }
+
     CommunityScreen(
         uiState = uiState,
         listState = listState,
@@ -158,8 +242,8 @@ fun CommunityRoute(
         onFabClick = { showCreateDialog = true },
         onLikeClick = { viewModel.onLikeClick(it) },
         onDeleteClick = { post -> postToDelete = post },
-        onBlockClick = { viewModel.blockUser(it) },
-        onReportClick = { viewModel.reportPost(it) },
+        onBlockClick = { authorId -> userToBlock = authorId },
+        onReportClick = { post -> postToReport = post },
         onCommentClick = { post -> onNavigateToPostDetail(post) },
         isRefreshing = uiState.isRefreshing,
         onRefresh = { viewModel.refreshPosts() }
