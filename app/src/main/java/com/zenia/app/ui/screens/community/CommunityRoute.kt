@@ -47,12 +47,21 @@ fun CommunityRoute(
 
     var wasRefreshing by remember { mutableStateOf(false) }
 
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.addObserver(androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                viewModel.syncBlockedUsersLocally()
+            }
+        })
+    }
+
     LaunchedEffect(uiState.isRefreshing) {
         if (uiState.isRefreshing) {
             wasRefreshing = true
         } else if (wasRefreshing) {
             wasRefreshing = false
-
             coroutineScope.launch {
                 kotlinx.coroutines.delay(100)
                 if (listState.layoutInfo.totalItemsCount > 0) {
@@ -64,21 +73,11 @@ fun CommunityRoute(
 
     LaunchedEffect(uiState.actionMessage, uiState.error) {
         uiState.actionMessage?.let {
-            ZeniaSnackbarController.showMessage(
-                ZeniaSnackbarData(
-                    message = it,
-                    state = SnackbarState.SUCCESS
-                )
-            )
+            ZeniaSnackbarController.showMessage(ZeniaSnackbarData(message = it, state = SnackbarState.SUCCESS))
             viewModel.clearActionMessage()
         }
         uiState.error?.let {
-            ZeniaSnackbarController.showMessage(
-                ZeniaSnackbarData(
-                    message = it,
-                    state = SnackbarState.ERROR
-                )
-            )
+            ZeniaSnackbarController.showMessage(ZeniaSnackbarData(message = it, state = SnackbarState.ERROR))
             viewModel.clearActionMessage()
         }
     }
@@ -90,10 +89,8 @@ fun CommunityRoute(
     LaunchedEffect(uiState.isPostLoading) {
         if (!uiState.isPostLoading && uiState.postCreationError == null && showCreateDialog) {
             showCreateDialog = false
-
             coroutineScope.launch {
                 kotlinx.coroutines.delay(100)
-
                 if (listState.layoutInfo.totalItemsCount > 0) {
                     listState.animateScrollToItem(0)
                 }
@@ -108,28 +105,15 @@ fun CommunityRoute(
             onValidate = { viewModel.validateContent(it) },
             isLoading = uiState.isPostLoading,
             errorMessage = uiState.postCreationError,
-            onSuccess = {
-            }
+            onSuccess = {}
         )
     }
 
     if (postToDelete != null) {
         AlertDialog(
             onDismissRequest = { postToDelete = null },
-            title = {
-                Text(
-                    text = "Eliminar publicación",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Text(
-                    text = "¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = ZeniaSlateGrey
-                )
-            },
+            title = { Text(text = "Eliminar publicación", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
+            text = { Text(text = "¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.", style = MaterialTheme.typography.bodyMedium, color = ZeniaSlateGrey) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -138,57 +122,12 @@ fun CommunityRoute(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("Eliminar")
-                }
+                ) { Text("Eliminar") }
             },
             dismissButton = {
-                TextButton(onClick = { postToDelete = null }) {
-                    Text("Cancelar", color = ZeniaSlateGrey)
-                }
+                TextButton(onClick = { postToDelete = null }) { Text("Cancelar", color = ZeniaSlateGrey) }
             },
             containerColor = Color.White,
-            tonalElevation = 0.dp,
-            shape = RoundedCornerShape(24.dp)
-        )
-    }
-
-    if (userToBlock != null) {
-        AlertDialog(
-            onDismissRequest = { userToBlock = null },
-            title = {
-                Text(
-                    text = "Bloquear usuario",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Text(
-                    text = "¿Estás seguro de que deseas bloquear a este usuario? Ya no verás sus publicaciones.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = ZeniaSlateGrey
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        userToBlock?.let { viewModel.blockUser(it) }
-                        userToBlock = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("Bloquear")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { userToBlock = null }) {
-                    Text("Cancelar", color = ZeniaSlateGrey)
-                }
-            },
-            containerColor = Color.White,
-            tonalElevation = 0.dp,
             shape = RoundedCornerShape(24.dp)
         )
     }
@@ -196,20 +135,8 @@ fun CommunityRoute(
     if (postToReport != null) {
         AlertDialog(
             onDismissRequest = { postToReport = null },
-            title = {
-                Text(
-                    text = "Reportar publicación",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Text(
-                    text = "¿Deseas reportar esta publicación? Nuestro equipo la revisará.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = ZeniaSlateGrey
-                )
-            },
+            title = { Text("Reportar publicación", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
+            text = { Text("¿Deseas reportar esta publicación? Nuestro equipo la revisará.", color = ZeniaSlateGrey) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -218,17 +145,35 @@ fun CommunityRoute(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("Reportar")
-                }
+                ) { Text("Reportar") }
             },
             dismissButton = {
-                TextButton(onClick = { postToReport = null }) {
-                    Text("Cancelar", color = ZeniaSlateGrey)
-                }
+                TextButton(onClick = { postToReport = null }) { Text("Cancelar", color = ZeniaSlateGrey) }
             },
             containerColor = Color.White,
-            tonalElevation = 0.dp,
+            shape = RoundedCornerShape(24.dp)
+        )
+    }
+
+    if (userToBlock != null) {
+        AlertDialog(
+            onDismissRequest = { userToBlock = null },
+            title = { Text("Bloquear usuario", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
+            text = { Text("¿Estás seguro de que deseas bloquear a este usuario? Ya no verás sus publicaciones.", color = ZeniaSlateGrey) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        userToBlock?.let { viewModel.blockUser(it) }
+                        userToBlock = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                    shape = RoundedCornerShape(8.dp)
+                ) { Text("Bloquear") }
+            },
+            dismissButton = {
+                TextButton(onClick = { userToBlock = null }) { Text("Cancelar", color = ZeniaSlateGrey) }
+            },
+            containerColor = Color.White,
             shape = RoundedCornerShape(24.dp)
         )
     }

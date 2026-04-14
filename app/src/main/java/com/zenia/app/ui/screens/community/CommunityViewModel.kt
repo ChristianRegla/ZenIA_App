@@ -290,4 +290,25 @@ class CommunityViewModel @Inject constructor(
             }
         }
     }
+
+    fun syncBlockedUsersLocally() {
+        val userId = sessionManager.currentUserId ?: return
+
+        viewModelScope.launch {
+            val blockResult = communityRepository.getBlockedUsers(userId)
+
+            if (blockResult.isSuccess) {
+                blockedUserIds.clear()
+                blockedUserIds.addAll(blockResult.getOrDefault(emptyList()))
+
+                _uiState.update { state ->
+                    val filteredPosts = state.posts.filter { it.authorId !in blockedUserIds }
+
+                    state.copy(
+                        posts = filteredPosts
+                    )
+                }
+            }
+        }
+    }
 }

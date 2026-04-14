@@ -35,7 +35,8 @@ class PostDetailViewModel @Inject constructor(
         val isLoading: Boolean = false,
         val isSending: Boolean = false,
         val error: String? = null,
-        val actionMessage: String? = null
+        val actionMessage: String? = null,
+        val isMainAuthorBlocked: Boolean = false
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -222,5 +223,40 @@ class PostDetailViewModel @Inject constructor(
 
     fun clearMessages() {
         _uiState.update { it.copy(error = null, actionMessage = null) }
+    }
+
+
+    fun blockUser(authorId: String) {
+        val currentUserId = sessionManager.currentUserId ?: return
+
+        viewModelScope.launch {
+            val result = communityRepository.blockUser(currentUserId, authorId)
+            if (result.isSuccess) {
+                blockedUserIds.add(authorId)
+
+                val isMainPostAuthor = _uiState.value.mainPost?.authorId == authorId
+
+                _uiState.update { state ->
+                    val remainingComments = state.comments.filter { it.authorId != authorId }
+                    state.copy(
+                        comments = remainingComments,
+                        actionMessage = "Usuario bloqueado.",
+                        isMainAuthorBlocked = isMainPostAuthor
+                    )
+                }
+            } else {
+                _uiState.update { it.copy(error = "Error al bloquear al usuario") }
+            }
+        }
+    }
+
+    fun reportMainPost() {
+        val post = _uiState.value.mainPost ?: return
+        viewModelScope.launch {
+            val result = communityRepository.reportPost(post.content, post.authorId)
+            if (result.isSuccess) {
+                _uiState.update { it.copy(actionMessage = "Publicación reportada. Gracias por tu ayuda.") }
+            }
+        }
     }
 }

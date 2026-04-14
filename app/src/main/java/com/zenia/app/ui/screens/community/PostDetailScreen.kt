@@ -36,7 +36,9 @@ fun PostDetailScreen(
     onSendComment: (String) -> Unit,
     onLikeComment: (CommunityComment) -> Unit,
     onDeleteComment: (CommunityComment) -> Unit,
+    onBlockComment: (String) -> Unit,
     onReportComment: (CommunityComment) -> Unit,
+    onReportMainPost: () -> Unit,
     onLikeMainPost: () -> Unit
 ) {
     var inputText by remember { mutableStateOf("") }
@@ -70,8 +72,8 @@ fun PostDetailScreen(
                     currentUserId = currentUserId,
                     onLikeClick = onLikeMainPost,
                     onDeleteClick = {},
-                    onBlockClick = {},
-                    onReportClick = {},
+                    onBlockClick = { onBlockComment(displayPost.authorId) },
+                    onReportClick = { onReportMainPost() },
                     onCommentClick = null
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -90,7 +92,8 @@ fun PostDetailScreen(
                     currentUserId = currentUserId,
                     onLikeClick = { onLikeComment(comment) },
                     onDeleteClick = { onDeleteComment(comment) },
-                    onReportClick = { onReportComment(comment) }
+                    onReportClick = { onReportComment(comment) },
+                    onBlockClick = { onBlockComment(comment.authorId) }
                 )
             }
         }
@@ -103,7 +106,8 @@ fun CommunityCommentItem(
     currentUserId: String?,
     onLikeClick: () -> Unit,
     onDeleteClick: () -> Unit,
-    onReportClick: () -> Unit
+    onReportClick: () -> Unit,
+    onBlockClick: () -> Unit
 ) {
     var expandedMenu by remember { mutableStateOf(false) }
     val isOwnComment = currentUserId != null && comment.authorId == currentUserId
@@ -214,11 +218,22 @@ fun CommunityCommentItem(
                                 onReportClick()
                             }
                         )
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    "Bloquear usuario",
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            },
+                            onClick = {
+                                expandedMenu = false
+                                onBlockClick()
+                            }
+                        )
                     }
                 }
             }
         }
-
         Spacer(modifier = Modifier.height(12.dp))
         HorizontalDivider(color = ZeniaLightGrey.copy(alpha = 0.3f))
     }
@@ -245,7 +260,12 @@ fun CommentInputBar(
             OutlinedTextField(
                 value = text,
                 onValueChange = { if (it.length <= 500) onTextChange(it) },
-                placeholder = { Text("Escribe una respuesta...", style = MaterialTheme.typography.bodyMedium) },
+                placeholder = {
+                    Text(
+                        "Escribe una respuesta...",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
                 modifier = Modifier.weight(1f),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = ZeniaTeal,
@@ -258,12 +278,19 @@ fun CommentInputBar(
             IconButton(
                 onClick = onSend,
                 enabled = text.isNotBlank() && !isSending,
-                modifier = Modifier.background(if (text.isNotBlank() && !isSending) ZeniaTeal else ZeniaLightGrey, shape = RoundedCornerShape(50))
+                modifier = Modifier.background(
+                    if (text.isNotBlank() && !isSending) ZeniaTeal else ZeniaLightGrey,
+                    shape = RoundedCornerShape(50)
+                )
             ) {
                 if (isSending) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
                 } else {
-                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Enviar", tint = Color.White)
+                    Icon(
+                        Icons.AutoMirrored.Filled.Send,
+                        contentDescription = "Enviar",
+                        tint = Color.White
+                    )
                 }
             }
         }
