@@ -255,6 +255,7 @@ fun CommentInputBar(
     ) {
         Row(
             modifier = Modifier
+                .imePadding()
                 .navigationBarsPadding()
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically

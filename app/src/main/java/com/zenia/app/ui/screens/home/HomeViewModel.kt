@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.entryOf
+import com.zenia.app.data.CommunityRepository
 import com.zenia.app.data.ContentRepository
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.session.UserSessionManager
+import com.zenia.app.model.CommunityPost
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.util.AnalysisUtils
 import com.zenia.app.util.ChartUtils
@@ -28,6 +30,7 @@ sealed interface HomeUiState {
 class HomeViewModel @Inject constructor(
     contentRepository: ContentRepository,
     private val diaryRepository: DiaryRepository,
+    private val communityRepository: CommunityRepository,
     private val sessionManager: UserSessionManager
 ) : ViewModel() {
 
@@ -58,8 +61,12 @@ class HomeViewModel @Inject constructor(
     private val _currentStreak = MutableStateFlow(0)
     val currentStreak = _currentStreak.asStateFlow()
 
-    val communityActivities = contentRepository.getActividadesComunidad()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val _trendingPosts = MutableStateFlow<List<CommunityPost>>(emptyList())
+    val trendingPosts = _trendingPosts.asStateFlow()
+
+    init {
+        cargarPostDestacados()
+    }
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Idle)
     val uiState = _uiState.asStateFlow()
@@ -104,6 +111,21 @@ class HomeViewModel @Inject constructor(
             .takeLast(7)
 
         chartProducer.setEntries(entries)
+    }
+
+    private fun cargarPostDestacados() {
+        viewModelScope.launch {
+            try {
+                val (posts, _) = communityRepository.getPosts(
+                    lastVisible = null,
+                    limit = 5,
+                    currentUserId = sessionManager.currentUserId
+                )
+                _trendingPosts.value = posts
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     fun resetState() {

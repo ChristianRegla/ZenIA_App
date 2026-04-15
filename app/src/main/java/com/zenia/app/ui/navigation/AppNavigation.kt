@@ -128,10 +128,11 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
                 onNavigateToRecursoDetail = { recursoId ->
                     navController.safeNavigate(Destinations.createRecursoDetailRoute(recursoId))
                 },
-                onNavigateToTest = { testId ->
-                    navController.safeNavigate(Destinations.createEvaluacionRoute(testId))
-                },
-                onNavigateToBreathing = { navController.safeNavigate(Destinations.BREATHING_ROUTE) }
+                onNavigateToBreathing = { navController.safeNavigate(Destinations.BREATHING_ROUTE) },
+                onNavigateToPostDetail = { post ->
+                    navController.currentBackStackEntry?.savedStateHandle?.set("mainPost", post)
+                    navController.safeNavigate(Destinations.createPostDetailRoute(post.id))
+                }
             )
         }
 

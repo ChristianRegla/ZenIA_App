@@ -1,18 +1,10 @@
 package com.zenia.app.ui.screens.home
 
-import android.content.Intent
-import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContract
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
-import androidx.health.connect.client.HealthConnectClient
-import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.zenia.app.ui.navigation.Destinations
+import com.zenia.app.model.CommunityPost
 import java.time.LocalDate
 
 /**
@@ -28,7 +20,7 @@ fun HomeRoute(
     onNavigateToDiaryEntry: (LocalDate) -> Unit,
     onNavigateToAnalytics: () -> Unit,
     onNavigateToCommunity: () -> Unit,
-    onNavigateToTest: (String) -> Unit
+    onNavigateToPostDetail: (CommunityPost) -> Unit
 ) {
     val homeViewModel: HomeViewModel = hiltViewModel()
 
@@ -36,7 +28,7 @@ fun HomeRoute(
     val registros by homeViewModel.registrosDiario.collectAsState()
     val userName by homeViewModel.userName.collectAsState()
     val hasEntryToday by homeViewModel.hasEntryToday.collectAsState()
-    val communityActivities by homeViewModel.communityActivities.collectAsState()
+    val trendingPosts by homeViewModel.trendingPosts.collectAsState()
     val currentStreak by homeViewModel.currentStreak.collectAsState()
     val moodInsights by homeViewModel.moodInsights.collectAsState()
 
@@ -45,7 +37,7 @@ fun HomeRoute(
         userName = userName,
         registrosDiario = registros,
         hasEntryToday = hasEntryToday,
-        communityActivities = communityActivities,
+        trendingPosts = trendingPosts,
         chartProducer = homeViewModel.chartProducer,
         onNavigateToDiaryEntry = onNavigateToDiaryEntry,
         onSettingsClick = onNavigateToSettings,
@@ -57,6 +49,6 @@ fun HomeRoute(
         topDrainer = moodInsights.second,
         onNavigateToAnalytics = onNavigateToAnalytics,
         onNavigateToCommunity = onNavigateToCommunity,
-        onNavigateToTest = onNavigateToTest
+        onNavigateToPostDetail = onNavigateToPostDetail
     )
 }

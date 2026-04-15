@@ -30,7 +30,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -60,7 +61,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
@@ -76,8 +79,9 @@ import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.chart.line.LineChart
 import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders
+import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.zenia.app.R
-import com.zenia.app.model.ActividadComunidad
+import com.zenia.app.model.CommunityPost
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.components.HomeTopBar
 import com.zenia.app.ui.components.MoodPatternsCard
@@ -94,8 +98,9 @@ fun HomeScreen(
     userName: String,
     registrosDiario: List<DiarioEntrada>,
     hasEntryToday: Boolean,
-    communityActivities: List<ActividadComunidad>,
-    chartProducer: com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer,
+    trendingPosts: List<CommunityPost>,
+    onNavigateToPostDetail: (CommunityPost) -> Unit,
+    chartProducer: ChartEntryModelProducer,
     onNavigateToDiaryEntry: (LocalDate) -> Unit,
     onSettingsClick: () -> Unit,
     onNotificationClick: () -> Unit,
@@ -106,7 +111,6 @@ fun HomeScreen(
     topDrainer: AnalysisUtils.Insight?,
     onNavigateToAnalytics: () -> Unit,
     onNavigateToCommunity: () -> Unit,
-    onNavigateToTest: (String) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -234,60 +238,17 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(bottom = 24.dp)
                     ) {
-                        if (communityActivities.isEmpty()) {
-                            items(3) { CommunityCardPlaceholder() }
+                        if (trendingPosts.isEmpty()) {
+                            items(3) { CommunityPostPlaceholder() }
                         } else {
-                            items(communityActivities) { actividad ->
-                                CommunityCard(actividad)
+                            items(trendingPosts) { post ->
+                                CommunityPostCard(
+                                    post = post,
+                                    onClick = { onNavigateToPostDetail(post) }
+                                )
                             }
                         }
                     }
-                }
-
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Text(
-                                text = "🧪 Pruebas de Evaluación (Temporal)",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                            Text(
-                                text = "Acceso rápido a los nuevos tests psicológicos.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Button(
-                                    onClick = { onNavigateToTest("GAD7") }, // TipoTest.GAD7.name
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text("Test Ansiedad")
-                                }
-                                Button(
-                                    onClick = { onNavigateToTest("PHQ9") }, // TipoTest.PHQ9.name
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text("Test Depresión")
-                                }
-                            }
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(24.dp))
                 }
             }
         }
@@ -487,57 +448,118 @@ private fun EmptyChartCard(onClick: () -> Unit) {
 }
 
 @Composable
-private fun CommunityCard(actividad: ActividadComunidad) {
+private fun CommunityPostCard(post: CommunityPost, onClick: () -> Unit) {
     val windowInfo = LocalWindowInfo.current
     val density = LocalDensity.current
     val screenWidth = with(density) { windowInfo.containerSize.width.toDp() }
 
     val availableWidth = if (screenWidth > 600.dp) 600.dp else screenWidth
-    val cardWidth = (availableWidth - 40.dp) / 2.2f
+    val cardWidth = (availableWidth - 40.dp) / 1.3f
 
     Card(
+        onClick = onClick,
         modifier = Modifier
             .width(cardWidth)
-            .height(180.dp),
+            .height(160.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(2.dp, Color.Magenta)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
-                contentAlignment = Alignment.Center
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(Icons.Default.Group, null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = post.authorApodo.take(1).uppercase(),
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontSize = 14.sp
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    Text(
+                        text = post.authorApodo,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = post.category,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = ZeniaTeal
+                    )
+                }
             }
+
             Spacer(modifier = Modifier.height(12.dp))
+
             Text(
-                text = actividad.titulo,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                maxLines = 2
+                text = post.content,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
             )
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = stringResource(R.string.home_community_participants, actividad.participantes),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Favorite,
+                        contentDescription = "Likes",
+                        tint = if (post.isLikedByCurrentUser) Color(0xFFFF5252) else Color.LightGray,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = post.likesCount.toString(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.Gray
+                    )
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.ChatBubbleOutline,
+                        contentDescription = "Comentarios",
+                        tint = Color.LightGray,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = post.commentsCount.toString(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.Gray
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun CommunityCardPlaceholder() {
+private fun CommunityPostPlaceholder() {
     val windowInfo = LocalWindowInfo.current
     val density = LocalDensity.current
     val screenWidth = with(density) { windowInfo.containerSize.width.toDp() }
 
     val availableWidth = if (screenWidth > 600.dp) 600.dp else screenWidth
-    val cardWidth = (availableWidth - 40.dp) / 2.2f
+    val cardWidth = (availableWidth - 40.dp) / 1.3f
 
     val transition = rememberInfiniteTransition(label = "shimmer")
     val translateAnim = transition.animateFloat(
@@ -552,9 +574,9 @@ private fun CommunityCardPlaceholder() {
 
     val brush = Brush.linearGradient(
         colors = listOf(
-            MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
-            MaterialTheme.colorScheme.surface.copy(alpha = 0.1f),
-            MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
         ),
         start = Offset(translateAnim.value - 500f, translateAnim.value - 500f),
         end = Offset(translateAnim.value, translateAnim.value)
@@ -563,13 +585,11 @@ private fun CommunityCardPlaceholder() {
     Card(
         modifier = Modifier
             .width(cardWidth)
-            .height(180.dp),
+            .height(160.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        border = BorderStroke(2.dp, Color.Red)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Spacer(modifier = Modifier
-            .fillMaxSize()
-            .background(brush))
+        Spacer(modifier = Modifier.fillMaxSize().background(brush))
     }
 }
