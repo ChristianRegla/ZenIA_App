@@ -50,6 +50,7 @@ fun DiarioScreen(
     onYearChange: (Int) -> Unit,
     onJumpToToday: () -> Unit,
     onScrollConsumed: () -> Unit,
+    onToggleFavorite: (LocalDate) -> Unit,
     entryContent: @Composable (LocalDate) -> Unit
 ) {
     DarkStatusIconsEffect()
@@ -59,6 +60,13 @@ fun DiarioScreen(
 
     val isEntryView = uiState.selectedDate != null
     var showYearDialog by remember { mutableStateOf(false) }
+
+    val isCurrentFavoriteState = remember(uiState.selectedDate, entries) {
+        derivedStateOf {
+            if (uiState.selectedDate == null) false
+            else entries.any { it.fecha == uiState.selectedDate.toString() && it.isFavorite }
+        }
+    }
 
     ZenIATheme {
         Scaffold(
@@ -83,6 +91,8 @@ fun DiarioScreen(
                                         MiniCalendarTopBar(
                                             selectedDate = uiState.selectedDate,
                                             entries = entries,
+                                            isFavorite = isCurrentFavoriteState.value,
+                                            onFavoriteClick = { onToggleFavorite(uiState.selectedDate) },
                                             onBackClick = onBackToCalendar,
                                             onDateClick = onDateSelected
                                         )
@@ -339,23 +349,5 @@ fun rememberMonthsForYear(
                 MonthState(yearMonth, days)
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DiarioScreenPreview() {
-    val mockState = DiarioUiState(selectedYear = 2025, months = rememberMonthsForYear(2025, 2025, emptyList()))
-    ZenIATheme {
-        DiarioScreen(
-            uiState = mockState,
-            entries = emptyList(),
-            onDateSelected = {},
-            onBackToCalendar = {},
-            onYearChange = {},
-            onJumpToToday = {},
-            onScrollConsumed = {},
-            entryContent = { Text("Contenido de entrada (Preview)") }
-        )
     }
 }

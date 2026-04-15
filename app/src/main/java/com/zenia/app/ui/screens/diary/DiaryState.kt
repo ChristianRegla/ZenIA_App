@@ -16,7 +16,8 @@ data class CalendarDayState(
     val hasFeelings: Boolean = false,
     val hasSleep: Boolean = false,
     val hasMind: Boolean = false,
-    val hasExercise: Boolean = false
+    val hasExercise: Boolean = false,
+    val isFavorite: Boolean = false
 )
 
 data class MonthState(

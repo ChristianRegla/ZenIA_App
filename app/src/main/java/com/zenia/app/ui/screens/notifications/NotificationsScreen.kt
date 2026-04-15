@@ -18,22 +18,30 @@ import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.*
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.zenia.app.R
 import com.zenia.app.model.ZeniaNotification
 import com.zenia.app.ui.components.ZeniaTopBar
-import com.zenia.app.ui.theme.ZenIATheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -48,6 +56,27 @@ fun NotificationsScreen(
     onMarkAsRead: (ZeniaNotification) -> Unit,
     onNotificationClick: (String) -> Unit
 ) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    var isSystemEnabled by remember {
+        mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled())
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                isSystemEnabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    val actualSwitchState = isNotificationsEnabled && isSystemEnabled
+
     Scaffold(
         topBar = {
             ZeniaTopBar(
@@ -72,7 +101,7 @@ fun NotificationsScreen(
             ) {
 
                 NotificationControlHeader(
-                    isEnabled = isNotificationsEnabled,
+                    isEnabled = actualSwitchState,
                     onToggle = onToggleNotifications
                 )
 
@@ -144,13 +173,21 @@ fun NotificationsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationItem(notification: ZeniaNotification, onClick: () -> Unit, onDelete: () -> Unit) {
-    val dismissState = rememberSwipeToDismissBoxState()
+
+    val dismissState = rememberSwipeToDismissBoxState(
+        initialValue = SwipeToDismissBoxValue.Settled,
+        positionalThreshold = SwipeToDismissBoxDefaults.positionalThreshold
+    )
 
     LaunchedEffect(dismissState.currentValue) {
         if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
             onDelete()
-            dismissState.reset()
         }
+    }
+
+    val formattedDate = remember(notification.timestamp) {
+        val sdf = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
+        sdf.format(Date(notification.timestamp))
     }
 
     SwipeToDismissBox(
@@ -179,7 +216,7 @@ fun NotificationItem(notification: ZeniaNotification, onClick: () -> Unit, onDel
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(text = notification.body, style = MaterialTheme.typography.bodyMedium, maxLines = 3, overflow = TextOverflow.Ellipsis)
                     Spacer(modifier = Modifier.height(10.dp))
-                    Text(text = formatTimestamp(notification.timestamp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+                    Text(text = formattedDate, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
                 }
             }
         }
@@ -217,9 +254,4 @@ fun EmptyStateNotifications() {
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = stringResource(R.string.notifications_empty_state), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
-}
-
-fun formatTimestamp(timestamp: Long): String {
-    val sdf = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
-    return sdf.format(Date(timestamp))
 }

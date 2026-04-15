@@ -117,6 +117,20 @@ class DiarioViewModel @Inject constructor(
         _uiState.update { it.copy(scrollTargetIndex = null) }
     }
 
+    fun toggleFavorite(date: LocalDate) {
+        viewModelScope.launch {
+            val dateStr = date.toString()
+            val existingEntry = entriesMap[date]
+
+            if (existingEntry != null) {
+                diaryRepository.saveDiaryEntry(existingEntry.copy(isFavorite = !existingEntry.isFavorite))
+            } else {
+                val newEntry = DiarioEntrada(fecha = dateStr, isFavorite = true)
+                diaryRepository.saveDiaryEntry(newEntry)
+            }
+        }
+    }
+
     private fun generateDaysForMonth(
         yearMonth: YearMonth,
         today: LocalDate,
@@ -156,7 +170,8 @@ class DiarioViewModel @Inject constructor(
                     hasFeelings = entry?.estadoAnimo != null,
                     hasSleep = entry?.calidadSueno != null,
                     hasMind = entry?.estadoMental != null,
-                    hasExercise = entry?.ejercicio != null
+                    hasExercise = entry?.ejercicio != null,
+                    isFavorite = entry?.isFavorite == true
                 )
             )
         }

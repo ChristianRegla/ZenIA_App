@@ -1,6 +1,12 @@
 package com.zenia.app.ui.screens.diary
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -41,6 +48,7 @@ fun DiaryEntryScreen(
 ) {
     val viewModel: DiaryEntryViewModel = hiltViewModel()
     val allEntries by viewModel.allEntries.collectAsState()
+    val isFavorite by viewModel.currentIsFavorite.collectAsState()
 
     Scaffold(
         topBar = {
@@ -52,6 +60,8 @@ fun DiaryEntryScreen(
                     MiniCalendarTopBar(
                         selectedDate = date,
                         entries = allEntries,
+                        isFavorite = isFavorite,
+                        onFavoriteClick = { viewModel.toggleFavoriteDirect(date) },
                         onBackClick = onNavigateBack,
                         onDateClick = { newDate -> viewModel.cargarEntrada(newDate) }
                     )
@@ -115,7 +125,16 @@ fun ConnectedDiaryEntry(
         limiteCategorias = viewModel.limiteCategorias,
         onReloadHealthData = { viewModel.recargarDatosDeSalud(date) },
         onSave = { seleccionesMap, activities, notes, pasos, ritmoCardiaco, minsSueno, hrv ->
-            viewModel.guardarEntrada(date, seleccionesMap, activities, notes, pasos, ritmoCardiaco, minsSueno, hrv, onSuccess = {})
+            viewModel.guardarEntrada(date,
+                seleccionesMap,
+                activities,
+                notes,
+                pasos,
+                ritmoCardiaco,
+                minsSueno,
+                hrv,
+                onSuccess = {}
+            )
         },
         onDelete = { viewModel.eliminarEntrada(date) },
         onEditCategory = { idCategoria ->
@@ -166,15 +185,38 @@ fun DiaryEntryContent(
     var noteText by rememberSaveable(existingEntry) { mutableStateOf("") }
     val selectedActivities = remember(existingEntry) { mutableStateListOf<String>() }
 
-    var pasosText by rememberSaveable(existingEntry, healthConnectData) { mutableStateOf(existingEntry?.hcPasos?.toString() ?: healthConnectData?.pasos?.toString() ?: "") }
-    var ritmoCardiacoText by rememberSaveable(existingEntry, healthConnectData) { mutableStateOf(existingEntry?.hcRitmoCardiaco?.toString() ?: healthConnectData?.ritmoCardiaco?.toString() ?: "") }
-    var suenoText by rememberSaveable(existingEntry, healthConnectData) { mutableStateOf(existingEntry?.hcMinutosSueno?.toString() ?: healthConnectData?.minutosSueno?.toString() ?: "") }
-    var hrvText by rememberSaveable(existingEntry, healthConnectData) { mutableStateOf(existingEntry?.hcHrv?.toString() ?: healthConnectData?.hrv?.toString() ?: "") }
+    var pasosText by rememberSaveable(existingEntry, healthConnectData) {
+        mutableStateOf(
+            existingEntry?.hcPasos?.toString() ?: healthConnectData?.pasos?.toString() ?: ""
+        )
+    }
+    var ritmoCardiacoText by rememberSaveable(existingEntry, healthConnectData) {
+        mutableStateOf(
+            existingEntry?.hcRitmoCardiaco?.toString() ?: healthConnectData?.ritmoCardiaco?.toString() ?: ""
+        )
+    }
+    var suenoText by rememberSaveable(existingEntry, healthConnectData) {
+        mutableStateOf(
+            existingEntry?.hcMinutosSueno?.toString() ?: healthConnectData?.minutosSueno?.toString() ?: ""
+        )
+    }
+    var hrvText by rememberSaveable(existingEntry, healthConnectData) {
+        mutableStateOf(existingEntry?.hcHrv?.toString() ?: healthConnectData?.hrv?.toString() ?: ""
+        )
+    }
 
     LaunchedEffect(existingEntry, categoriasUsuario) {
         selecciones.clear()
         if (existingEntry != null && categoriasUsuario.isNotEmpty()) {
-            fun getLevel(catId: String, dbName: String?): Int? = dbName?.let { name -> categoriasUsuario.find { it.idCategoria == catId }?.opciones?.find { it.nombrePersonalizado == name }?.nivel }
+            fun getLevel(catId: String, dbValue: String?): Int? {
+                if (dbValue == null) return null
+                val options = categoriasUsuario.find { it.idCategoria == catId }?.opciones ?: return null
+
+                val asNum = dbValue.toIntOrNull()
+                if (asNum != null && options.any { it.nivel == asNum }) return asNum
+
+                return options.find { it.nombrePersonalizado.equals(dbValue, ignoreCase = true) }?.nivel
+            }
 
             getLevel("estadoAnimo", existingEntry.estadoAnimo)?.let { selecciones["estadoAnimo"] = it }
             getLevel("calidadSueno", existingEntry.calidadSueno)?.let { selecciones["calidadSueno"] = it }
@@ -252,7 +294,7 @@ fun DiaryEntryContent(
             item {
                 OutlinedButton(
                     onClick = onAddCategory, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(12.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, ZeniaTeal.copy(alpha = 0.5f)), colors = ButtonDefaults.outlinedButtonColors(contentColor = ZeniaTeal)
+                    border = BorderStroke(1.dp, ZeniaTeal.copy(alpha = 0.5f)), colors = ButtonDefaults.outlinedButtonColors(contentColor = ZeniaTeal)
                 ) { Text(stringResource(R.string.diary_add_custom_category), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold) }
             }
         }
@@ -276,16 +318,86 @@ fun DiaryEntryContent(
         item {
             SectionTitle(stringResource(R.string.diary_section_notes))
             val prompts = stringArrayResource(R.array.diary_prompts)
-            Box(modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = noteText, onValueChange = { noteText = it }, modifier = Modifier.fillMaxWidth().height(180.dp),
-                    placeholder = { Text(stringResource(R.string.diary_placeholder_notes)) }, shape = RoundedCornerShape(16.dp),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
-                )
-                IconButton(
-                    onClick = { noteText = "$noteText${if (noteText.isBlank()) "" else "\n\n"}✨ ${prompts.random()}\n" },
-                    modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).background(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f), shape = CircleShape)
-                ) { Icon(Icons.Default.Lightbulb, null, tint = MaterialTheme.colorScheme.primary) }
+
+            var showPromptBubble by rememberSaveable { mutableStateOf(false) }
+            var currentPrompt by rememberSaveable { mutableStateOf("") }
+
+            Column(modifier = Modifier.fillMaxWidth()) {
+                AnimatedVisibility(
+                    visible = showPromptBubble,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.tertiaryContainer,
+                                shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 16.dp)
+                            )
+                            .padding(12.dp)
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Lightbulb,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.tertiary
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = currentPrompt,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(
+                                onClick = { showPromptBubble = false },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Cerrar sugerencia",
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = noteText,
+                        onValueChange = { noteText = it },
+                        modifier = Modifier.fillMaxWidth().height(180.dp),
+                        placeholder = { Text(stringResource(R.string.diary_placeholder_notes)) },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                        )
+                    )
+
+                    IconButton(
+                        onClick = {
+                            currentPrompt = prompts.random()
+                            showPromptBubble = true
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(8.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
+                                shape = CircleShape
+                            )
+                    ) {
+                        Icon(Icons.Default.Lightbulb, null, tint = MaterialTheme.colorScheme.primary)
+                    }
+                }
             }
         }
 
@@ -296,11 +408,16 @@ fun DiaryEntryContent(
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Button(
                     onClick = {
-                        val seleccionesParaBD = selecciones.mapNotNull { (catId, nivel) ->
-                            val dbName = categoriasUsuario.find { it.idCategoria == catId }?.opciones?.find { it.nivel == nivel }?.nombrePersonalizado
-                            if (dbName != null) catId to dbName else null
-                        }.toMap()
-                        onSave(seleccionesParaBD, selectedActivities.toList(), noteText, pasosText.toIntOrNull(), ritmoCardiacoText.toIntOrNull(), suenoText.toIntOrNull(), hrvText.toIntOrNull())
+                        val seleccionesParaBD = selecciones.mapValues { it.value.toString() }
+                        onSave(
+                            seleccionesParaBD,
+                            selectedActivities.toList(),
+                            noteText,
+                            pasosText.toIntOrNull(),
+                            ritmoCardiacoText.toIntOrNull(),
+                            suenoText.toIntOrNull(),
+                            hrvText.toIntOrNull()
+                        )
                     },
                     enabled = hasContent && !isLoading, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(12.dp)
                 ) {

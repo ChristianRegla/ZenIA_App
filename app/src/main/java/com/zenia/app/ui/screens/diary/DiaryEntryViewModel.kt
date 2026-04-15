@@ -54,6 +54,9 @@ class DiaryEntryViewModel @Inject constructor(
     private val _healthConnectData = MutableStateFlow<HealthDataResult?>(null)
     val healthConnectData = _healthConnectData.asStateFlow()
 
+    private val _currentIsFavorite = MutableStateFlow(false)
+    val currentIsFavorite = _currentIsFavorite.asStateFlow()
+
     val isPremium = sessionManager.isPremium
 
     val allEntries = diaryRepository.getDiaryEntriesStream()
@@ -136,6 +139,8 @@ class DiaryEntryViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = DiaryEntryUiState.Loading
 
+            val isFav = _currentIsFavorite.value
+
             val categoriasBase = listOf("estadoAnimo", "calidadSueno", "estadoMental", "ejercicio")
             val extras = selecciones.filterKeys { it !in categoriasBase }
 
@@ -152,7 +157,8 @@ class DiaryEntryViewModel @Inject constructor(
                 hcPasos = hcPasos,
                 hcRitmoCardiaco = hcRitmoCardiaco,
                 hcMinutosSueno = hcMinutosSueno,
-                hcHrv = hcHrv
+                hcHrv = hcHrv,
+                isFavorite = isFav
             )
 
             val entradaActual = _existingEntry.value
@@ -193,6 +199,8 @@ class DiaryEntryViewModel @Inject constructor(
                 val entry = diaryRepository.getDiaryEntryByDate(date.toString())
                 _existingEntry.value = entry
 
+                _currentIsFavorite.value = entry?.isFavorite ?: false
+
                 if (entry == null || (entry.hcPasos == null && entry.hcMinutosSueno == null)) {
                     obtenerDatosDeSaludDelDia(date)
                 }
@@ -202,6 +210,28 @@ class DiaryEntryViewModel @Inject constructor(
                 _existingEntry.value = null
                 _uiState.value = DiaryEntryUiState.Idle
                 e.printStackTrace()
+            }
+        }
+    }
+
+    fun toggleFavoriteDirect(date: LocalDate) {
+        val nuevoEstado = !_currentIsFavorite.value
+        _currentIsFavorite.value = nuevoEstado
+
+        viewModelScope.launch {
+            val dateStr = date.toString()
+            val current = _existingEntry.value
+
+            if (current != null) {
+                val updatedEntry = current.copy(isFavorite = nuevoEstado)
+                diaryRepository.saveDiaryEntry(updatedEntry)
+
+                _existingEntry.value = updatedEntry
+            } else {
+                val newEntry = DiarioEntrada(fecha = dateStr, isFavorite = nuevoEstado)
+                diaryRepository.saveDiaryEntry(newEntry)
+
+                _existingEntry.value = newEntry
             }
         }
     }

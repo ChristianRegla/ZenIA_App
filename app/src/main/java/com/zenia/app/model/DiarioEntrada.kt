@@ -1,5 +1,7 @@
 package com.zenia.app.model
 
+import com.google.firebase.firestore.PropertyName
+
 data class DiarioEntrada(
     val userId: String = "",
     val fecha: String = "",
@@ -18,5 +20,9 @@ data class DiarioEntrada(
     val hcPasos: Int? = null,
     val hcRitmoCardiaco: Int? = null,
     val hcMinutosSueno: Int? = null,
-    val hcHrv: Int? = null
+    val hcHrv: Int? = null,
+
+    @get:PropertyName("isFavorite")
+    @set:PropertyName("isFavorite")
+    var isFavorite: Boolean = false
 )

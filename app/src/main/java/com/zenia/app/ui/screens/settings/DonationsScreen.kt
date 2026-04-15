@@ -2,6 +2,8 @@ package com.zenia.app.ui.screens.settings
 
 import android.app.Activity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -127,7 +129,6 @@ fun DonationsScreen(
                 Spacer(modifier = Modifier.height(32.dp))
             }
 
-            // --- Tarjetas de Donación ---
             item {
                 DonationCard(
                     icon = Icons.Default.Coffee,
@@ -180,12 +181,20 @@ fun DonationCard(
     val borderWidth = if (isSelected) 2.dp else 1.dp
     val containerColor = if (isSelected) color.copy(alpha = 0.05f) else Color.White
 
+    val interactionSource = remember { MutableInteractionSource() }
+
     Surface(
-        onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         border = androidx.compose.foundation.BorderStroke(borderWidth, borderColor),
         color = containerColor,
-        modifier = Modifier.fillMaxWidth().height(80.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
