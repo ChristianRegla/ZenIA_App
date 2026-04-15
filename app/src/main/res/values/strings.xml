@@ -164,15 +164,11 @@
     <string name="diary_day_saturday_short">S</string>
     <string name="diary_day_sunday_short">D</string>
 
-    <string name="mood_good">Bien</string>
     <string name="mood_happy">Feliz</string>
     <string name="mood_discouraged">Desanimado</string>
     <string name="mood_joyful">Alegre</string>
 
-    <string name="sleep_rested">Descansado</string>
     <string name="sleep_energetic">Energético</string>
-    <string name="sleep_tired">Cansado</string>
-    <string name="sleep_very_good">Muy bien</string>
 
     <string name="mind_calm">Tranquilidad</string>
     <string name="mind_clarity">Claridad</string>
@@ -180,9 +176,6 @@
     <string name="mind_stressed">Estresado</string>
 
     <string name="exercise_walk">Caminata</string>
-    <string name="exercise_intense">Intenso</string>
-    <string name="exercise_none">Nada</string>
-    <string name="exercise_light">Ligero</string>
 
     <string name="activity_work">Trabajo</string>
     <string name="activity_exercise">Ejercicio</string>
@@ -468,7 +461,7 @@
 
     <string name="settings_notifications_title">Notificaciones</string>
     <string name="settings_notifications_enable">Permitir notificaciones</string>
-    <string name="settings_streak_reminder">Recordatorio de racha (8:00 PM)</string>
+    <string name="settings_streak_reminder">Recordatorio de racha</string>
     <string name="settings_morning_advice">Consejo matutino</string>
     <string name="settings_advice_desc">Recibe un tip basado en tu entrada del día anterior.</string>
 
@@ -514,7 +507,6 @@
     <string name="diary_heart_rate">Ritmo Card. (bpm)</string>
     <string name="diary_sleep_mins">Sueño (mins)</string>
     <string name="diary_hrv">HRV (ms)</string>
-    <string name="diary_premium_exclusive">Exclusivo Premium</string>
     <string name="diary_add_custom_category">+ Añadir Categoría Personalizada</string>
     <string name="diary_what_have_you_done">¿Qué has hecho?</string>
     <string name="diary_inspiration_desc">Inspiración</string>
@@ -569,4 +561,121 @@
 
     <string name="close">Cerrar</string>
 
+    <string name="diary_premium_exclusive">Exclusivo Premium</string>
+    <string name="diary_select_visual_style">Selecciona el estilo visual:</string>
+    <string name="diary_delete_category_title">Eliminar categoría</string>
+    <string name="diary_delete_category_warning">Si eliminas esta categoría, también se borrarán todas las entradas en la BD previas asociadas a ella en días pasados. Esta acción no se puede deshacer.</string>
+    <string name="diary_delete_permanently">Eliminar definitivamente</string>
+    <string name="diary_cancel">Cancelar</string>
+
+    <string name="category_mood">Estado de Ánimo</string>
+    <string name="mood_incredible">Increíble</string>
+    <string name="mood_good">Bien</string>
+    <string name="mood_down">Desanimado</string>
+    <string name="mood_terrible">Terrible</string>
+
+    <string name="category_sleep">Calidad del Sueño</string>
+    <string name="sleep_very_good">Muy bien</string>
+    <string name="sleep_rested">Descansado</string>
+    <string name="sleep_tired">Cansado</string>
+    <string name="sleep_insomnia">Insomnio</string>
+
+    <string name="category_mental">Estado Mental</string>
+    <string name="mental_clarity">Claridad</string>
+    <string name="mental_calm">Tranquilidad</string>
+    <string name="mental_stress">Estrés</string>
+    <string name="mental_chaos">Caos</string>
+
+    <string name="category_exercise">Intensidad del Ejercicio</string>
+    <string name="exercise_intense">Intenso</string>
+    <string name="exercise_moderate">Moderado</string>
+    <string name="exercise_light">Ligero</string>
+    <string name="exercise_none">Nada</string>
+
+    <string name="settings_reminder_time">Hora del recordatorio:</string>
+    <string name="settings_choose_reminder_time">Elegir hora de recordatorio</string>
+    <string name="action_accept">Aceptar</string>
+    <string name="action_cancel">Cancelar</string>
+
+    <string name="notifications_receive">Recibir notificaciones</string>
+    <string name="notifications_enabled_status">Activadas</string>
+    <string name="notifications_disabled_status">Desactivadas</string>
+    <string name="notifications_empty_state">No tienes notificaciones</string>
+
+    <string name="default_username">Usuario</string>
+    <string name="error_profanity">El contenido no cumple con las normas.</string>
+    <string name="msg_comment_published">Respuesta publicada</string>
+    <string name="error_like_main_post">Error de conexión. No se pudo guardar el me gusta.
+    </string> <string name="error_like_comment">Error al guardar el me gusta.</string>
+    <string name="msg_comment_deleted">Respuesta eliminada</string>
+    <string name="error_delete_comment">No se pudo eliminar</string>
+    <string name="msg_report_sent">Reporte enviado.</string>
+    <string name="msg_user_blocked">Usuario bloqueado.</string>
+    <string name="error_block_user">Error al bloquear al usuario</string>
+    <string name="msg_post_reported">Publicación reportada. Gracias por tu ayuda.</string>
+
+    <string name="title_responses">Respuestas</string>
+    <string name="badge_premium">Premium</string>
+    <string name="cd_like">Me gusta</string>
+    <string name="cd_options">Opciones</string>
+    <string name="action_report">Reportar</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="action_block_user">Bloquear usuario</string>
+    <string name="hint_write_reply">Escribe una respuesta…</string>
+    <string name="cd_send">Enviar</string>
+
+    <string name="dialog_delete_comment_title">Eliminar respuesta</string>
+    <string name="dialog_delete_comment_desc">¿Estás seguro de que deseas eliminar esta respuesta? Esta acción no se puede deshacer.</string>
+    <string name="dialog_report_comment_title">Reportar contenido</string>
+    <string name="dialog_report_comment_desc">¿Deseas reportar esta respuesta? Nuestro equipo la revisará para asegurar que cumpla con las normas.</string>
+    <string name="dialog_block_user_title">Bloquear usuario</string>
+    <string name="dialog_block_user_desc">¿Deseas bloquear a este usuario? Ya no verás sus publicaciones ni sus respuestas.</string>
+    <string name="action_block">Bloquear</string>
+    <string name="dialog_report_post_title">Reportar publicación</string>
+    <string name="dialog_report_post_desc">¿Deseas reportar esta publicación? Nuestro equipo la revisará.</string>
+
+    <string name="title_community">Comunidad</string>
+    <string name="cd_new_post">Nuevo Post</string>
+    <string name="badge_premium_member">Miembro Premium</string>
+    <string name="cd_post_options">Opciones del post</string>
+    <string name="action_delete_post">Eliminar publicación</string>
+    <string name="action_report_content">Reportar contenido</string>
+    <string name="cd_reply">Responder</string>
+    <string name="cd_avatar">Avatar</string>
+    <string name="dialog_new_post_title">Nueva publicación</string>
+    <string name="hint_share_positive">Comparte algo positivo con la comunidad…</string>
+    <string name="action_publishing">Publicando…</string>
+    <string name="action_publish">Publicar</string>
+
+    <string name="error_profanity_community">El contenido no cumple con las normas de la comunidad.</string>
+    <string name="error_profanity_detected">Se han detectado palabras inapropiadas. Por favor revisa tu mensaje.</string>
+    <string name="default_zenia_user">Usuario ZenIA</string>
+    <string name="category_general">General</string>
+    <string name="msg_post_created">Publicación creada con éxito</string>
+    <string name="error_user_not_identified">No se pudo identificar al usuario.</string>
+    <string name="msg_post_deleted">Publicación eliminada</string>
+    <string name="error_delete_post">No se pudo eliminar la publicación</string>
+    <string name="msg_report_received">Gracias por reportar. Revisaremos el contenido.</string>
+    <string name="error_send_report">Error al enviar el reporte</string>
+    <string name="msg_user_blocked_community">Usuario bloqueado. Ya no verás sus publicaciones.</string>
+
+    <string name="error_profanity_content">El contenido contiene palabras prohibidas</string>
+    <string name="error_post_not_found">El post original ya no existe.</string>
+
+    <string name="account_privacy_title">Privacidad</string>
+    <string name="account_blocked_users_button">Usuarios Bloqueados</string>
+
+    <string name="dialog_unblock_user_title">Desbloquear usuario</string>
+    <string name="dialog_unblock_user_desc">¿Estás seguro de que deseas desbloquear a este usuario? Volverás a ver sus publicaciones en la comunidad.</string>
+    <string name="action_unblock">Desbloquear</string>
+
+    <string name="title_blocked_users">Usuarios Bloqueados</string>
+
+    <string name="error_load_blocked_users">No se pudo cargar la lista.</string>
+    <string name="msg_user_unblocked">Usuario desbloqueado</string>
+    <string name="error_unblock_user">No se pudo desbloquear al usuario. Intenta nuevamente.</string>
+
+    <string name="dialog_delete_post_title">Eliminar publicación</string>
+    <string name="dialog_delete_post_desc">¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.</string>
+    <string name="dialog_block_user_community_desc">¿Estás seguro de que deseas bloquear a este usuario? Ya no verás sus publicaciones.</string>
 </resources>

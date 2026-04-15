@@ -11,7 +11,7 @@ object Destinations {
     const val ZENIA_ROUTE = "zenia_tab"
     const val RELAX_ROUTE = "relax_tab"
     const val RECURSOS_ROUTE = "recursos_tab"
-
+    const val BLOCKED_USERS_ROUTE = "blocked_users"
     const val SOS = "sos"
     const val ACCOUNT_ROUTE = "account"
     const val LOCK_ROUTE = "lock"
@@ -30,6 +30,7 @@ object Destinations {
     const val CHAT_ROUTE = "chat"
     const val ONBOARDING_ROUTE = "onboarding_route"
     const val COMMUNITY_ROUTE = "community_route"
+    const val POST_DETAIL_ROUTE = "post_detail/{postId}"
     const val EXPORT_SETTINGS_ROUTE = "export_settings_route"
 
     // Acá iré poniendo los ejercicios de relajación
@@ -43,10 +44,12 @@ object Destinations {
     fun homeWithTab(tabRoute: String) = "$HOME_ROUTE?tab=$tabRoute"
     fun createRecursoDetailRoute(recursoId: String) = "recurso_detail/$recursoId"
     fun createEvaluacionRoute(tipoTestId: String) = "evaluacion/$tipoTestId"
+    fun createPostDetailRoute(postId: String) = "post_detail/$postId"
 }
 
 object NavArgs {
     const val DATE = "date"
     const val RECURSO_ID = "recursoId"
     const val TIPO_TEST_ID = "tipoTestId"
+    const val POST_ID = "postId"
 }

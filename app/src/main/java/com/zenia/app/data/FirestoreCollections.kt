@@ -3,6 +3,7 @@ package com.zenia.app.data
 object FirestoreCollections {
     const val USERS = "usuarios"
     const val DIARY = "diario"
+    const val DIARY_CATEGORY = "categorias_diario"
     const val CHAT_HISTORY = "chatHistory"
     const val WELNESS_LOGS = "registrosBienestar"
     const val RESOURCES = "recursos"

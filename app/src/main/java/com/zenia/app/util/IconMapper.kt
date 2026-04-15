@@ -26,9 +26,12 @@ object IconMapper {
         }
     }
 
-    val availableIcons = listOf(
-        "nube_muy_feliz", "nube_feliz", "nube_mid", "nube_triste", "sol_muy_feliz",
-        "sol_feliz", "sol_mid", "sol_triste", "happy1",
-        "happy2", "sad", "sad2", "superhappy", "happyface", "sadface", "supersad"
+    val iconStyles = listOf(
+        listOf("nube_muy_feliz", "nube_feliz", "nube_mid", "nube_triste"),
+        listOf("sol_muy_feliz", "sol_feliz", "sol_mid", "sol_triste"),
+        listOf("happy1", "happy2", "sad", "sad2"),
+        listOf("superhappy", "happyface", "sadface", "supersad")
     )
+
+    val availableIcons = iconStyles.flatten()
 }

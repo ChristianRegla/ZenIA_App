@@ -2,6 +2,8 @@ package com.zenia.app.worker
 
 import android.content.Context
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.Calendar
@@ -23,13 +25,14 @@ object NotificationScheduler {
 
         val initialDelay = target.timeInMillis - now.timeInMillis
 
-        val workRequest = PeriodicWorkRequestBuilder<StreakReminderWorker>(24, TimeUnit.HOURS)
+        val workRequest = OneTimeWorkRequestBuilder<StreakReminderWorker>()
             .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
+            .addTag("streak_reminder_work")
             .build()
 
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+        WorkManager.getInstance(context).enqueueUniqueWork(
             "streak_reminder_work",
-            ExistingPeriodicWorkPolicy.UPDATE,
+            ExistingWorkPolicy.REPLACE,
             workRequest
         )
     }

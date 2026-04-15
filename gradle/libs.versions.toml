@@ -55,6 +55,7 @@ vico = "1.16.0"
 
 lottie = "6.7.1"
 material3 = "1.4.0"
+foundation = "1.10.6"
 
 
 [libraries]
@@ -133,6 +134,7 @@ google-generativeai = { group = "com.google.ai.client.generativeai", name = "gen
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 
 mikepenz-markdown-renderer = { group = "com.mikepenz", name = "multiplatform-markdown-renderer-m3", version.ref = "markdownRenderer" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

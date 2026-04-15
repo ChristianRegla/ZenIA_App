@@ -10,6 +10,7 @@ plugins {
 
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
+    id("kotlin-parcelize")
 }
 
 val localProperties = Properties()
@@ -39,8 +40,8 @@ android {
         applicationId = "com.zenia.app"
         minSdk = 28
         targetSdk = 36
-        versionCode = 7
-        versionName = "1.1.2"
+        versionCode = 8
+        versionName = "1.1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField(
@@ -117,6 +118,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.foundation)
 
     // --- Test ---
     testImplementation(libs.junit)

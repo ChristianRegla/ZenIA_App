@@ -63,6 +63,12 @@ class SettingsViewModel @Inject constructor(
     val isAdviceEnabled = userPreferencesRepository.morningAdviceEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    val streakReminderHour = userPreferencesRepository.streakReminderHour
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 20)
+
+    val streakReminderMinute = userPreferencesRepository.streakReminderMinute
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     fun setNotificationsEnabled(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setNotificationsEnabled(enabled)
@@ -70,7 +76,11 @@ class SettingsViewModel @Inject constructor(
                 NotificationScheduler.cancelStreakReminder(context)
             } else {
                 val isStreakEnabled = userPreferencesRepository.streakReminderEnabled.first()
-                if (isStreakEnabled) NotificationScheduler.scheduleStreakReminder(context)
+                if (isStreakEnabled) {
+                    val hour = userPreferencesRepository.streakReminderHour.first()
+                    val minute = userPreferencesRepository.streakReminderMinute.first()
+                    NotificationScheduler.scheduleStreakReminder(context, hour, minute)
+                }
             }
         }
     }
@@ -79,9 +89,20 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferencesRepository.setStreakReminderEnabled(enabled)
             if (enabled) {
-                NotificationScheduler.scheduleStreakReminder(context)
+                val hour = userPreferencesRepository.streakReminderHour.first()
+                val minute = userPreferencesRepository.streakReminderMinute.first()
+                NotificationScheduler.scheduleStreakReminder(context, hour, minute)
             } else {
                 NotificationScheduler.cancelStreakReminder(context)
+            }
+        }
+    }
+
+    fun setStreakReminderTime(hour: Int, minute: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.setStreakReminderTime(hour, minute)
+            if (userPreferencesRepository.notificationsEnabled.first() && userPreferencesRepository.streakReminderEnabled.first()) {
+                NotificationScheduler.scheduleStreakReminder(context, hour, minute)
             }
         }
     }

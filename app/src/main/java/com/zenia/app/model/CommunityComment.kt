@@ -1,29 +1,22 @@
 package com.zenia.app.model
 
-import android.os.Parcelable
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.ServerTimestamp
-import kotlinx.parcelize.Parcelize
 import java.util.Date
 
-@Parcelize
-data class CommunityPost(
+data class CommunityComment(
     val id: String = "",
+    val postId: String = "",
     val authorId: String = "",
-
     val authorApodo: String = "",
     val authorAvatarIndex: Int = 0,
     val authorIsPremium: Boolean = false,
-
     val content: String = "",
-    val category: String = "General",
-
     val likesCount: Int = 0,
-    val commentsCount: Int = 0,
 
     @ServerTimestamp
     val timestamp: Date? = null,
 
     @get:Exclude
     var isLikedByCurrentUser: Boolean = false
-) : Parcelable
+)
