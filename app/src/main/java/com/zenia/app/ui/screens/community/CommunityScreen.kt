@@ -93,7 +93,8 @@ fun CommunityScreen(
             ) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.cd_new_post))
             }
-        }
+        },
+        containerColor = ZeniaLightGrey
     ) { padding ->
         PullToRefreshBox(
             modifier = Modifier

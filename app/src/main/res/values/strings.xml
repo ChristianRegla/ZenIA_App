@@ -684,4 +684,7 @@
     <string name="dialog_delete_post_title">Eliminar publicación</string>
     <string name="dialog_delete_post_desc">¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.</string>
     <string name="dialog_block_user_community_desc">¿Estás seguro de que deseas bloquear a este usuario? Ya no verás sus publicaciones.</string>
+
+    <string name="no_comments_yet">Aún no hay respuestas</string>
+    <string name="be_the_first_to_comment">¡Sé el primero en compartir tu opinión!</string>
 </resources>
