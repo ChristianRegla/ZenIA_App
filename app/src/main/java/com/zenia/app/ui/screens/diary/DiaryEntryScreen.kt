@@ -185,10 +185,25 @@ fun DiaryEntryContent(
     var noteText by rememberSaveable(existingEntry) { mutableStateOf("") }
     val selectedActivities = remember(existingEntry) { mutableStateListOf<String>() }
 
-    var pasosText by rememberSaveable(existingEntry, healthConnectData) { mutableStateOf(existingEntry?.hcPasos?.toString() ?: healthConnectData?.pasos?.toString() ?: "") }
-    var ritmoCardiacoText by rememberSaveable(existingEntry, healthConnectData) { mutableStateOf(existingEntry?.hcRitmoCardiaco?.toString() ?: healthConnectData?.ritmoCardiaco?.toString() ?: "") }
-    var suenoText by rememberSaveable(existingEntry, healthConnectData) { mutableStateOf(existingEntry?.hcMinutosSueno?.toString() ?: healthConnectData?.minutosSueno?.toString() ?: "") }
-    var hrvText by rememberSaveable(existingEntry, healthConnectData) { mutableStateOf(existingEntry?.hcHrv?.toString() ?: healthConnectData?.hrv?.toString() ?: "") }
+    var pasosText by rememberSaveable(existingEntry, healthConnectData) {
+        mutableStateOf(
+            existingEntry?.hcPasos?.toString() ?: healthConnectData?.pasos?.toString() ?: ""
+        )
+    }
+    var ritmoCardiacoText by rememberSaveable(existingEntry, healthConnectData) {
+        mutableStateOf(
+            existingEntry?.hcRitmoCardiaco?.toString() ?: healthConnectData?.ritmoCardiaco?.toString() ?: ""
+        )
+    }
+    var suenoText by rememberSaveable(existingEntry, healthConnectData) {
+        mutableStateOf(
+            existingEntry?.hcMinutosSueno?.toString() ?: healthConnectData?.minutosSueno?.toString() ?: ""
+        )
+    }
+    var hrvText by rememberSaveable(existingEntry, healthConnectData) {
+        mutableStateOf(existingEntry?.hcHrv?.toString() ?: healthConnectData?.hrv?.toString() ?: ""
+        )
+    }
 
     LaunchedEffect(existingEntry, categoriasUsuario) {
         selecciones.clear()
