@@ -131,10 +131,10 @@ fun AccountScreen(
                         }
                     }
 
-                    AccountSection(title = "Privacidad") {
+                    AccountSection(title = stringResource(R.string.account_privacy_title)) {
                         AccountActionItem(
                             icon = Icons.Default.Block,
-                            text = "Usuarios Bloqueados",
+                            text = stringResource(R.string.account_blocked_users_button),
                             onClick = actions.onNavigateToBlockedUsers,
                             isLast = true
                         )

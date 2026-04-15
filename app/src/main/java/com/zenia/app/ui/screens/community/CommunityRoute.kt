@@ -22,6 +22,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
+import com.zenia.app.R
 import androidx.compose.ui.unit.dp
 import com.zenia.app.ui.components.SnackbarState
 import com.zenia.app.ui.components.ZeniaSnackbarController
@@ -112,8 +114,8 @@ fun CommunityRoute(
     if (postToDelete != null) {
         AlertDialog(
             onDismissRequest = { postToDelete = null },
-            title = { Text(text = "Eliminar publicación", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
-            text = { Text(text = "¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.", style = MaterialTheme.typography.bodyMedium, color = ZeniaSlateGrey) },
+            title = { Text(text = stringResource(R.string.dialog_delete_post_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
+            text = { Text(text = stringResource(R.string.dialog_delete_post_desc), style = MaterialTheme.typography.bodyMedium, color = ZeniaSlateGrey) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -122,10 +124,10 @@ fun CommunityRoute(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     shape = RoundedCornerShape(8.dp)
-                ) { Text("Eliminar") }
+                ) { Text(stringResource(R.string.common_delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { postToDelete = null }) { Text("Cancelar", color = ZeniaSlateGrey) }
+                TextButton(onClick = { postToDelete = null }) { Text(stringResource(R.string.common_cancel), color = ZeniaSlateGrey) }
             },
             containerColor = Color.White,
             shape = RoundedCornerShape(24.dp)
@@ -135,8 +137,8 @@ fun CommunityRoute(
     if (postToReport != null) {
         AlertDialog(
             onDismissRequest = { postToReport = null },
-            title = { Text("Reportar publicación", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
-            text = { Text("¿Deseas reportar esta publicación? Nuestro equipo la revisará.", color = ZeniaSlateGrey) },
+            title = { Text(stringResource(R.string.dialog_report_post_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.dialog_report_post_desc), color = ZeniaSlateGrey) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -145,10 +147,10 @@ fun CommunityRoute(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     shape = RoundedCornerShape(8.dp)
-                ) { Text("Reportar") }
+                ) { Text(stringResource(R.string.action_report)) }
             },
             dismissButton = {
-                TextButton(onClick = { postToReport = null }) { Text("Cancelar", color = ZeniaSlateGrey) }
+                TextButton(onClick = { postToReport = null }) { Text(stringResource(R.string.common_cancel), color = ZeniaSlateGrey) }
             },
             containerColor = Color.White,
             shape = RoundedCornerShape(24.dp)
@@ -158,8 +160,8 @@ fun CommunityRoute(
     if (userToBlock != null) {
         AlertDialog(
             onDismissRequest = { userToBlock = null },
-            title = { Text("Bloquear usuario", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
-            text = { Text("¿Estás seguro de que deseas bloquear a este usuario? Ya no verás sus publicaciones.", color = ZeniaSlateGrey) },
+            title = { Text(stringResource(R.string.dialog_block_user_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.dialog_block_user_community_desc), color = ZeniaSlateGrey) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -168,10 +170,10 @@ fun CommunityRoute(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     shape = RoundedCornerShape(8.dp)
-                ) { Text("Bloquear") }
+                ) { Text(stringResource(R.string.action_block)) }
             },
             dismissButton = {
-                TextButton(onClick = { userToBlock = null }) { Text("Cancelar", color = ZeniaSlateGrey) }
+                TextButton(onClick = { userToBlock = null }) { Text(stringResource(R.string.common_cancel), color = ZeniaSlateGrey) }
             },
             containerColor = Color.White,
             shape = RoundedCornerShape(24.dp)

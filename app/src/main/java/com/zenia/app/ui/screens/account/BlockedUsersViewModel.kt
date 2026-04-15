@@ -11,9 +11,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import android.content.Context
+import com.zenia.app.R
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 @HiltViewModel
 class BlockedUsersViewModel @Inject constructor(
+    @param:ApplicationContext private val context: Context,
     private val communityRepository: CommunityRepository,
     private val sessionManager: UserSessionManager
 ) : ViewModel() {
@@ -50,7 +54,7 @@ class BlockedUsersViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        error = "No se pudo cargar la lista."
+                        error = context.getString(R.string.error_load_blocked_users)
                     )
                 }
             }
@@ -65,13 +69,13 @@ class BlockedUsersViewModel @Inject constructor(
                 _uiState.update { state ->
                     state.copy(
                         blockedUsers = state.blockedUsers.filter { it.id != user.id },
-                        actionMessage = "Usuario desbloqueado"
+                        actionMessage = context.getString(R.string.msg_user_unblocked)
                     )
                 }
             } else {
                 _uiState.update { state ->
                     state.copy(
-                        error = "No se pudo desbloquear al usuario. Intenta nuevamente."
+                        error = context.getString(R.string.error_unblock_user)
                     )
                 }
             }

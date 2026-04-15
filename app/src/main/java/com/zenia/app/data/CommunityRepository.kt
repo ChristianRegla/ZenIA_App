@@ -16,9 +16,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import dagger.hilt.android.qualifiers.ApplicationContext
+import com.zenia.app.R
+import android.content.Context
 
 @Singleton
 class CommunityRepository @Inject constructor(
+    @param:ApplicationContext private val context: Context,
     private val firestore: FirebaseFirestore,
     private val profanityFilter: ProfanityFilter
 ) {
@@ -77,7 +81,7 @@ class CommunityRepository @Inject constructor(
     ): Result<CommunityPost> {
         return try {
             if (profanityFilter.hasProfanity(content)) {
-                return Result.failure(Exception("El contenido contiene palabras prohibidas"))
+                return Result.failure(Exception(context.getString(R.string.error_profanity_content)))
             }
 
             val postId = postsCollection.document().id
@@ -153,7 +157,6 @@ class CommunityRepository @Inject constructor(
 
     suspend fun blockUser(currentUserId: String, authorIdToBlock: String): Result<Unit> {
         return try {
-            // Se guarda en una subcolección privada del usuario
             val blockRef = firestore.collection("usuarios")
                 .document(currentUserId)
                 .collection("blocked_users")
@@ -205,7 +208,7 @@ class CommunityRepository @Inject constructor(
             val profiles = users.map {
                 BlockedUserProfile(
                     it.id,
-                    it.apodo ?: "Usuario",
+                    it.apodo ?: context.getString(R.string.default_username),
                     it.avatarIndex,
                     it.suscripcion == com.zenia.app.model.SubscriptionType.PREMIUM
                 )
@@ -265,7 +268,7 @@ class CommunityRepository @Inject constructor(
     ): Result<CommunityComment> {
         return try {
             if (profanityFilter.hasProfanity(content)) {
-                return Result.failure(Exception("El contenido contiene palabras prohibidas"))
+                return Result.failure(Exception(context.getString(R.string.error_profanity_content)))
             }
 
             val postRef = postsCollection.document(postId)
@@ -288,7 +291,7 @@ class CommunityRepository @Inject constructor(
                     transaction.set(commentRef, comment)
                     transaction.update(postRef, "commentsCount", FieldValue.increment(1))
                 } else {
-                    throw Exception("El post original ya no existe.")
+                    throw Exception(context.getString(R.string.error_post_not_found))
                 }
             }.await()
 

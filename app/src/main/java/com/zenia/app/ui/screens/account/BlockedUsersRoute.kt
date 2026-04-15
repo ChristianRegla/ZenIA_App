@@ -24,6 +24,8 @@ import com.zenia.app.ui.components.ZeniaSnackbarController
 import com.zenia.app.ui.components.ZeniaSnackbarData
 import com.zenia.app.ui.theme.ZeniaSlateGrey
 import com.zenia.app.ui.theme.ZeniaTeal
+import androidx.compose.ui.res.stringResource
+import com.zenia.app.R
 
 @Composable
 fun BlockedUsersRoute(
@@ -50,14 +52,14 @@ fun BlockedUsersRoute(
             onDismissRequest = { userToUnblock = null },
             title = {
                 Text(
-                    text = "Desbloquear usuario",
+                    text = stringResource(R.string.dialog_unblock_user_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
             },
             text = {
                 Text(
-                    text = "¿Estás seguro de que deseas desbloquear a este usuario? Volverás a ver sus publicaciones en la comunidad.",
+                    text = stringResource(R.string.dialog_unblock_user_desc),
                     color = ZeniaSlateGrey
                 )
             },
@@ -70,12 +72,12 @@ fun BlockedUsersRoute(
                     colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Desbloquear")
+                    Text(stringResource(R.string.action_unblock))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { userToUnblock = null }) {
-                    Text("Cancelar", color = ZeniaSlateGrey)
+                    Text(stringResource(R.string.common_cancel), color = ZeniaSlateGrey)
                 }
             },
             containerColor = Color.White,

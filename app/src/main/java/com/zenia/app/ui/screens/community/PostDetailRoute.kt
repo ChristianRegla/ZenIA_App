@@ -23,6 +23,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
+import com.zenia.app.R
 import androidx.compose.ui.unit.dp
 
 
@@ -64,8 +66,8 @@ fun PostDetailRoute(
     if (commentToDelete != null) {
         AlertDialog(
             onDismissRequest = { commentToDelete = null },
-            title = { Text("Eliminar respuesta", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
-            text = { Text("¿Estás seguro de que deseas eliminar esta respuesta? Esta acción no se puede deshacer.", color = ZeniaSlateGrey) },
+            title = { Text(stringResource(R.string.dialog_delete_comment_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.dialog_delete_comment_desc), color = ZeniaSlateGrey) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -74,10 +76,10 @@ fun PostDetailRoute(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     shape = RoundedCornerShape(8.dp)
-                ) { Text("Eliminar") }
+                ) { Text(stringResource(R.string.common_delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { commentToDelete = null }) { Text("Cancelar", color = ZeniaSlateGrey) }
+                TextButton(onClick = { commentToDelete = null }) { Text(stringResource(R.string.common_cancel), color = ZeniaSlateGrey) }
             },
             containerColor = Color.White,
             shape = RoundedCornerShape(24.dp)
@@ -87,8 +89,8 @@ fun PostDetailRoute(
     if (commentToReport != null) {
         AlertDialog(
             onDismissRequest = { commentToReport = null },
-            title = { Text("Reportar contenido", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
-            text = { Text("¿Deseas reportar esta respuesta? Nuestro equipo la revisará para asegurar que cumpla con las normas.", color = ZeniaSlateGrey) },
+            title = { Text(stringResource(R.string.dialog_report_comment_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.dialog_report_comment_desc), color = ZeniaSlateGrey) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -97,10 +99,10 @@ fun PostDetailRoute(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     shape = RoundedCornerShape(8.dp)
-                ) { Text("Reportar") }
+                ) { Text(stringResource(R.string.action_report)) }
             },
             dismissButton = {
-                TextButton(onClick = { commentToReport = null }) { Text("Cancelar", color = ZeniaSlateGrey) }
+                TextButton(onClick = { commentToReport = null }) { Text(stringResource(R.string.common_cancel), color = ZeniaSlateGrey) }
             },
             containerColor = Color.White,
             shape = RoundedCornerShape(24.dp)
@@ -110,8 +112,8 @@ fun PostDetailRoute(
     if (userToBlock != null) {
         AlertDialog(
             onDismissRequest = { userToBlock = null },
-            title = { Text("Bloquear usuario", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
-            text = { Text("¿Deseas bloquear a este usuario? Ya no verás sus publicaciones ni sus respuestas.", color = ZeniaSlateGrey) },
+            title = { Text(stringResource(R.string.dialog_block_user_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.dialog_block_user_desc), color = ZeniaSlateGrey) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -120,10 +122,10 @@ fun PostDetailRoute(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     shape = RoundedCornerShape(8.dp)
-                ) { Text("Bloquear") }
+                ) { Text(stringResource(R.string.action_block)) }
             },
             dismissButton = {
-                TextButton(onClick = { userToBlock = null }) { Text("Cancelar", color = ZeniaSlateGrey) }
+                TextButton(onClick = { userToBlock = null }) { Text(stringResource(R.string.common_cancel), color = ZeniaSlateGrey) }
             },
             containerColor = Color.White,
             shape = RoundedCornerShape(24.dp)
@@ -133,8 +135,8 @@ fun PostDetailRoute(
     if (showReportMainPostDialog) {
         AlertDialog(
             onDismissRequest = { showReportMainPostDialog = false },
-            title = { Text("Reportar publicación", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
-            text = { Text("¿Deseas reportar esta publicación? Nuestro equipo la revisará.", color = ZeniaSlateGrey) },
+            title = { Text(stringResource(R.string.dialog_report_post_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.dialog_report_post_desc), color = ZeniaSlateGrey) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -143,10 +145,10 @@ fun PostDetailRoute(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     shape = RoundedCornerShape(8.dp)
-                ) { Text("Reportar") }
+                ) { Text(stringResource(R.string.action_report)) }
             },
             dismissButton = {
-                TextButton(onClick = { showReportMainPostDialog = false }) { Text("Cancelar", color = ZeniaSlateGrey) }
+                TextButton(onClick = { showReportMainPostDialog = false }) { Text(stringResource(R.string.common_cancel), color = ZeniaSlateGrey) }
             },
             containerColor = Color.White,
             shape = RoundedCornerShape(24.dp)

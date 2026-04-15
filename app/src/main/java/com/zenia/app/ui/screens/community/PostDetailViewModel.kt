@@ -16,9 +16,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+import com.zenia.app.R
 
 @HiltViewModel
 class PostDetailViewModel @Inject constructor(
+    @param:ApplicationContext private val context: Context,
     private val communityRepository: CommunityRepository,
     private val profanityFilter: ProfanityFilter,
     private val sessionManager: UserSessionManager,
@@ -108,7 +112,7 @@ class PostDetailViewModel @Inject constructor(
         if (content.isBlank()) return
 
         if (profanityFilter.hasProfanity(content)) {
-            _uiState.update { it.copy(error = "El contenido no cumple con las normas.") }
+            _uiState.update { it.copy(error = context.getString(R.string.error_profanity)) }
             return
         }
 
@@ -121,7 +125,7 @@ class PostDetailViewModel @Inject constructor(
                 val result = communityRepository.createComment(
                     postId = postId,
                     userId = currentUser.id,
-                    apodo = currentUser.apodo ?: "Usuario",
+                    apodo = currentUser.apodo ?: context.getString(R.string.default_username),
                     avatarIndex = currentUser.avatarIndex,
                     isPremium = isPremium,
                     content = content
@@ -131,8 +135,9 @@ class PostDetailViewModel @Inject constructor(
                     val newComment = result.getOrNull()
                     _uiState.update { state ->
                         state.copy(
-                            comments = listOfNotNull(newComment) + state.comments,                            isSending = false,
-                            actionMessage = "Respuesta publicada"
+                            comments = listOfNotNull(newComment) + state.comments,
+                            isSending = false,
+                            actionMessage = context.getString(R.string.msg_comment_published)
                         )
                     }
                 } else {
@@ -170,7 +175,7 @@ class PostDetailViewModel @Inject constructor(
                 _uiState.update { state ->
                     state.copy(
                         mainPost = post,
-                        error = "Error de conexión. No se pudo guardar el me gusta."
+                        error = context.getString(R.string.error_like_main_post)
                     )
                 }
                 communityRepository.emitPostUpdate(post)
@@ -200,7 +205,7 @@ class PostDetailViewModel @Inject constructor(
                             likesCount = if (newIsLiked) newCount - 1 else newCount + 1
                         ) else it
                     }
-                    state.copy(comments = reverted, error = "Error al guardar el me gusta.")
+                    state.copy(comments = reverted, error = context.getString(R.string.error_like_comment))
                 }
             }
         }
@@ -213,20 +218,20 @@ class PostDetailViewModel @Inject constructor(
                 _uiState.update { state ->
                     state.copy(
                         comments = state.comments.filter { it.id != comment.id },
-                        actionMessage = "Respuesta eliminada"
+                        actionMessage = context.getString(R.string.msg_comment_deleted)
                     )
                 }
             } else {
-                _uiState.update { it.copy(error = "No se pudo eliminar") }
+                _uiState.update { it.copy(error = context.getString(R.string.error_delete_comment)) }
             }
         }
     }
 
     fun reportComment(comment: CommunityComment) {
         viewModelScope.launch {
-            val result = communityRepository.reportPost(comment.content, comment.authorId) // Reusamos lógica de reporte
+            val result = communityRepository.reportPost(comment.content, comment.authorId)
             if (result.isSuccess) {
-                _uiState.update { it.copy(actionMessage = "Reporte enviado.") }
+                _uiState.update { it.copy(actionMessage = context.getString(R.string.msg_report_sent)) }
             }
         }
     }
@@ -250,12 +255,12 @@ class PostDetailViewModel @Inject constructor(
                     val remainingComments = state.comments.filter { it.authorId != authorId }
                     state.copy(
                         comments = remainingComments,
-                        actionMessage = "Usuario bloqueado.",
+                        actionMessage = context.getString(R.string.msg_user_blocked),
                         isMainAuthorBlocked = isMainPostAuthor
                     )
                 }
             } else {
-                _uiState.update { it.copy(error = "Error al bloquear al usuario") }
+                _uiState.update { it.copy(error = context.getString(R.string.error_block_user)) }
             }
         }
     }
@@ -265,7 +270,7 @@ class PostDetailViewModel @Inject constructor(
         viewModelScope.launch {
             val result = communityRepository.reportPost(post.content, post.authorId)
             if (result.isSuccess) {
-                _uiState.update { it.copy(actionMessage = "Publicación reportada. Gracias por tu ayuda.") }
+                _uiState.update { it.copy(actionMessage = context.getString(R.string.msg_post_reported)) }
             }
         }
     }

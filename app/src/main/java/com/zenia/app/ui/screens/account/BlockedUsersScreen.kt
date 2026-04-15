@@ -17,6 +17,8 @@ import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.screens.community.UserAvatar
 import com.zenia.app.ui.theme.ZeniaDark
 import com.zenia.app.ui.theme.ZeniaTeal
+import com.zenia.app.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun BlockedUsersScreen(
@@ -25,7 +27,7 @@ fun BlockedUsersScreen(
     onUnblockClick: (BlockedUserProfile) -> Unit
 ) {
     Scaffold(
-        topBar = { ZeniaTopBar(title = "Usuarios Bloqueados", onNavigateBack = onNavigateBack) },
+        topBar = { ZeniaTopBar(title = stringResource(R.string.title_blocked_users), onNavigateBack = onNavigateBack) },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
@@ -53,7 +55,7 @@ fun BlockedUsersScreen(
                                     shape = RoundedCornerShape(8.dp),
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                                 ) {
-                                    Text("Desbloquear", color = ZeniaTeal)
+                                    Text(stringResource(R.string.action_unblock), color = ZeniaTeal)
                                 }
                             }
                             if (index < uiState.blockedUsers.size - 1) {

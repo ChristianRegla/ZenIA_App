@@ -25,6 +25,8 @@ import com.zenia.app.model.CommunityComment
 import com.zenia.app.model.CommunityPost
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.*
+import androidx.compose.ui.res.stringResource
+import com.zenia.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,7 +48,7 @@ fun PostDetailScreen(
     val displayPost = uiState.mainPost ?: mainPost
 
     Scaffold(
-        topBar = { ZeniaTopBar(title = "Respuestas", onNavigateBack = onNavigateBack) },
+        topBar = { ZeniaTopBar(title = stringResource(R.string.title_responses), onNavigateBack = onNavigateBack) },
         bottomBar = {
             CommentInputBar(
                 text = inputText,
@@ -78,7 +80,7 @@ fun PostDetailScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Respuestas",
+                    text = stringResource(R.string.title_responses),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = ZeniaDark,
@@ -148,7 +150,7 @@ fun CommunityCommentItem(
                     if (comment.authorIsPremium) {
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Premium",
+                            text = stringResource(R.string.badge_premium),
                             style = MaterialTheme.typography.labelSmall,
                             color = ZeniaPremiumPurple
                         )
@@ -172,7 +174,7 @@ fun CommunityCommentItem(
                     ) {
                         Icon(
                             imageVector = if (comment.isLikedByCurrentUser) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Like",
+                            contentDescription = stringResource(R.string.cd_like),
                             tint = if (comment.isLikedByCurrentUser) Color(0xFFFF5252) else ZeniaSlateGrey,
                             modifier = Modifier.graphicsLayer {
                                 scaleX = if (comment.isLikedByCurrentUser) scale else 1f
@@ -193,7 +195,7 @@ fun CommunityCommentItem(
                 IconButton(onClick = { expandedMenu = true }, modifier = Modifier.size(24.dp)) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
-                        contentDescription = "Opciones",
+                        contentDescription = stringResource(R.string.cd_options),
                         tint = ZeniaSlateGrey
                     )
                 }
@@ -204,7 +206,7 @@ fun CommunityCommentItem(
                 ) {
                     if (isOwnComment) {
                         DropdownMenuItem(
-                            text = { Text("Eliminar", color = MaterialTheme.colorScheme.error) },
+                            text = { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) },
                             onClick = {
                                 expandedMenu = false
                                 onDeleteClick()
@@ -212,7 +214,7 @@ fun CommunityCommentItem(
                         )
                     } else {
                         DropdownMenuItem(
-                            text = { Text("Reportar", color = ZeniaDark) },
+                            text = { Text(stringResource(R.string.action_report), color = ZeniaDark) },
                             onClick = {
                                 expandedMenu = false
                                 onReportClick()
@@ -221,7 +223,7 @@ fun CommunityCommentItem(
                         DropdownMenuItem(
                             text = {
                                 Text(
-                                    "Bloquear usuario",
+                                    stringResource(R.string.action_block_user),
                                     color = MaterialTheme.colorScheme.error
                                 )
                             },
@@ -262,7 +264,7 @@ fun CommentInputBar(
                 onValueChange = { if (it.length <= 500) onTextChange(it) },
                 placeholder = {
                     Text(
-                        "Escribe una respuesta...",
+                        stringResource(R.string.hint_write_reply),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 },
@@ -288,7 +290,7 @@ fun CommentInputBar(
                 } else {
                     Icon(
                         Icons.AutoMirrored.Filled.Send,
-                        contentDescription = "Enviar",
+                        contentDescription = stringResource(R.string.cd_send),
                         tint = Color.White
                     )
                 }

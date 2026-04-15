@@ -14,9 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.ChatBubbleOutline
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -36,9 +34,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.zenia.app.R
 import com.zenia.app.model.CommunityPost
 import com.zenia.app.ui.components.ZeniaTopBar
+import androidx.compose.ui.res.stringResource
+import com.zenia.app.R
 import com.zenia.app.ui.theme.*
 
 val AVATAR_LIST = listOf(
@@ -85,14 +84,14 @@ fun CommunityScreen(
     }
 
     Scaffold(
-        topBar = { ZeniaTopBar(title = "Comunidad", onNavigateBack = onNavigateBack) },
+        topBar = { ZeniaTopBar(title = stringResource(R.string.title_community), onNavigateBack = onNavigateBack) },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onFabClick,
                 containerColor = ZeniaTeal,
                 contentColor = Color.White
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Nuevo Post")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.cd_new_post))
             }
         }
     ) { padding ->
@@ -194,7 +193,7 @@ fun CommunityPostItem(
                     )
                     if (post.authorIsPremium) {
                         Text(
-                            text = "Premium Member",
+                            text = stringResource(R.string.badge_premium_member),
                             style = MaterialTheme.typography.labelSmall,
                             color = ZeniaPremiumPurple
                         )
@@ -204,7 +203,7 @@ fun CommunityPostItem(
                     IconButton(onClick = { expandedMenu = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
-                            contentDescription = "Opciones del post",
+                            contentDescription = stringResource(R.string.cd_post_options),
                             tint = ZeniaSlateGrey
                         )
                     }
@@ -215,7 +214,7 @@ fun CommunityPostItem(
                     ) {
                         if (isOwnPost) {
                             DropdownMenuItem(
-                                text = { Text("Eliminar publicación", color = MaterialTheme.colorScheme.error) },
+                                text = { Text(stringResource(R.string.action_delete_post), color = MaterialTheme.colorScheme.error) },
                                 onClick = {
                                     expandedMenu = false
                                     onDeleteClick()
@@ -223,14 +222,14 @@ fun CommunityPostItem(
                             )
                         } else {
                             DropdownMenuItem(
-                                text = { Text("Reportar contenido", color = ZeniaDark) },
+                                text = { Text(stringResource(R.string.action_report_content), color = ZeniaDark) },
                                 onClick = {
                                     expandedMenu = false
                                     onReportClick()
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Bloquear usuario", color = MaterialTheme.colorScheme.error) },
+                                text = { Text(stringResource(R.string.action_block_user), color = MaterialTheme.colorScheme.error) },
                                 onClick = {
                                     expandedMenu = false
                                     onBlockClick()
@@ -261,7 +260,7 @@ fun CommunityPostItem(
                     IconButton(onClick = onLikeClick) {
                         Icon(
                             imageVector = if (post.isLikedByCurrentUser) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Like",
+                            contentDescription = stringResource(R.string.cd_like),
                             tint = if (post.isLikedByCurrentUser) Color(0xFFFF5252) else ZeniaSlateGrey,
                             modifier = Modifier.graphicsLayer {
                                 scaleX = if (post.isLikedByCurrentUser) scale else 1f
@@ -283,7 +282,7 @@ fun CommunityPostItem(
                     IconButton(onClick = { onCommentClick?.invoke() }) {
                         Icon(
                             imageVector = Icons.Default.ChatBubbleOutline,
-                            contentDescription = "Responder",
+                            contentDescription = stringResource(R.string.cd_reply),
                             tint = ZeniaSlateGrey
                         )
                     }
@@ -307,7 +306,7 @@ fun UserAvatar(
     val avatarRes = if (avatarIndex in AVATAR_LIST.indices) {
         AVATAR_LIST[avatarIndex]
     } else {
-        R.drawable.avatar_1 // Fallback
+        R.drawable.avatar_1
     }
 
     val modifier = if (isPremium) {
@@ -333,7 +332,7 @@ fun UserAvatar(
 
     Image(
         painter = painterResource(id = avatarRes),
-        contentDescription = "Avatar",
+        contentDescription = stringResource(R.string.cd_avatar),
         contentScale = ContentScale.Crop,
         modifier = modifier
     )
@@ -362,7 +361,7 @@ fun CreatePostDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                "Nueva publicación",
+                stringResource(R.string.dialog_new_post_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -377,7 +376,7 @@ fun CreatePostDialog(
                             onValidate(it)
                         }
                     },
-                    placeholder = { Text("Comparte algo positivo con la comunidad...") },
+                    placeholder = { Text(stringResource(R.string.hint_share_positive)) },
                     modifier = Modifier.fillMaxWidth().height(150.dp),
                     maxLines = 6,
                     isError = errorMessage != null,
@@ -419,17 +418,17 @@ fun CreatePostDialog(
                 if (isLoading) {
                     CircularProgressIndicator(modifier = Modifier.size(16.dp), color = Color.White)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Publicando...")
+                    Text(stringResource(R.string.action_publishing))
                 } else {
                     Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Publicar")
+                    Text(stringResource(R.string.action_publish))
                 }
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = ZeniaSlateGrey)
+                Text(stringResource(R.string.common_cancel), color = ZeniaSlateGrey)
             }
         },
         containerColor = Color.White,
