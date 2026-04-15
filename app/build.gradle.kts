@@ -10,6 +10,7 @@ plugins {
 
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
+    id("kotlin-parcelize")
 }
 
 val localProperties = Properties()
@@ -117,6 +118,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.foundation)
 
     // --- Test ---
     testImplementation(libs.junit)

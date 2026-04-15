@@ -17,7 +17,8 @@ import com.zenia.app.ui.screens.auth.AuthViewModel
 fun AccountRoute(
     authViewModel: AuthViewModel,
     onNavigateBack: () -> Unit,
-    onNavigateToAuth: () -> Unit
+    onNavigateToAuth: () -> Unit,
+    onNavigateToBlockedUsers: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -65,6 +66,7 @@ fun AccountRoute(
 
     val actions = AccountScreenActions(
         onNavigateBack = onNavigateBack,
+        onNavigateToBlockedUsers = onNavigateToBlockedUsers,
         onResendVerification = {
             authViewModel.resendVerification()
         },
