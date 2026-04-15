@@ -85,6 +85,7 @@ import com.zenia.app.model.CommunityPost
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.components.HomeTopBar
 import com.zenia.app.ui.components.MoodPatternsCard
+import com.zenia.app.ui.screens.community.UserAvatar
 import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZeniaDeepTeal
 import com.zenia.app.ui.theme.ZeniaTeal
@@ -474,20 +475,11 @@ private fun CommunityPostCard(post: CommunityPost, onClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = post.authorApodo.take(1).uppercase(),
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontSize = 14.sp
-                    )
-                }
+                UserAvatar(
+                    avatarIndex = post.authorAvatarIndex,
+                    isPremium = post.authorIsPremium,
+                    size = 36.dp
+                )
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
                     Text(
