@@ -48,9 +48,7 @@ fun DiaryEntryScreen(
 ) {
     val viewModel: DiaryEntryViewModel = hiltViewModel()
     val allEntries by viewModel.allEntries.collectAsState()
-    val isFavorite = remember(date, allEntries) {
-        allEntries.any { it.fecha == date.toString() && it.isFavorite }
-    }
+    val isFavorite by viewModel.currentIsFavorite.collectAsState()
 
     Scaffold(
         topBar = {
