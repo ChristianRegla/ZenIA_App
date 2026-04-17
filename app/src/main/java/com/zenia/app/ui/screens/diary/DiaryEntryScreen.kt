@@ -99,14 +99,14 @@ fun ConnectedDiaryEntry(
     LaunchedEffect(date) { viewModel.cargarEntrada(date) }
 
     LaunchedEffect(uiState) {
-        when (uiState) {
+        when (val state = uiState) {
             is DiaryEntryUiState.Success -> {
-                Toast.makeText(context, context.getString(R.string.diary_toast_saved), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, state.messageRes, Toast.LENGTH_SHORT).show()
                 viewModel.resetState()
                 onSuccessCallback()
             }
             is DiaryEntryUiState.Deleted -> {
-                Toast.makeText(context, context.getString(R.string.diary_toast_deleted), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, R.string.diary_toast_deleted, Toast.LENGTH_SHORT).show()
                 viewModel.resetState()
                 onSuccessCallback()
             }
@@ -245,6 +245,37 @@ fun DiaryEntryContent(
     ) {
         item {
             Text(text = formattedDate, fontFamily = RobotoFlex, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(bottom = 8.dp))
+        }
+
+        val showSyncWarning = healthConnectData != null &&
+                (healthConnectData.pasos == null || healthConnectData.ritmoCardiaco == null || healthConnectData.minutosSueno == null || healthConnectData.hrv == null)
+
+        if (showSyncWarning) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Lightbulb,
+                            contentDescription = "Info",
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "¿Faltan datos médicos? Abre la app de tu reloj inteligente para forzar la sincronización con Health Connect y luego presiona recargar.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            fontFamily = RobotoFlex
+                        )
+                    }
+                }
+            }
         }
 
         item {

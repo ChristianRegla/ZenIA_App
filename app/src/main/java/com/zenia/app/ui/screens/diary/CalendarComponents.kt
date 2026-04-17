@@ -405,7 +405,8 @@ fun MiniCalendarTopBar(
                         hasFeelings = entry?.estadoAnimo != null,
                         hasSleep = entry?.calidadSueno != null,
                         hasMind = entry?.estadoMental != null,
-                        hasExercise = entry?.ejercicio != null
+                        hasExercise = entry?.ejercicio != null,
+                        isFavorite = entry?.isFavorite == true
                     )
 
                     Box(modifier = Modifier.weight(1f)) {
