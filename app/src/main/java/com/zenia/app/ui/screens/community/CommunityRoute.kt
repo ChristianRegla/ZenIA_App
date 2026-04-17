@@ -51,6 +51,10 @@ fun CommunityRoute(
 
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
+    LaunchedEffect(Unit) {
+        viewModel.refreshPosts()
+    }
+
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.addObserver(androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {

@@ -1,6 +1,7 @@
 package com.zenia.app.ui.screens.home
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -31,6 +32,10 @@ fun HomeRoute(
     val trendingPosts by homeViewModel.trendingPosts.collectAsState()
     val currentStreak by homeViewModel.currentStreak.collectAsState()
     val moodInsights by homeViewModel.moodInsights.collectAsState()
+
+    LaunchedEffect(Unit) {
+        homeViewModel.cargarPostDestacados()
+    }
 
     HomeScreen(
         uiState = uiState,

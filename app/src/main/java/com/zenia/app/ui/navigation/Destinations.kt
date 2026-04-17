@@ -32,6 +32,7 @@ object Destinations {
     const val COMMUNITY_ROUTE = "community_route"
     const val POST_DETAIL_ROUTE = "post_detail/{postId}"
     const val EXPORT_SETTINGS_ROUTE = "export_settings_route"
+    const val CHANGELOG_ROUTE = "changelog_route"
 
     // Acá iré poniendo los ejercicios de relajación
     const val BREATHING_ROUTE = "breathing_exercise"

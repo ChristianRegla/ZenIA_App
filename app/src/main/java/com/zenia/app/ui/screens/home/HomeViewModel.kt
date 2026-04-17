@@ -66,6 +66,7 @@ class HomeViewModel @Inject constructor(
 
     init {
         cargarPostDestacados()
+        observarActualizacionesDePosts()
     }
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Idle)
@@ -113,17 +114,37 @@ class HomeViewModel @Inject constructor(
         chartProducer.setEntries(entries)
     }
 
-    private fun cargarPostDestacados() {
+    fun cargarPostDestacados() {
         viewModelScope.launch {
             try {
+                val currentUserId = sessionManager.currentUserId ?: return@launch
+
+                val blockedUserResult = communityRepository.getBlockedUsers(currentUserId)
+                val blockedUserIds = blockedUserResult.getOrNull() ?: emptyList()
+
                 val (posts, _) = communityRepository.getPosts(
                     lastVisible = null,
-                    limit = 5,
+                    limit = 10,
                     currentUserId = sessionManager.currentUserId
                 )
-                _trendingPosts.value = posts
+
+                val filteredPosts = posts.filter { post ->
+                    post.authorId !in blockedUserIds
+                }.take(5)
+
+                _trendingPosts.value = filteredPosts
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+        }
+    }
+
+    private fun observarActualizacionesDePosts() {
+        viewModelScope.launch {
+            communityRepository.postUpdates.collect { updatedPost ->
+                _trendingPosts.update { currentList ->
+                    currentList.map { if (it.id == updatedPost.id) updatedPost else it }
+                }
             }
         }
     }

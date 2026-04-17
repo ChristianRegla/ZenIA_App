@@ -18,7 +18,8 @@ import java.util.Locale
 @Composable
 fun MoreSettingsRoute(
     onNavigateBack: () -> Unit,
-    onNavigateToExport: () -> Unit
+    onNavigateToExport: () -> Unit,
+    onChangelogClick: () -> Unit
 ) {
     val settingsViewModel: SettingsViewModel = hiltViewModel()
 
@@ -72,6 +73,7 @@ fun MoreSettingsRoute(
         },
         onToggleStreak = { settingsViewModel.setStreakReminderEnabled(it) },
         onTimeChange = { hour, minute -> settingsViewModel.setStreakReminderTime(hour, minute) },
-        onToggleAdvice = { settingsViewModel.setMorningAdviceEnabled(it) }
+        onToggleAdvice = { settingsViewModel.setMorningAdviceEnabled(it) },
+        onChangelogClick = onChangelogClick
     )
 }

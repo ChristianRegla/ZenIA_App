@@ -1,25 +1,22 @@
 package com.zenia.app.viewmodel
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.AuthRepository
 import com.zenia.app.data.BillingRepository
+import com.zenia.app.data.CommunityRepository
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.UserPreferencesRepository
 import com.zenia.app.data.session.UserSessionManager
-import com.zenia.app.model.Usuario
 import com.zenia.app.pdf.PdfExportConfig
 import com.zenia.app.pdf.PdfGenerator
 import com.zenia.app.worker.NotificationScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -31,10 +28,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val billingRepository: BillingRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val authRepository: AuthRepository,
     private val diaryRepository: DiaryRepository,
+    private val communityRepository: CommunityRepository,
     private val sessionManager: UserSessionManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -43,8 +40,6 @@ class SettingsViewModel @Inject constructor(
     val avatarIndex: StateFlow<Int> = sessionManager.avatarIndex
     val email: StateFlow<String?> = sessionManager.email
     val isUserPremium = sessionManager.isPremium
-
-    val billingConnectionState = billingRepository.billingConnectionState
 
     val hasSeenExportTutorial: StateFlow<Boolean> =
         userPreferencesRepository.hasSeenExportTutorial
@@ -149,9 +144,16 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val uid = sessionManager.currentUserId
 
+
             if(uid != null) {
                 try {
                     authRepository.updateProfile(uid, nickname, avatarIndex)
+                    communityRepository.updateAuthorProfileInCommunity(
+                        userId = uid,
+                        newApodo = nickname,
+                        newAvatarIndex = avatarIndex,
+                        isPremium = isUserPremium.value
+                    )
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
