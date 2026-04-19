@@ -197,6 +197,7 @@ fun CommunityRoute(
         onReportClick = { post -> postToReport = post },
         onCommentClick = { post -> onNavigateToPostDetail(post) },
         isRefreshing = uiState.isRefreshing,
-        onRefresh = { viewModel.refreshPosts() }
+        onRefresh = { viewModel.refreshPosts() },
+        onTranslateClick = { postId, text -> viewModel.translatePost(postId, text) }
     )
 }

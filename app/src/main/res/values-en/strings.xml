@@ -755,4 +755,8 @@
     <string name="bodyscan_action_relax">Release and relax</string>
     <string name="bodyscan_finished_title">Body relaxed</string>
     <string name="bodyscan_finished_desc">Feel the lightness and warmth in your muscles. You have released much of your physical tension for today.</string>
+
+    <string name="action_see_translation">See translation</string>
+    <string name="action_translating">Translating…</string>
+    <string name="label_translated_by_google">Translated by Google</string>
 </resources>

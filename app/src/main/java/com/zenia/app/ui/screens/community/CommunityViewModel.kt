@@ -14,9 +14,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import androidx.compose.ui.res.stringResource
 import com.zenia.app.R
 import android.content.Context
+import com.zenia.app.util.ZeniaTranslator
 import dagger.hilt.android.qualifiers.ApplicationContext
 
 @HiltViewModel
@@ -27,6 +27,8 @@ class CommunityViewModel @Inject constructor(
     private val sessionManager: UserSessionManager
 ) : ViewModel() {
 
+    private val translator = ZeniaTranslator()
+
     val currentUserIdFlow = sessionManager.userId
 
     data class UiState(
@@ -36,7 +38,10 @@ class CommunityViewModel @Inject constructor(
         val error: String? = null,
         val isPostLoading: Boolean = false,
         val postCreationError: String? = null,
-        val actionMessage: String? = null
+        val actionMessage: String? = null,
+
+        val translatingPostIds: Set<String> = emptySet(),
+        val translatedPosts: Map<String, String> = emptyMap()
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -332,6 +337,28 @@ class CommunityViewModel @Inject constructor(
                         if (currentPost.id == updatedPost.id) updatedPost else currentPost
                     }
                     state.copy(posts = updatedPosts)
+                }
+            }
+        }
+    }
+
+    fun translatePost(postId: String, originalText: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(translatingPostIds = it.translatingPostIds + postId) }
+
+            val translatedText = translator.translateTextIfNeeded(originalText)
+
+            _uiState.update { state ->
+                val newTranslatingSet = state.translatingPostIds - postId
+
+                if (translatedText != null) {
+                    val newTranslatedMap = state.translatedPosts + (postId to translatedText)
+                    state.copy(
+                        translatingPostIds = newTranslatingSet,
+                        translatedPosts = newTranslatedMap
+                    )
+                } else {
+                    state.copy(translatingPostIds = newTranslatingSet)
                 }
             }
         }

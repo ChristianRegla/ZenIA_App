@@ -355,7 +355,7 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
                 3 -> {
                     BalloonRoute(onNavigateBack = { navController.popBackStack() })
                 }
-                4 -> { 
+                4 -> {
                     BodyScanRoute(onNavigateBack = { navController.popBackStack() })
                 }
                 else -> {
