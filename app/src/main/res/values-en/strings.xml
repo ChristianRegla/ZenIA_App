@@ -760,4 +760,23 @@
     <string name="action_translating">Translating…</string>
     <string name="label_translated_by_google">Translated by Google</string>
     <string name="action_see_original">See original</string>
+
+    <string name="changelog_title">Changelog</string>
+    <string name="changelog_footer">Thank you for evolving with us 🌿</string>
+    <string name="changelog_type_feature">Feature</string>
+    <string name="changelog_type_improvement">Improvement</string>
+    <string name="changelog_type_fix">Fix</string>
+
+    <string name="changelog_1_3_0_date">April 18, 2026</string>
+    <string name="changelog_1_3_0_feature_1">New interactive relaxation exercises: 4–7–8 Breathing, 5–4–3–2–1 Grounding, Release the Balloon, and Quick Body Scan.</string>
+    <string name="changelog_1_3_0_feature_2">Integrated offline translation for community posts and comments (powered by ML Kit).</string>
+    <string name="changelog_1_3_0_improvement">Improvements in app navigation fluidity and refactored screen transitions.</string>
+
+    <string name="changelog_1_2_0_date">April 15, 2026</string>
+    <string name="changelog_1_2_0_feature">New Analytics Dashboard! Charts are now divided into Mental Wellness, Rest, and Physical tabs.</string>
+    <string name="changelog_1_2_0_fix">Fixed a visual issue on mood pattern cards.</string>
+
+    <string name="changelog_1_1_5_date">April 08, 2026</string>
+    <string name="changelog_1_1_5_improvement">Improved Health Connect synchronization to read steps and heart rate.</string>
+    <string name="changelog_1_1_5_fix">Fixed a bug where diary entries sometimes did not save user-created categories.</string>
 </resources>

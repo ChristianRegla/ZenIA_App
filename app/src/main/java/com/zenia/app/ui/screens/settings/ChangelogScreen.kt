@@ -1,5 +1,6 @@
 package com.zenia.app.ui.screens.settings
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,27 +35,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.ZeniaLightGrey
 import com.zenia.app.ui.theme.ZeniaTeal
 
-enum class ChangeType(val label: String, val icon: ImageVector, val color: Color) {
-    FEATURE("Novedad", Icons.Default.RocketLaunch, Color(0xFFE8F5E9)),
-    IMPROVEMENT("Mejora", Icons.Default.AutoAwesome, Color(0xFFE3F2FD)),
-    FIX("Corrección", Icons.Default.Build, Color(0xFFFBE9E7))
+enum class ChangeType(@StringRes val labelRes: Int, val icon: ImageVector, val color: Color) {
+    FEATURE(R.string.changelog_type_feature, Icons.Default.RocketLaunch, Color(0xFFE8F5E9)),
+    IMPROVEMENT(R.string.changelog_type_improvement, Icons.Default.AutoAwesome, Color(0xFFE3F2FD)),
+    FIX(R.string.changelog_type_fix, Icons.Default.Build, Color(0xFFFBE9E7))
 }
 
 data class ChangeItem(
-    val text: String,
+    @StringRes val textRes: Int,
     val type: ChangeType
 )
 
 data class ChangelogRelease(
     val version: String,
-    val date: String,
+    @StringRes val dateRes: Int,
     val changes: List<ChangeItem>
 )
 
@@ -62,36 +65,43 @@ data class ChangelogRelease(
 fun ChangelogScreen(
     onNavigateBack: () -> Unit
 ) {
-
     val releaseHistory = listOf(
         ChangelogRelease(
-            version = "v1.2.0",
-            date = "18 Abril 2026",
+            version = "v1.3.0",
+            dateRes = R.string.changelog_1_3_0_date,
             changes = listOf(
-                ChangeItem("¡Nuevo Dashboard de Análisis! Ahora las gráficas se dividen en pestañas de Bienestar Mental, Descanso y Físico.", ChangeType.FEATURE),
-                ChangeItem("Se corrigió un problema visual en las tarjetas de patrones de ánimo.", ChangeType.FIX),
-                ChangeItem("Transiciones más fluidas al navegar entre el diario y las estadísticas.", ChangeType.IMPROVEMENT)
+                ChangeItem(R.string.changelog_1_3_0_feature_1, ChangeType.FEATURE),
+                ChangeItem(R.string.changelog_1_3_0_feature_2, ChangeType.FEATURE),
+                ChangeItem(R.string.changelog_1_3_0_improvement, ChangeType.IMPROVEMENT)
+            )
+        ),
+        ChangelogRelease(
+            version = "v1.2.0",
+            dateRes = R.string.changelog_1_2_0_date,
+            changes = listOf(
+                ChangeItem(R.string.changelog_1_2_0_feature, ChangeType.FEATURE),
+                ChangeItem(R.string.changelog_1_2_0_fix, ChangeType.FIX)
             )
         ),
         ChangelogRelease(
             version = "v1.1.5",
-            date = "02 Abril 2026",
+            dateRes = R.string.changelog_1_1_5_date,
             changes = listOf(
-                ChangeItem("Sincronización con Health Connect mejorada para leer pasos y ritmo cardíaco.", ChangeType.IMPROVEMENT),
-                ChangeItem("Solución a un error donde las entradas del diario a veces no guardaban las categorías creadas por el usuario.", ChangeType.FIX)
+                ChangeItem(R.string.changelog_1_1_5_improvement, ChangeType.IMPROVEMENT),
+                ChangeItem(R.string.changelog_1_1_5_fix, ChangeType.FIX)
             )
         )
     )
+
     Scaffold(
         topBar = {
             ZeniaTopBar(
-                title = "Changelog",
+                title = stringResource(R.string.changelog_title),
                 onNavigateBack = onNavigateBack
             )
         },
         containerColor = ZeniaLightGrey
     ) { paddingValues ->
-
         LazyColumn(
             modifier = Modifier
                 .padding(paddingValues)
@@ -105,7 +115,7 @@ fun ChangelogScreen(
 
             item {
                 Text(
-                    text = "Gracias por evolucionar con nosotros 🌿",
+                    text = stringResource(R.string.changelog_footer),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp, bottom = 32.dp),
@@ -141,7 +151,7 @@ fun ReleaseCard(release: ChangelogRelease) {
                     color = ZeniaTeal
                 )
                 Text(
-                    text = release.date,
+                    text = stringResource(release.dateRes),
                     style = MaterialTheme.typography.labelMedium,
                     color = Color.Gray
                 )
@@ -178,7 +188,7 @@ fun ChangeItemRow(change: ChangeItem) {
         ) {
             Icon(
                 imageVector = change.type.icon,
-                contentDescription = change.type.label,
+                contentDescription = stringResource(change.type.labelRes),
                 tint = Color.DarkGray.copy(alpha = 0.7f),
                 modifier = Modifier.size(16.dp)
             )
@@ -188,14 +198,14 @@ fun ChangeItemRow(change: ChangeItem) {
 
         Column {
             Text(
-                text = change.type.label,
+                text = stringResource(change.type.labelRes),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Gray,
                 modifier = Modifier.padding(bottom = 2.dp)
             )
             Text(
-                text = change.text,
+                text = stringResource(change.textRes),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 lineHeight = 20.sp

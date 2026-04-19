@@ -752,4 +752,23 @@
     <string name="action_translating">Traduciendo…</string>
     <string name="label_translated_by_google">Traducido por Google</string>
     <string name="action_see_original">Ver original</string>
+
+    <string name="changelog_title">Changelog</string>
+    <string name="changelog_footer">Gracias por evolucionar con nosotros 🌿</string>
+    <string name="changelog_type_feature">Novedad</string>
+    <string name="changelog_type_improvement">Mejora</string>
+    <string name="changelog_type_fix">Corrección</string>
+
+    <string name="changelog_1_3_0_date">18 Abril 2026</string>
+    <string name="changelog_1_3_0_feature_1">Nuevos ejercicios de relajación interactivos: Respiración 4–7–8, Grounding 5–4–3–2–1, Soltar el globo y Escaneo corporal rápido.</string>
+    <string name="changelog_1_3_0_feature_2">Traducción integrada sin conexión para las publicaciones y comentarios de la comunidad (impulsada por ML Kit).</string>
+    <string name="changelog_1_3_0_improvement">Mejoras en la fluidez de navegación de la aplicación y refactorización de transiciones entre pantallas.</string>
+
+    <string name="changelog_1_2_0_date">15 Abril 2026</string>
+    <string name="changelog_1_2_0_feature">¡Nuevo Dashboard de Análisis! Ahora las gráficas se dividen en pestañas de Bienestar Mental, Descanso y Físico.</string>
+    <string name="changelog_1_2_0_fix">Se corrigió un problema visual en las tarjetas de patrones de ánimo.</string>
+
+    <string name="changelog_1_1_5_date">08 Abril 2026</string>
+    <string name="changelog_1_1_5_improvement">Sincronización con Health Connect mejorada para leer pasos y ritmo cardíaco.</string>
+    <string name="changelog_1_1_5_fix">Solución a un error donde las entradas del diario a veces no guardaban las categorías creadas por el usuario.</string>
 </resources>
