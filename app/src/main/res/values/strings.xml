@@ -687,4 +687,47 @@
 
     <string name="no_comments_yet">Aún no hay respuestas</string>
     <string name="be_the_first_to_comment">¡Sé el primero en compartir tu opinión!</string>
+
+    <string name="relax_title">Relájate</string>
+    <string name="relax_filter_all">Todo</string>
+    <string name="relax_filter_breathing">Respiración</string>
+    <string name="relax_filter_meditation">Meditación</string>
+    <string name="relax_filter_sounds">Sonidos</string>
+    <string name="relax_locked_content">Bloqueado</string>
+    <string name="relax_premium_content">Premium</string>
+
+    <string name="exercise_breathing_478_title">Respiración 4–7–8</string>
+    <string name="exercise_grounding_title">Grounding 5–4–3–2–1</string>
+    <string name="exercise_balloon_title">Soltar el Globo</string>
+    <string name="exercise_bodyscan_title">Escaneo Corporal Rápido</string>
+    <string name="exercise_nature_sounds_title">Sonidos de la Naturaleza</string>
+
+    <string name="exercise_duration_2min">2 min</string>
+    <string name="exercise_duration_3min">3 min</string>
+    <string name="exercise_duration_5min">5 min</string>
+    <string name="exercise_duration_7min">7 min</string>
+    <string name="exercise_duration_15min">15 min</string>
+
+    <string name="back">Regresar</string>
+    <string name="breathing_478_desc">Ponte en una posición cómoda. Esta técnica guiada relajará tu sistema nervioso y bajará tu ansiedad rápidamente. \n\nSigue el ritmo del círculo.</string>
+    <string name="start_exercise">Estoy listo</string>
+    <string name="breath_inhale">Inhala</string>
+    <string name="breath_hold">Mantén</string>
+    <string name="breath_exhale">Exhala</string>
+    <string name="cycle_progress">Ciclo %1$d de %2$d</string>
+    <string name="exercise_completed">¡Bien hecho!</string>
+    <string name="exercise_completed_desc">Tu sistema nervioso ahora está más tranquilo. Tómate un momento antes de continuar con tu día.</string>
+    <string name="finish">Terminar</string>
+
+    <string name="grounding_intro_desc">Esta técnica te ayudará a salir de un ataque de ansiedad o sobrepensamiento conectándote con el momento presente a través de tus sentidos.</string>
+    <string name="grounding_see_title">5 cosas que puedas VER</string>
+    <string name="grounding_see_desc">Observa a tu alrededor. Toca un círculo por cada objeto que identifiques (una lámpara, una sombra, un color…).</string>
+    <string name="grounding_touch_title">4 cosas que puedas TOCAR</string>
+    <string name="grounding_touch_desc">Siente la textura de las cosas (tu ropa, la silla, la pared). Toca un círculo por cada una.</string>
+    <string name="grounding_hear_title">3 cosas que puedas ESCUCHAR</string>
+    <string name="grounding_hear_desc">Presta atención a los sonidos (el viento, un reloj, tu respiración). Toca un círculo al identificarlos.</string>
+    <string name="grounding_smell_title">2 cosas que puedas OLER</string>
+    <string name="grounding_smell_desc">Busca dos aromas a tu alrededor (tu perfume, café, el ambiente). Toca un círculo al notarlos.</string>
+    <string name="grounding_taste_title">1 cosa que puedas SABOREAR</string>
+    <string name="grounding_taste_desc">Identifica un sabor en tu boca (tu saliva, una menta, agua). Toca el círculo para terminar.</string>
 </resources>

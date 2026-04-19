@@ -695,4 +695,47 @@
 
     <string name="no_comments_yet">No comments yet</string>
     <string name="be_the_first_to_comment">Be the first to share your opinion!</string>
+
+    <string name="relax_title">Relax</string>
+    <string name="relax_filter_all">All</string>
+    <string name="relax_filter_breathing">Breathing</string>
+    <string name="relax_filter_meditation">Meditation</string>
+    <string name="relax_filter_sounds">Sounds</string>
+    <string name="relax_locked_content">Locked</string>
+    <string name="relax_premium_content">Premium</string>
+
+    <string name="exercise_breathing_478_title">4–7–8 Breathing</string>
+    <string name="exercise_grounding_title">5–4–3–2–1 Grounding</string>
+    <string name="exercise_balloon_title">Release the Balloon</string>
+    <string name="exercise_bodyscan_title">Quick Body Scan</string>
+    <string name="exercise_nature_sounds_title">Nature Sounds</string>
+
+    <string name="exercise_duration_2min">2 min</string>
+    <string name="exercise_duration_3min">3 min</string>
+    <string name="exercise_duration_5min">5 min</string>
+    <string name="exercise_duration_7min">7 min</string>
+    <string name="exercise_duration_15min">15 min</string>
+
+    <string name="back">Back</string>
+    <string name="breathing_478_desc">Get into a comfortable position. This guided technique will relax your nervous system and reduce anxiety quickly. \n\nFollow the rhythm of the circle.</string>
+    <string name="start_exercise">I\'m ready</string>
+    <string name="breath_inhale">Inhale</string>
+    <string name="breath_hold">Hold</string>
+    <string name="breath_exhale">Exhale</string>
+    <string name="cycle_progress">Cycle %1$d of %2$d</string>
+    <string name="exercise_completed">Well done!</string>
+    <string name="exercise_completed_desc">Your nervous system is now calmer. Take a moment before continuing with your day.</string>
+    <string name="finish">Finish</string>
+
+    <string name="grounding_intro_desc">This technique will help you ground yourself during a panic attack or overthinking by connecting with the present moment through your senses.</string>
+    <string name="grounding_see_title">5 things you can SEE</string>
+    <string name="grounding_see_desc">Look around you. Tap a circle for each object you identify (a lamp, a shadow, a color…).</string>
+    <string name="grounding_touch_title">4 things you can TOUCH</string>
+    <string name="grounding_touch_desc">Feel the texture of things (your clothes, the chair, the wall). Tap a circle for each.</string>
+    <string name="grounding_hear_title">3 things you can HEAR</string>
+    <string name="grounding_hear_desc">Pay attention to sounds (the wind, a clock, your breath). Tap a circle when you hear them.</string>
+    <string name="grounding_smell_title">2 things you can SMELL</string>
+    <string name="grounding_smell_desc">Find two scents around you (your perfume, coffee, the room). Tap a circle when you notice them.</string>
+    <string name="grounding_taste_title">1 thing you can TASTE</string>
+    <string name="grounding_taste_desc">Identify a taste in your mouth (your saliva, a mint, water). Tap the circle to finish.</string>
 </resources>

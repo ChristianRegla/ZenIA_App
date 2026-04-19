@@ -1,5 +1,7 @@
 package com.zenia.app.ui.screens.relax
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -38,18 +40,18 @@ import com.zenia.app.ui.theme.ZeniaWhite
 
 data class RelaxExercise(
     val id: Int,
-    val title: String,
-    val duration: String,
-    val imageRes: Int,
+    @StringRes val titleRes: Int,
+    @StringRes val durationRes: Int,
+    @DrawableRes val imageRes: Int,
     val isPremium: Boolean
 )
 
 val mockExercises = listOf(
-    RelaxExercise(1, "Respiración Consciente", "5 min", R.drawable.placeholder_relax_1, false),
-    RelaxExercise(2, "Escaneo Corporal", "10 min", R.drawable.placeholder_relax_1, true),
-    RelaxExercise(3, "Sonidos de la Naturaleza", "15 min", R.drawable.placeholder_relax_1, false),
-    RelaxExercise(4, "Meditación Guiada Profunda", "20 min", R.drawable.placeholder_relax_1, true),
-    RelaxExercise(5, "Alivio de Estrés Rápido", "3 min", R.drawable.placeholder_relax_1, false)
+    RelaxExercise(1, R.string.exercise_breathing_478_title, R.string.exercise_duration_3min, R.drawable.sphere_3d, false),
+    RelaxExercise(2, R.string.exercise_grounding_title, R.string.exercise_duration_5min, R.drawable.coffe_drink, false),
+    RelaxExercise(3, R.string.exercise_balloon_title, R.string.exercise_duration_2min, R.drawable.waves, true),
+    RelaxExercise(4, R.string.exercise_bodyscan_title, R.string.exercise_duration_7min, R.drawable.placeholder_relax_1, true),
+    RelaxExercise(5, R.string.exercise_nature_sounds_title, R.string.exercise_duration_15min, R.drawable.placeholder_relax_1, false)
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,7 +65,7 @@ fun RelaxScreen(
 
     Scaffold(
         topBar = {
-            ZeniaTopBar(title = "Relájate")
+            ZeniaTopBar(title = stringResource(R.string.relax_title))
         },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { paddingValues ->
@@ -83,7 +85,7 @@ fun RelaxScreen(
                     FilterChip(
                         selected = true,
                         onClick = { /* TODO */ },
-                        label = { Text("Todo") },
+                        label = { Text(stringResource(R.string.relax_filter_all)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = ZeniaTeal,
                             selectedLabelColor = ZeniaWhite
@@ -95,9 +97,9 @@ fun RelaxScreen(
                         )
                     )
                 }
-                item { FilterChip(selected = false, onClick = {}, label = { Text("Respiración") }) }
-                item { FilterChip(selected = false, onClick = {}, label = { Text("Meditación") }) }
-                item { FilterChip(selected = false, onClick = {}, label = { Text("Sonidos") }) }
+                item { FilterChip(selected = false, onClick = {}, label = { Text(stringResource(R.string.relax_filter_breathing)) }) }
+                item { FilterChip(selected = false, onClick = {}, label = { Text(stringResource(R.string.relax_filter_meditation)) }) }
+                item { FilterChip(selected = false, onClick = {}, label = { Text(stringResource(R.string.relax_filter_sounds)) }) }
             }
 
             LazyVerticalGrid(
@@ -114,11 +116,11 @@ fun RelaxScreen(
                         exercise = exercise,
                         isLocked = exercise.isPremium && !isUserPremium,
                         onClick = {
-                            if (exercise.id != 1) {
-                                showUnderConstruction = true
-                            }
-                            else if (exercise.isPremium && !isUserPremium) {
+                            if (exercise.isPremium && !isUserPremium) {
                                 onNavigateToPremium()
+                            }
+                            else if (exercise.id !in listOf(1, 2)) {
+                                showUnderConstruction = true
                             }
                             else {
                                 onNavigateToPlayer(exercise.id)
@@ -236,7 +238,7 @@ fun RelaxExerciseCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Lock,
-                            contentDescription = "Bloqueado",
+                            contentDescription = stringResource(R.string.relax_locked_content),
                             tint = ZeniaWhite,
                             modifier = Modifier.size(32.dp)
                         )
@@ -252,7 +254,7 @@ fun RelaxExerciseCard(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = exercise.title,
+                        text = stringResource(exercise.titleRes),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = textColor,
@@ -264,7 +266,7 @@ fun RelaxExerciseCard(
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
                             painter = painterResource(id = R.drawable.ic_crown),
-                            contentDescription = "Premium",
+                            contentDescription = stringResource(R.string.relax_premium_content),
                             tint = Color(0xFFFFC107),
                             modifier = Modifier.size(18.dp)
                         )
@@ -280,7 +282,7 @@ fun RelaxExerciseCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = exercise.duration,
+                        text = stringResource(exercise.durationRes),
                         style = MaterialTheme.typography.bodySmall,
                         color = textColor,
                         fontFamily = RobotoFlex

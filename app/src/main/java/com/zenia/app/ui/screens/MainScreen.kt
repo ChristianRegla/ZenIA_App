@@ -46,7 +46,7 @@ fun MainScreen(
     onNavigateToAnalytics: () -> Unit,
     onNavigateToCommunity: () -> Unit,
     onNavigateToRecursoDetail: (String) -> Unit,
-    onNavigateToBreathing: () -> Unit,
+    onNavigateToPlayer: (Int) -> Unit,
     onNavigateToPostDetail: (CommunityPost) -> Unit
 ) {
     val bottomNavController = rememberNavController()
@@ -133,8 +133,7 @@ fun MainScreen(
 
                     composable(BottomNavItem.Relajacion.route) {
                         RelaxRoute(
-                            onNavigateToBreathing = onNavigateToBreathing,
-                            onNavigateToPlayer = { /* TODO */ },
+                            onNavigateToPlayer = onNavigateToPlayer,
                             onNavigateToPremium = onNavigateToPremium
                         )
                     }

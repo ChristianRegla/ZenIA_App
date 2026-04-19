@@ -34,8 +34,11 @@ object Destinations {
     const val EXPORT_SETTINGS_ROUTE = "export_settings_route"
     const val CHANGELOG_ROUTE = "changelog_route"
 
+    const val PLAYER_ROUTE = "player_route/{exerciseId}"
+
     // Acá iré poniendo los ejercicios de relajación
     const val BREATHING_ROUTE = "breathing_exercise"
+    const val GROUNDING_ROUTE = "grounding_exercise"
 
     const val RECURSO_DETAIL_ROUTE = "recurso_detail/{recursoId}"
 
@@ -44,8 +47,8 @@ object Destinations {
     fun createDiaryEntryRoute(date: LocalDate) = "diary_entry/${date}"
     fun homeWithTab(tabRoute: String) = "$HOME_ROUTE?tab=$tabRoute"
     fun createRecursoDetailRoute(recursoId: String) = "recurso_detail/$recursoId"
-    fun createEvaluacionRoute(tipoTestId: String) = "evaluacion/$tipoTestId"
     fun createPostDetailRoute(postId: String) = "post_detail/$postId"
+    fun createPlayerRoute(id: Int) = "player_route/$id"
 }
 
 object NavArgs {
@@ -53,4 +56,5 @@ object NavArgs {
     const val RECURSO_ID = "recursoId"
     const val TIPO_TEST_ID = "tipoTestId"
     const val POST_ID = "postId"
+    const val EXERCISE_ID = "exerciseId"
 }
