@@ -50,7 +50,7 @@ val mockExercises = listOf(
     RelaxExercise(1, R.string.exercise_breathing_478_title, R.string.exercise_duration_3min, R.drawable.sphere_3d, false),
     RelaxExercise(2, R.string.exercise_grounding_title, R.string.exercise_duration_5min, R.drawable.coffe_drink, false),
     RelaxExercise(3, R.string.exercise_balloon_title, R.string.exercise_duration_2min, R.drawable.waves, true),
-    RelaxExercise(4, R.string.exercise_bodyscan_title, R.string.exercise_duration_7min, R.drawable.placeholder_relax_1, true),
+    RelaxExercise(4, R.string.exercise_bodyscan_title, R.string.exercise_duration_7min, R.drawable.bodyscan_3d, true),
     RelaxExercise(5, R.string.exercise_nature_sounds_title, R.string.exercise_duration_15min, R.drawable.placeholder_relax_1, false)
 )
 
@@ -119,7 +119,7 @@ fun RelaxScreen(
                             if (exercise.isPremium && !isUserPremium) {
                                 onNavigateToPremium()
                             }
-                            else if (exercise.id !in listOf(1, 2)) {
+                            else if (exercise.id !in listOf(1, 2, 3, 4)) {
                                 showUnderConstruction = true
                             }
                             else {

@@ -29,6 +29,8 @@ import com.zenia.app.ui.screens.lock.LockRoute
 import com.zenia.app.ui.screens.notifications.NotificationsRoute
 import com.zenia.app.ui.screens.recursos.RecursoDetailRoute
 import com.zenia.app.ui.screens.recursos.RecursosRoute
+import com.zenia.app.ui.screens.relax.BalloonRoute
+import com.zenia.app.ui.screens.relax.BodyScanRoute
 import com.zenia.app.ui.screens.relax.BreathingRoute
 import com.zenia.app.ui.screens.relax.GroundingRoute
 import com.zenia.app.ui.screens.relax.RelaxRoute
@@ -349,6 +351,12 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
                     GroundingRoute(
                         onNavigateBack = { navController.popBackStack() }
                     )
+                }
+                3 -> {
+                    BalloonRoute(onNavigateBack = { navController.popBackStack() })
+                }
+                4 -> { 
+                    BodyScanRoute(onNavigateBack = { navController.popBackStack() })
                 }
                 else -> {
                     BreathingRoute(

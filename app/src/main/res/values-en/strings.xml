@@ -745,4 +745,14 @@
     <string name="balloon_releasing">Releasing…</string>
     <string name="balloon_finished_title">Thought released</string>
     <string name="balloon_finished_desc">That thought no longer holds the same power over you. Take a deep breath and continue your day.</string>
+
+    <string name="bodyscan_intro_desc">Release accumulated physical stress. You will tense and release specific muscle groups to force your body into deep relaxation.</string>
+    <string name="bodyscan_part_hands">Hands and Arms</string>
+    <string name="bodyscan_part_shoulders">Shoulders and Neck</string>
+    <string name="bodyscan_part_face">Face and Jaw</string>
+    <string name="bodyscan_action_tense">Tense tightly</string>
+    <string name="bodyscan_action_hold">Hold the tension…</string>
+    <string name="bodyscan_action_relax">Release and relax</string>
+    <string name="bodyscan_finished_title">Body relaxed</string>
+    <string name="bodyscan_finished_desc">Feel the lightness and warmth in your muscles. You have released much of your physical tension for today.</string>
 </resources>

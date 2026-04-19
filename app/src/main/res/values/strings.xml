@@ -737,4 +737,14 @@
     <string name="balloon_releasing">Liberando…</string>
     <string name="balloon_finished_title">Pensamiento liberado</string>
     <string name="balloon_finished_desc">Ese pensamiento ya no tiene el mismo poder sobre ti. Respira profundo y continúa con tu día.</string>
+
+    <string name="bodyscan_intro_desc">Libera el estrés físico acumulado. Apretarás y soltarás grupos musculares específicos para forzar a tu cuerpo a relajarse profundamente.</string>
+    <string name="bodyscan_part_hands">Manos y Brazos</string>
+    <string name="bodyscan_part_shoulders">Hombros y Cuello</string>
+    <string name="bodyscan_part_face">Rostro y Mandíbula</string>
+    <string name="bodyscan_action_tense">Tensiona fuerte</string>
+    <string name="bodyscan_action_hold">Mantén la tensión…</string>
+    <string name="bodyscan_action_relax">Suelta y relaja</string>
+    <string name="bodyscan_finished_title">Cuerpo relajado</string>
+    <string name="bodyscan_finished_desc">Siente la ligereza y el calor en tus músculos. Has liberado gran parte de tu tensión física de hoy.</string>
 </resources>
