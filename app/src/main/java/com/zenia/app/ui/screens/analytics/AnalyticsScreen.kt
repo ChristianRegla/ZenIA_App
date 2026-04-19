@@ -82,7 +82,6 @@ fun AnalyticsScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // 1. SELECTOR DE TIEMPO
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -201,7 +200,7 @@ fun MentalAnalyticsTab(
             StatCard(
                 modifier = Modifier.weight(1f),
                 title = "Ánimo Promedio",
-                value = String.format(Locale.getDefault(), "%.1f", uiState.averageMood), // Fix Locale
+                value = String.format(Locale.getDefault(), "%.1f", uiState.averageMood),
                 subtext = "/ 5.0"
             )
             StatCard(
