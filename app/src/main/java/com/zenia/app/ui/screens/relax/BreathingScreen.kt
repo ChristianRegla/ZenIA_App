@@ -166,32 +166,40 @@ fun ActiveBreathingExercise(uiState: BreathingUiState) {
         }
     }
 
+    val scaleAnimatable = remember { Animatable(0.8f) }
+
+    LaunchedEffect(uiState.phase) {
+        val target = when (uiState.phase) {
+            BreathPhase.INHALE -> 1.5f
+            BreathPhase.HOLD -> 1.5f
+            BreathPhase.EXHALE -> 0.8f
+            BreathPhase.IDLE -> 0.8f
+        }
+        scaleAnimatable.animateTo(
+            targetValue = target,
+            animationSpec = tween(
+                durationMillis = uiState.phase.durationMs,
+                easing = LinearEasing
+            )
+        )
+    }
+
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 0.95f,
-        targetValue = 1.05f,
+        initialValue = 0.98f,
+        targetValue = 1.02f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1500, easing = FastOutSlowInEasing),
+            animation = tween(1000, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
         ),
         label = "pulseAnimation"
     )
 
-    val targetScale = when (uiState.phase) {
-        BreathPhase.INHALE -> 1.5f
-        BreathPhase.HOLD -> 1.5f * pulseScale
-        BreathPhase.EXHALE -> 0.8f
-        BreathPhase.IDLE -> 1.0f
+    val animatedScale = if (uiState.phase == BreathPhase.HOLD) {
+        scaleAnimatable.value * pulseScale
+    } else {
+        scaleAnimatable.value
     }
-
-    val animatedScale by animateFloatAsState(
-        targetValue = targetScale,
-        animationSpec = tween(
-            durationMillis = uiState.phase.durationMs,
-            easing = LinearEasing
-        ),
-        label = "breathingScale"
-    )
 
     val phaseText = when (uiState.phase) {
         BreathPhase.INHALE -> R.string.breath_inhale

@@ -738,4 +738,11 @@
     <string name="grounding_smell_desc">Find two scents around you (your perfume, coffee, the room). Tap a circle when you notice them.</string>
     <string name="grounding_taste_title">1 thing you can TASTE</string>
     <string name="grounding_taste_desc">Identify a taste in your mouth (your saliva, a mint, water). Tap the circle to finish.</string>
+
+    <string name="balloon_intro_desc">Sometimes, holding onto a thought causes tension. Write down what frustrates or worries you, and release it visually to lighten its weight from your mind.</string>
+    <string name="balloon_hint">What thought do you want to let go of today?</string>
+    <string name="balloon_release_btn">Release and let go</string>
+    <string name="balloon_releasing">Releasing…</string>
+    <string name="balloon_finished_title">Thought released</string>
+    <string name="balloon_finished_desc">That thought no longer holds the same power over you. Take a deep breath and continue your day.</string>
 </resources>

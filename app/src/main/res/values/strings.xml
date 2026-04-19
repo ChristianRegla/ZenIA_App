@@ -730,4 +730,11 @@
     <string name="grounding_smell_desc">Busca dos aromas a tu alrededor (tu perfume, café, el ambiente). Toca un círculo al notarlos.</string>
     <string name="grounding_taste_title">1 cosa que puedas SABOREAR</string>
     <string name="grounding_taste_desc">Identifica un sabor en tu boca (tu saliva, una menta, agua). Toca el círculo para terminar.</string>
+
+    <string name="balloon_intro_desc">A veces, aferrarnos a un pensamiento nos causa tensión. Escribe eso que te frustra o te preocupa, y libéralo visualmente para quitarle peso de tu mente.</string>
+    <string name="balloon_hint">¿Qué pensamiento quieres soltar hoy?</string>
+    <string name="balloon_release_btn">Soltar y dejar ir</string>
+    <string name="balloon_releasing">Liberando…</string>
+    <string name="balloon_finished_title">Pensamiento liberado</string>
+    <string name="balloon_finished_desc">Ese pensamiento ya no tiene el mismo poder sobre ti. Respira profundo y continúa con tu día.</string>
 </resources>

@@ -155,7 +155,7 @@ fun ActiveGroundingExercise(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(32.dp),
+            .padding(horizontal = 16.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         AnimatedContent(
@@ -201,9 +201,8 @@ fun ActiveGroundingExercise(
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // Círculos interactivos
         Row(
-            horizontalArrangement = Arrangement.Center,
+            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
             modifier = Modifier.fillMaxWidth()
         ) {
             for (i in 0 until uiState.currentPhase.targetCount) {
@@ -218,10 +217,6 @@ fun ActiveGroundingExercise(
                         }
                     }
                 )
-
-                if (i < uiState.currentPhase.targetCount - 1) {
-                    Spacer(modifier = Modifier.width(16.dp))
-                }
             }
         }
     }
@@ -245,13 +240,13 @@ fun InteractiveCircle(
     )
 
     val borderColor by animateColorAsState(
-        targetValue = if (isChecked) ZeniaTeal else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+        targetValue = if (isChecked) ZeniaTeal else MaterialTheme.colorScheme.onSurface,
         label = "CircleBorderColor"
     )
 
     Box(
         modifier = Modifier
-            .size(56.dp)
+            .size(52.dp)
             .scale(scale)
             .clip(CircleShape)
             .background(color)
