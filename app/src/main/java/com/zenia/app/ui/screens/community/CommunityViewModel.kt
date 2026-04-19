@@ -363,4 +363,10 @@ class CommunityViewModel @Inject constructor(
             }
         }
     }
+
+    fun revertPostTranslation(postId: String) {
+        _uiState.update { state ->
+            state.copy(translatedPosts = state.translatedPosts - postId)
+        }
+    }
 }

@@ -42,7 +42,11 @@ fun PostDetailScreen(
     onBlockComment: (String) -> Unit,
     onReportComment: (CommunityComment) -> Unit,
     onReportMainPost: () -> Unit,
-    onLikeMainPost: () -> Unit
+    onLikeMainPost: () -> Unit,
+    onTranslateClick: (String, String) -> Unit,
+    onRevertTranslateClick: (String) -> Unit,
+    onTranslateMainPostClick: (String, String) -> Unit,
+    onRevertMainPostTranslationClick: () -> Unit
 ) {
     var inputText by remember { mutableStateOf("") }
 
@@ -74,11 +78,15 @@ fun PostDetailScreen(
                 CommunityPostItem(
                     post = displayPost,
                     currentUserId = currentUserId,
+                    isTranslating = uiState.translatingMainPost,
+                    translatedText = uiState.translatedMainPost,
                     onLikeClick = onLikeMainPost,
                     onDeleteClick = {},
                     onBlockClick = { onBlockComment(displayPost.authorId) },
                     onReportClick = { onReportMainPost() },
-                    onCommentClick = null
+                    onCommentClick = null,
+                    onTranslateClick = { onTranslateMainPostClick(displayPost.id, displayPost.content) },
+                    onRevertTranslateClick = onRevertMainPostTranslationClick
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -138,10 +146,14 @@ fun PostDetailScreen(
                     CommunityCommentItem(
                         comment = comment,
                         currentUserId = currentUserId,
+                        isTranslating = uiState.translatingCommentIds.contains(comment.id),
+                        translatedText = uiState.translatedComments[comment.id],
                         onLikeClick = { onLikeComment(comment) },
                         onDeleteClick = { onDeleteComment(comment) },
                         onReportClick = { onReportComment(comment) },
-                        onBlockClick = { onBlockComment(comment.authorId) }
+                        onBlockClick = { onBlockComment(comment.authorId) },
+                        onTranslateClick = { onTranslateClick(comment.id, comment.content) },
+                        onRevertTranslateClick = { onRevertTranslateClick(comment.id) }
                     )
                 }
             }
@@ -153,10 +165,14 @@ fun PostDetailScreen(
 fun CommunityCommentItem(
     comment: CommunityComment,
     currentUserId: String?,
+    isTranslating: Boolean = false,
+    translatedText: String? = null,
     onLikeClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onReportClick: () -> Unit,
-    onBlockClick: () -> Unit
+    onBlockClick: () -> Unit,
+    onTranslateClick: (() -> Unit)? = null,
+    onRevertTranslateClick: (() -> Unit)? = null
 ) {
     var expandedMenu by remember { mutableStateOf(false) }
     val isOwnComment = currentUserId != null && comment.authorId == currentUserId
@@ -210,10 +226,39 @@ fun CommunityCommentItem(
 
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = comment.content,
+                        text = translatedText ?: comment.content,
                         style = MaterialTheme.typography.bodyMedium,
                         color = ZeniaSlateGrey
                     )
+
+                    if (translatedText == null && onTranslateClick != null) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            TextButton(
+                                onClick = onTranslateClick,
+                                enabled = !isTranslating,
+                                contentPadding = PaddingValues(0.dp),
+                                modifier = Modifier.height(24.dp)
+                            ) {
+                                if (isTranslating) {
+                                    CircularProgressIndicator(modifier = Modifier.size(10.dp), color = ZeniaTeal, strokeWidth = 1.dp)
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(text = stringResource(R.string.action_translating), style = MaterialTheme.typography.labelSmall, color = ZeniaTeal)
+                                } else {
+                                    Text(text = stringResource(R.string.action_see_translation), style = MaterialTheme.typography.labelSmall, color = ZeniaSlateGrey)
+                                }
+                            }
+                        }
+                    } else if (translatedText != null && onRevertTranslateClick != null) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            TextButton(
+                                onClick = onRevertTranslateClick,
+                                contentPadding = PaddingValues(0.dp),
+                                modifier = Modifier.height(24.dp)
+                            ) {
+                                Text(text = stringResource(R.string.action_see_original), style = MaterialTheme.typography.labelSmall, color = ZeniaTeal)
+                            }
+                        }
+                    }
                 }
 
                 Box {

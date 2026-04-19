@@ -159,12 +159,12 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.mikepenz.markdown.renderer)
 
-    implementation("androidx.media3:media3-exoplayer:1.2.1")
-    implementation("androidx.media3:media3-ui:1.2.1")
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
 
-    implementation("com.google.android.play:app-update:2.1.0")
-    implementation("com.google.android.play:app-update-ktx:2.1.0")
+    implementation(libs.play.app.update)
+    implementation(libs.play.app.update.ktx)
 
-    implementation("com.google.mlkit:language-id:17.0.6")
-    implementation("com.google.mlkit:translate:17.0.3")
+    implementation(libs.mlkit.language.id)
+    implementation(libs.mlkit.translate)
 }

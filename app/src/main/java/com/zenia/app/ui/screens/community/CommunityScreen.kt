@@ -64,7 +64,8 @@ fun CommunityScreen(
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onCommentClick: (CommunityPost) -> Unit,
-    onTranslateClick: (String, String) -> Unit
+    onTranslateClick: (String, String) -> Unit,
+    onRevertTranslateClick: (String) -> Unit
 ) {
     val isAtBottom by remember {
         derivedStateOf {
@@ -126,7 +127,8 @@ fun CommunityScreen(
                             onBlockClick = { onBlockClick(post.authorId) },
                             onReportClick = { onReportClick(post) },
                             onCommentClick = { onCommentClick(post) },
-                            onTranslateClick = { onTranslateClick(post.id, post.content) }
+                            onTranslateClick = { onTranslateClick(post.id, post.content) },
+                            onRevertTranslateClick = { onRevertTranslateClick(post.id) }
                         )
                     }
 
@@ -159,7 +161,8 @@ fun CommunityPostItem(
     onBlockClick: () -> Unit,
     onReportClick: () -> Unit,
     onCommentClick: (() -> Unit)? = null,
-    onTranslateClick: (() -> Unit)? = null
+    onTranslateClick: (() -> Unit)? = null,
+    onRevertTranslateClick: (() -> Unit)? = null
 ) {
     var expandedMenu by remember { mutableStateOf(false) }
     val isOwnPost = currentUserId != null && post.authorId == currentUserId
@@ -273,14 +276,15 @@ fun CommunityPostItem(
                         }
                     }
                 }
-            } else if (translatedText != null) {
+            } else if (translatedText != null && onRevertTranslateClick != null) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    Text(
-                        text = stringResource(R.string.label_translated_by_google),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = ZeniaSlateGrey,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
+                    TextButton(
+                        onClick = onRevertTranslateClick,
+                        contentPadding = PaddingValues(0.dp),
+                        modifier = Modifier.height(24.dp)
+                    ) {
+                        Text(text = stringResource(R.string.action_see_original), style = MaterialTheme.typography.labelSmall, color = ZeniaTeal)
+                    }
                 }
             }
 

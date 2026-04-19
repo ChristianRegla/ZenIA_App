@@ -751,4 +751,5 @@
     <string name="action_see_translation">Ver traducción</string>
     <string name="action_translating">Traduciendo…</string>
     <string name="label_translated_by_google">Traducido por Google</string>
+    <string name="action_see_original">Ver original</string>
 </resources>

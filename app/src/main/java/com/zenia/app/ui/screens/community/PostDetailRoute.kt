@@ -167,5 +167,9 @@ fun PostDetailRoute(
         onBlockComment = { authorId -> userToBlock = authorId },
         onLikeMainPost = { viewModel.onLikeMainPost() },
         onReportMainPost = { showReportMainPostDialog = true },
+        onTranslateClick = { commentId, text -> viewModel.translateComment(commentId, text) },
+        onRevertTranslateClick = { commentId -> viewModel.revertCommentTranslation(commentId) },
+        onTranslateMainPostClick = { postId, text -> viewModel.translateMainPost(postId, text) },
+        onRevertMainPostTranslationClick = { viewModel.revertMainPostTranslation() }
     )
 }

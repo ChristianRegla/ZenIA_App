@@ -198,6 +198,7 @@ fun CommunityRoute(
         onCommentClick = { post -> onNavigateToPostDetail(post) },
         isRefreshing = uiState.isRefreshing,
         onRefresh = { viewModel.refreshPosts() },
-        onTranslateClick = { postId, text -> viewModel.translatePost(postId, text) }
+        onTranslateClick = { postId, text -> viewModel.translatePost(postId, text) },
+        onRevertTranslateClick = { postId -> viewModel.revertPostTranslation(postId) }
     )
 }
