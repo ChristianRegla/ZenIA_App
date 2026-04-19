@@ -264,12 +264,14 @@ class DiaryEntryViewModel @Inject constructor(
         try {
             val pasos = hc.readStepsByDate(date)
             val sueno = hc.readLastNightSleepDurationByDate(date)
+            val ritmoCardiaco = hc.readHeartRateAvgByDate(date)
+            val hrv = hc.readHRVByDate(date)
 
             _healthConnectData.value = HealthDataResult(
                 pasos = pasos.takeIf { it > 0 },
                 minutosSueno = sueno.totalMinutes.takeIf { it > 0 },
-                ritmoCardiaco = null,
-                hrv = null
+                ritmoCardiaco = ritmoCardiaco,
+                hrv = hrv
             )
         } catch (e: Exception) { e.printStackTrace() }
     }

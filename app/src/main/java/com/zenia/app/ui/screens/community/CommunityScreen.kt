@@ -63,7 +63,9 @@ fun CommunityScreen(
     onReportClick: (CommunityPost) -> Unit,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    onCommentClick: (CommunityPost) -> Unit
+    onCommentClick: (CommunityPost) -> Unit,
+    onTranslateClick: (String, String) -> Unit,
+    onRevertTranslateClick: (String) -> Unit
 ) {
     val isAtBottom by remember {
         derivedStateOf {
@@ -93,7 +95,8 @@ fun CommunityScreen(
             ) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.cd_new_post))
             }
-        }
+        },
+        containerColor = ZeniaLightGrey
     ) { padding ->
         PullToRefreshBox(
             modifier = Modifier
@@ -117,11 +120,15 @@ fun CommunityScreen(
                         CommunityPostItem(
                             post = post,
                             currentUserId = currentUserId,
+                            isTranslating = uiState.translatingPostIds.contains(post.id),
+                            translatedText = uiState.translatedPosts[post.id],
                             onLikeClick = { onLikeClick(post) },
                             onDeleteClick = { onDeleteClick(post) },
                             onBlockClick = { onBlockClick(post.authorId) },
                             onReportClick = { onReportClick(post) },
-                            onCommentClick = { onCommentClick(post) }
+                            onCommentClick = { onCommentClick(post) },
+                            onTranslateClick = { onTranslateClick(post.id, post.content) },
+                            onRevertTranslateClick = { onRevertTranslateClick(post.id) }
                         )
                     }
 
@@ -147,11 +154,15 @@ fun CommunityScreen(
 fun CommunityPostItem(
     post: CommunityPost,
     currentUserId: String?,
+    isTranslating: Boolean = false,
+    translatedText: String? = null,
     onLikeClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onBlockClick: () -> Unit,
     onReportClick: () -> Unit,
-    onCommentClick: (() -> Unit)? = null
+    onCommentClick: (() -> Unit)? = null,
+    onTranslateClick: (() -> Unit)? = null,
+    onRevertTranslateClick: (() -> Unit)? = null
 ) {
     var expandedMenu by remember { mutableStateOf(false) }
     val isOwnPost = currentUserId != null && post.authorId == currentUserId
@@ -243,10 +254,39 @@ fun CommunityPostItem(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = post.content,
+                text = translatedText ?: post.content,
                 style = MaterialTheme.typography.bodyMedium,
                 color = ZeniaSlateGrey
             )
+
+            if (translatedText == null && onTranslateClick != null) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(
+                        onClick = onTranslateClick,
+                        enabled = !isTranslating,
+                        contentPadding = PaddingValues(0.dp),
+                        modifier = Modifier.height(24.dp)
+                    ) {
+                        if (isTranslating) {
+                            CircularProgressIndicator(modifier = Modifier.size(12.dp), color = ZeniaTeal, strokeWidth = 2.dp)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(text = stringResource(R.string.action_translating), style = MaterialTheme.typography.labelSmall, color = ZeniaTeal)
+                        } else {
+                            Text(text = stringResource(R.string.action_see_translation), style = MaterialTheme.typography.labelSmall, color = ZeniaSlateGrey)
+                        }
+                    }
+                }
+            } else if (translatedText != null && onRevertTranslateClick != null) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(
+                        onClick = onRevertTranslateClick,
+                        contentPadding = PaddingValues(0.dp),
+                        modifier = Modifier.height(24.dp)
+                    ) {
+                        Text(text = stringResource(R.string.action_see_original), style = MaterialTheme.typography.labelSmall, color = ZeniaTeal)
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

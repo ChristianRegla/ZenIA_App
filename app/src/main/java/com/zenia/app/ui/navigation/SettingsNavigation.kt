@@ -20,6 +20,7 @@ import com.zenia.app.viewmodel.MainViewModel
 import com.zenia.app.viewmodel.SettingsViewModel
 import androidx.core.net.toUri
 import androidx.health.connect.client.HealthConnectClient
+import com.zenia.app.ui.screens.settings.ChangelogScreen
 
 fun NavGraphBuilder.settingsGraph(navController: NavController, mainViewModel: MainViewModel) {
     composable(
@@ -58,7 +59,20 @@ fun NavGraphBuilder.settingsGraph(navController: NavController, mainViewModel: M
     ) {
         MoreSettingsRoute(
             onNavigateBack = { navController.popBackStack() },
-            onNavigateToExport = { navController.safeNavigate(Destinations.EXPORT_SETTINGS_ROUTE) }
+            onNavigateToExport = { navController.safeNavigate(Destinations.EXPORT_SETTINGS_ROUTE) },
+            onChangelogClick = { navController.safeNavigate(Destinations.CHANGELOG_ROUTE) }
+        )
+    }
+
+    composable(
+        route = Destinations.CHANGELOG_ROUTE,
+        enterTransition = { slideIn() },
+        exitTransition = { slideOut() },
+        popEnterTransition = { popSlideIn() },
+        popExitTransition = { popSlideOut() }
+    ) {
+        ChangelogScreen(
+            onNavigateBack = { navController.popBackStack() }
         )
     }
 

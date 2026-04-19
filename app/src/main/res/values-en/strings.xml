@@ -634,7 +634,7 @@
     <string name="cd_options">Options</string>
     <string name="action_report">Report</string>
     <string name="action_block_user">Block user</string>
-    <string name="hint_write_reply">Write a reply...</string>
+    <string name="hint_write_reply">Write a reply…</string>
     <string name="cd_send">Send</string>
     <string name="action_delete">Delete</string>
 
@@ -692,4 +692,91 @@
     <string name="dialog_delete_post_title">Delete post</string>
     <string name="dialog_delete_post_desc">Are you sure you want to delete this post? This action cannot be undone.</string>
     <string name="dialog_block_user_community_desc">Are you sure you want to block this user? You will no longer see their posts.</string>
+
+    <string name="no_comments_yet">No comments yet</string>
+    <string name="be_the_first_to_comment">Be the first to share your opinion!</string>
+
+    <string name="relax_title">Relax</string>
+    <string name="relax_filter_all">All</string>
+    <string name="relax_filter_breathing">Breathing</string>
+    <string name="relax_filter_meditation">Meditation</string>
+    <string name="relax_filter_sounds">Sounds</string>
+    <string name="relax_locked_content">Locked</string>
+    <string name="relax_premium_content">Premium</string>
+
+    <string name="exercise_breathing_478_title">4–7–8 Breathing</string>
+    <string name="exercise_grounding_title">5–4–3–2–1 Grounding</string>
+    <string name="exercise_balloon_title">Release the Balloon</string>
+    <string name="exercise_bodyscan_title">Quick Body Scan</string>
+    <string name="exercise_nature_sounds_title">Nature Sounds</string>
+
+    <string name="exercise_duration_2min">2 min</string>
+    <string name="exercise_duration_3min">3 min</string>
+    <string name="exercise_duration_5min">5 min</string>
+    <string name="exercise_duration_7min">7 min</string>
+    <string name="exercise_duration_15min">15 min</string>
+
+    <string name="back">Back</string>
+    <string name="breathing_478_desc">Get into a comfortable position. This guided technique will relax your nervous system and reduce anxiety quickly. \n\nFollow the rhythm of the circle.</string>
+    <string name="start_exercise">I\'m ready</string>
+    <string name="breath_inhale">Inhale</string>
+    <string name="breath_hold">Hold</string>
+    <string name="breath_exhale">Exhale</string>
+    <string name="cycle_progress">Cycle %1$d of %2$d</string>
+    <string name="exercise_completed">Well done!</string>
+    <string name="exercise_completed_desc">Your nervous system is now calmer. Take a moment before continuing with your day.</string>
+    <string name="finish">Finish</string>
+
+    <string name="grounding_intro_desc">This technique will help you ground yourself during a panic attack or overthinking by connecting with the present moment through your senses.</string>
+    <string name="grounding_see_title">5 things you can SEE</string>
+    <string name="grounding_see_desc">Look around you. Tap a circle for each object you identify (a lamp, a shadow, a color…).</string>
+    <string name="grounding_touch_title">4 things you can TOUCH</string>
+    <string name="grounding_touch_desc">Feel the texture of things (your clothes, the chair, the wall). Tap a circle for each.</string>
+    <string name="grounding_hear_title">3 things you can HEAR</string>
+    <string name="grounding_hear_desc">Pay attention to sounds (the wind, a clock, your breath). Tap a circle when you hear them.</string>
+    <string name="grounding_smell_title">2 things you can SMELL</string>
+    <string name="grounding_smell_desc">Find two scents around you (your perfume, coffee, the room). Tap a circle when you notice them.</string>
+    <string name="grounding_taste_title">1 thing you can TASTE</string>
+    <string name="grounding_taste_desc">Identify a taste in your mouth (your saliva, a mint, water). Tap the circle to finish.</string>
+
+    <string name="balloon_intro_desc">Sometimes, holding onto a thought causes tension. Write down what frustrates or worries you, and release it visually to lighten its weight from your mind.</string>
+    <string name="balloon_hint">What thought do you want to let go of today?</string>
+    <string name="balloon_release_btn">Release and let go</string>
+    <string name="balloon_releasing">Releasing…</string>
+    <string name="balloon_finished_title">Thought released</string>
+    <string name="balloon_finished_desc">That thought no longer holds the same power over you. Take a deep breath and continue your day.</string>
+
+    <string name="bodyscan_intro_desc">Release accumulated physical stress. You will tense and release specific muscle groups to force your body into deep relaxation.</string>
+    <string name="bodyscan_part_hands">Hands and Arms</string>
+    <string name="bodyscan_part_shoulders">Shoulders and Neck</string>
+    <string name="bodyscan_part_face">Face and Jaw</string>
+    <string name="bodyscan_action_tense">Tense tightly</string>
+    <string name="bodyscan_action_hold">Hold the tension…</string>
+    <string name="bodyscan_action_relax">Release and relax</string>
+    <string name="bodyscan_finished_title">Body relaxed</string>
+    <string name="bodyscan_finished_desc">Feel the lightness and warmth in your muscles. You have released much of your physical tension for today.</string>
+
+    <string name="action_see_translation">See translation</string>
+    <string name="action_translating">Translating…</string>
+    <string name="label_translated_by_google">Translated by Google</string>
+    <string name="action_see_original">See original</string>
+
+    <string name="changelog_title">Changelog</string>
+    <string name="changelog_footer">Thank you for evolving with us 🌿</string>
+    <string name="changelog_type_feature">Feature</string>
+    <string name="changelog_type_improvement">Improvement</string>
+    <string name="changelog_type_fix">Fix</string>
+
+    <string name="changelog_1_3_0_date">April 18, 2026</string>
+    <string name="changelog_1_3_0_feature_1">New interactive relaxation exercises: 4–7–8 Breathing, 5–4–3–2–1 Grounding, Release the Balloon, and Quick Body Scan.</string>
+    <string name="changelog_1_3_0_feature_2">Integrated offline translation for community posts and comments (powered by ML Kit).</string>
+    <string name="changelog_1_3_0_improvement">Improvements in app navigation fluidity and refactored screen transitions.</string>
+
+    <string name="changelog_1_2_0_date">April 15, 2026</string>
+    <string name="changelog_1_2_0_feature">New Analytics Dashboard! Charts are now divided into Mental Wellness, Rest, and Physical tabs.</string>
+    <string name="changelog_1_2_0_fix">Fixed a visual issue on mood pattern cards.</string>
+
+    <string name="changelog_1_1_5_date">April 08, 2026</string>
+    <string name="changelog_1_1_5_improvement">Improved Health Connect synchronization to read steps and heart rate.</string>
+    <string name="changelog_1_1_5_fix">Fixed a bug where diary entries sometimes did not save user-created categories.</string>
 </resources>

@@ -29,7 +29,10 @@ import com.zenia.app.ui.screens.lock.LockRoute
 import com.zenia.app.ui.screens.notifications.NotificationsRoute
 import com.zenia.app.ui.screens.recursos.RecursoDetailRoute
 import com.zenia.app.ui.screens.recursos.RecursosRoute
+import com.zenia.app.ui.screens.relax.BalloonRoute
+import com.zenia.app.ui.screens.relax.BodyScanRoute
 import com.zenia.app.ui.screens.relax.BreathingRoute
+import com.zenia.app.ui.screens.relax.GroundingRoute
 import com.zenia.app.ui.screens.relax.RelaxRoute
 import com.zenia.app.ui.screens.sos.HelplineRoute
 import com.zenia.app.ui.screens.zenia.ZeniaBotRoute
@@ -128,10 +131,13 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
                 onNavigateToRecursoDetail = { recursoId ->
                     navController.safeNavigate(Destinations.createRecursoDetailRoute(recursoId))
                 },
-                onNavigateToTest = { testId ->
-                    navController.safeNavigate(Destinations.createEvaluacionRoute(testId))
+                onNavigateToPlayer = { id ->
+                    navController.safeNavigate(Destinations.createPlayerRoute(id))
                 },
-                onNavigateToBreathing = { navController.safeNavigate(Destinations.BREATHING_ROUTE) }
+                onNavigateToPostDetail = { post ->
+                    navController.currentBackStackEntry?.savedStateHandle?.set("mainPost", post)
+                    navController.safeNavigate(Destinations.createPostDetailRoute(post.id))
+                }
             )
         }
 
@@ -204,8 +210,9 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
 
         composable(Destinations.RELAX_ROUTE) {
             RelaxRoute(
-                onNavigateToPlayer = { id -> },
-                onNavigateToBreathing = { navController.safeNavigate(Destinations.BREATHING_ROUTE) },
+                onNavigateToPlayer = { id ->
+                    navController.safeNavigate(Destinations.createPlayerRoute(id))
+                },
                 onNavigateToPremium = { navController.safeNavigate(Destinations.PREMIUM_ROUTE) }
             )
         }
@@ -325,15 +332,38 @@ fun AppNavigation(pendingDeepLink: Uri? = null) {
         }
 
         composable(
-            route = Destinations.BREATHING_ROUTE,
+            route = Destinations.PLAYER_ROUTE,
+            arguments = listOf(navArgument("exerciseId") { type = NavType.IntType }),
             enterTransition = { slideIn() },
             exitTransition = { slideOut() },
             popEnterTransition = { popSlideIn() },
             popExitTransition = { popSlideOut() }
-            ) {
-            BreathingRoute(
-                onNavigateBack = { navController.popBackStack() }
-            )
+        ) { backStackEntry ->
+            val exerciseId = backStackEntry.arguments?.getInt("exerciseId") ?: 1
+
+            when (exerciseId) {
+                1 -> {
+                    BreathingRoute(
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
+                2 -> {
+                    GroundingRoute(
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
+                3 -> {
+                    BalloonRoute(onNavigateBack = { navController.popBackStack() })
+                }
+                4 -> {
+                    BodyScanRoute(onNavigateBack = { navController.popBackStack() })
+                }
+                else -> {
+                    BreathingRoute(
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
+            }
         }
     }
 }

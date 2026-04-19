@@ -40,8 +40,8 @@ android {
         applicationId = "com.zenia.app"
         minSdk = 28
         targetSdk = 36
-        versionCode = 8
-        versionName = "1.1.3"
+        versionCode = 10
+        versionName = "1.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField(
@@ -159,9 +159,12 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.mikepenz.markdown.renderer)
 
-    implementation("androidx.media3:media3-exoplayer:1.2.1")
-    implementation("androidx.media3:media3-ui:1.2.1")
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
 
-    implementation("com.google.android.play:app-update:2.1.0")
-    implementation("com.google.android.play:app-update-ktx:2.1.0")
+    implementation(libs.play.app.update)
+    implementation(libs.play.app.update.ktx)
+
+    implementation(libs.mlkit.language.id)
+    implementation(libs.mlkit.translate)
 }

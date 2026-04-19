@@ -161,6 +161,36 @@ class HealthConnectRepository @Inject constructor(
         else samples.map { it.beatsPerMinute }.average().toInt()
     }
 
+    suspend fun readHeartRateAvgByDate(date: LocalDate): Int? = withContext(defaultDispatcher) {
+        val hc = client ?: return@withContext null
+        if (!hasPermissions(hc)) return@withContext null
+
+        val records = hc.readRecords(
+            ReadRecordsRequest(
+                HeartRateRecord::class,
+                getTimeRangeForDate(date)
+            )
+        ).records
+
+        val samples = records.flatMap { it.samples }
+        if (samples.isEmpty()) null
+        else samples.map { it.beatsPerMinute }.average().toInt()
+    }
+
+    suspend fun readHRVByDate(date: LocalDate): Int? = withContext(defaultDispatcher) {
+        val hc = client ?: return@withContext null
+        if (!hasPermissions(hc)) return@withContext null
+
+        val records = hc.readRecords(
+            ReadRecordsRequest(
+                HeartRateVariabilityRmssdRecord::class,
+                getTimeRangeForDate(date)
+            )
+        ).records
+
+        records.lastOrNull()?.heartRateVariabilityMillis?.toInt()
+    }
+
     suspend fun readTodaySteps(): Long = withContext(defaultDispatcher) {
         val hc = client ?: return@withContext 0L
         if (!hasPermissions(hc)) return@withContext 0L

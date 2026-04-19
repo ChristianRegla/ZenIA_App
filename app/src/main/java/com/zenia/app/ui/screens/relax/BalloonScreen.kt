@@ -1,10 +1,7 @@
 package com.zenia.app.ui.screens.relax
 
-import android.view.WindowManager
-import androidx.activity.ComponentActivity
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -15,36 +12,29 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.zenia.app.R
 import com.zenia.app.ui.theme.RobotoFlex
+import com.zenia.app.ui.theme.ZeniaDeepTeal
 import com.zenia.app.ui.theme.ZeniaTeal
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
-fun BreathingScreen(
-    uiState: BreathingUiState,
+fun BalloonScreen(
+    uiState: BalloonUiState,
     onStartExercise: () -> Unit,
+    onReleaseThought: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    val context = LocalContext.current
-
-    DisposableEffect(Unit) {
-        val activity = context as? ComponentActivity
-        activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        onDispose {
-            activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        }
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -71,20 +61,22 @@ fun BreathingScreen(
             AnimatedContent(
                 targetState = uiState.screenState,
                 transitionSpec = {
-                    fadeIn(animationSpec = tween(800)) togetherWith fadeOut(animationSpec = tween(800))
+                    fadeIn(animationSpec = tween(600)) togetherWith fadeOut(animationSpec = tween(600))
                 },
-                label = "ScreenStateTransition"
+                contentKey = { state ->
+                    if (state == BalloonScreenState.RELEASING) BalloonScreenState.TYPING else state
+                },
+                label = "ScreenTransition"
             ) { targetState ->
                 when (targetState) {
-                    BreathingScreenState.INTRO -> {
-                        BreathingIntroCard(onStart = onStartExercise)
+                    BalloonScreenState.INTRO -> BalloonIntroCard(onStart = onStartExercise)
+                    BalloonScreenState.TYPING, BalloonScreenState.RELEASING -> {
+                        ActiveBalloonExercise(
+                            uiState = uiState,
+                            onRelease = onReleaseThought
+                        )
                     }
-                    BreathingScreenState.EXERCISING -> {
-                        ActiveBreathingExercise(uiState = uiState)
-                    }
-                    BreathingScreenState.FINISHED -> {
-                        BreathingFinishedCard(onNavigateBack = onNavigateBack)
-                    }
+                    BalloonScreenState.FINISHED -> BalloonFinishedCard(onNavigateBack)
                 }
             }
         }
@@ -92,7 +84,7 @@ fun BreathingScreen(
 }
 
 @Composable
-fun BreathingIntroCard(onStart: () -> Unit) {
+fun BalloonIntroCard(onStart: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -111,23 +103,24 @@ fun BreathingIntroCard(onStart: () -> Unit) {
                     .background(ZeniaTeal.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text("🌬️", style = MaterialTheme.typography.headlineLarge)
+                Text("🎈", style = MaterialTheme.typography.headlineLarge)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = stringResource(R.string.exercise_breathing_478_title),
+                text = stringResource(R.string.exercise_balloon_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontFamily = RobotoFlex
+                fontFamily = RobotoFlex,
+                textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = stringResource(R.string.breathing_478_desc),
+                text = stringResource(R.string.balloon_intro_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -157,110 +150,138 @@ fun BreathingIntroCard(onStart: () -> Unit) {
 }
 
 @Composable
-fun ActiveBreathingExercise(uiState: BreathingUiState) {
+fun ActiveBalloonExercise(
+    uiState: BalloonUiState,
+    onRelease: () -> Unit
+) {
     val haptic = LocalHapticFeedback.current
+    var thoughtText by remember { mutableStateOf("") }
 
-    LaunchedEffect(uiState.phase) {
-        if (uiState.phase != BreathPhase.IDLE) {
-            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-        }
-    }
+    val isReleasing = uiState.screenState == BalloonScreenState.RELEASING
 
-    val scaleAnimatable = remember { Animatable(0.8f) }
-
-    LaunchedEffect(uiState.phase) {
-        val target = when (uiState.phase) {
-            BreathPhase.INHALE -> 1.5f
-            BreathPhase.HOLD -> 1.5f
-            BreathPhase.EXHALE -> 0.8f
-            BreathPhase.IDLE -> 0.8f
-        }
-        scaleAnimatable.animateTo(
-            targetValue = target,
-            animationSpec = tween(
-                durationMillis = uiState.phase.durationMs,
-                easing = LinearEasing
-            )
-        )
-    }
-
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 0.98f,
-        targetValue = 1.02f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
+    val offsetY by animateDpAsState(
+        targetValue = if (isReleasing) (-600).dp else 0.dp,
+        animationSpec = tween(
+            durationMillis = 4000,
+            easing = CubicBezierEasing(0.4f, 0.0f, 0.2f, 1.0f)
         ),
-        label = "pulseAnimation"
+        label = "BalloonOffsetY"
     )
 
-    val animatedScale = if (uiState.phase == BreathPhase.HOLD) {
-        scaleAnimatable.value * pulseScale
-    } else {
-        scaleAnimatable.value
-    }
-
-    val phaseText = when (uiState.phase) {
-        BreathPhase.INHALE -> R.string.breath_inhale
-        BreathPhase.HOLD -> R.string.breath_hold
-        BreathPhase.EXHALE -> R.string.breath_exhale
-        BreathPhase.IDLE -> R.string.breath_inhale
-    }
+    val alpha by animateFloatAsState(
+        targetValue = if (isReleasing) 0f else 1f,
+        animationSpec = tween(
+            durationMillis = 3000,
+            delayMillis = 500,
+            easing = LinearEasing
+        ),
+        label = "BalloonAlpha"
+    )
 
     Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxSize()
+        verticalArrangement = Arrangement.Center
     ) {
         Box(
-            modifier = Modifier.size(300.dp),
+            modifier = Modifier
+                .offset(y = offsetY)
+                .alpha(alpha),
             contentAlignment = Alignment.Center
         ) {
-            Canvas(modifier = Modifier.size(200.dp)) {
-                drawCircle(color = ZeniaTeal.copy(alpha = 0.1f))
+            Box(
+                modifier = Modifier
+                    .size(240.dp)
+                    .clip(CircleShape)
+                    .background(ZeniaTeal.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                if (!isReleasing) {
+                    OutlinedTextField(
+                        value = thoughtText,
+                        onValueChange = { if (it.length <= 100) thoughtText = it },
+                        placeholder = {
+                            Text(
+                                stringResource(R.string.balloon_hint),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent
+                        ),
+                        textStyle = LocalTextStyle.current.copy(
+                            textAlign = TextAlign.Center,
+                            fontFamily = RobotoFlex,
+                            fontWeight = FontWeight.Medium
+                        ),
+                        modifier = Modifier.padding(16.dp)
+                    )
+                } else {
+                    Text(
+                        text = thoughtText.ifEmpty { "..." },
+                        textAlign = TextAlign.Center,
+                        fontFamily = RobotoFlex,
+                        fontWeight = FontWeight.Bold,
+                        color = ZeniaDeepTeal,
+                        maxLines = 4,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(24.dp)
+                    )
+                }
             }
-
-            Canvas(modifier = Modifier.size(200.dp)) {
-                drawCircle(
-                    color = ZeniaTeal.copy(alpha = 0.4f),
-                    radius = (size.minDimension / 2) * animatedScale
-                )
-            }
-
-            Text(
-                text = stringResource(phaseText),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontFamily = RobotoFlex
-            )
         }
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        Text(
-            text = stringResource(R.string.cycle_progress, uiState.cyclesCompleted + 1, uiState.totalCycles),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontFamily = RobotoFlex
-        )
+        AnimatedVisibility(
+            visible = !isReleasing,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Button(
+                onClick = {
+                    if (thoughtText.isNotBlank()) {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onRelease()
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal)
+            ) {
+                Text(
+                    text = stringResource(R.string.balloon_release_btn),
+                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = RobotoFlex,
+                    color = Color.White
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun BreathingFinishedCard(onNavigateBack: () -> Unit) {
+fun BalloonFinishedCard(onNavigateBack: () -> Unit) {
     Column(
         modifier = Modifier.padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "✨",
+            text = "💨",
             style = MaterialTheme.typography.displayLarge
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = stringResource(R.string.exercise_completed),
+            text = stringResource(R.string.balloon_finished_title),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
@@ -268,7 +289,7 @@ fun BreathingFinishedCard(onNavigateBack: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = stringResource(R.string.exercise_completed_desc),
+            text = stringResource(R.string.balloon_finished_desc),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,

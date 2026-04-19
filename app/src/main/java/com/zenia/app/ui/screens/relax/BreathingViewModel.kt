@@ -11,18 +11,20 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-enum class BreathPhase(val instruction: String, val durationSeconds: Int) {
-    IDLE("Listo para empezar", 0),
-    INHALE("Inhala lentamente...", 4),
-    HOLD("Mantén el aire...", 7),
-    EXHALE("Exhala suavemente...", 8)
+enum class BreathingScreenState { INTRO, EXERCISING, FINISHED }
+
+enum class BreathPhase(val durationMs: Int) {
+    IDLE(0),
+    INHALE(4000),
+    HOLD(7000),
+    EXHALE(8000)
 }
 
 data class BreathingUiState(
+    val screenState: BreathingScreenState = BreathingScreenState.INTRO,
     val phase: BreathPhase = BreathPhase.IDLE,
-    val timeLeft: Int = 0,
-    val isPlaying: Boolean = false,
-    val cyclesCompleted: Int = 0
+    val cyclesCompleted: Int = 0,
+    val totalCycles: Int = 4
 )
 
 @HiltViewModel
@@ -32,24 +34,29 @@ class BreathingViewModel @Inject constructor() : ViewModel() {
 
     private var breathJob: Job? = null
 
-    fun toggleExercise() {
-        if (_uiState.value.isPlaying) {
-            stopExercise()
-        } else {
-            startExercise()
+    fun startExercise() {
+        _uiState.update {
+            it.copy(
+                screenState = BreathingScreenState.EXERCISING,
+                cyclesCompleted = 0,
+                phase = BreathPhase.INHALE
+            )
         }
-    }
-
-    private fun startExercise() {
-        _uiState.update { it.copy(isPlaying = true, cyclesCompleted = 0) }
 
         breathJob = viewModelScope.launch {
-            while (_uiState.value.isPlaying) {
+            while (_uiState.value.cyclesCompleted < _uiState.value.totalCycles) {
                 runPhase(BreathPhase.INHALE)
                 runPhase(BreathPhase.HOLD)
                 runPhase(BreathPhase.EXHALE)
 
                 _uiState.update { it.copy(cyclesCompleted = it.cyclesCompleted + 1) }
+            }
+
+            _uiState.update {
+                it.copy(
+                    screenState = BreathingScreenState.FINISHED,
+                    phase = BreathPhase.IDLE
+                )
             }
         }
     }
@@ -58,21 +65,18 @@ class BreathingViewModel @Inject constructor() : ViewModel() {
         breathJob?.cancel()
         _uiState.update {
             it.copy(
-                isPlaying = false,
+                screenState = BreathingScreenState.INTRO,
                 phase = BreathPhase.IDLE,
-                timeLeft = 0
+                cyclesCompleted = 0
             )
         }
     }
 
     private suspend fun runPhase(phase: BreathPhase) {
-        if (!_uiState.value.isPlaying) return
+        if (_uiState.value.screenState != BreathingScreenState.EXERCISING) return
 
-        for (i in phase.durationSeconds downTo 1) {
-            if (!_uiState.value.isPlaying) return
-            _uiState.update { it.copy(phase = phase, timeLeft = i) }
-            delay(1000L)
-        }
+        _uiState.update { it.copy(phase = phase) }
+        delay(phase.durationMs.toLong())
     }
 
     override fun onCleared() {

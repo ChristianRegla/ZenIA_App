@@ -21,10 +21,10 @@ fun AnalyticsRoute(
         selectedRange = selectedRange,
         isPremium = isPremium,
         lineChartProducer = viewModel.lineChartProducer,
+        sleepChartProducer = viewModel.sleepChartProducer,
+        physicalChartProducer = viewModel.physicalChartProducer,
         onNavigateBack = onNavigateBack,
         onNavigateToPremium = onNavigateToPremium,
-        onTimeRangeSelected = { newRange ->
-            viewModel.setTimeRange(newRange)
-        }
+        onTimeRangeSelected = viewModel::setTimeRange
     )
 }

@@ -6,15 +6,16 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
-fun BreathingRoute(
+fun GroundingRoute(
     onNavigateBack: () -> Unit
 ) {
-    val viewModel: BreathingViewModel = hiltViewModel()
+    val viewModel: GroundingViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
 
-    BreathingScreen(
+    GroundingScreen(
         uiState = uiState,
         onStartExercise = { viewModel.startExercise() },
+        onItemChecked = { viewModel.onItemChecked() },
         onNavigateBack = {
             viewModel.stopExercise()
             onNavigateBack()

@@ -19,6 +19,7 @@ import javax.inject.Inject
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.zenia.app.R
+import com.zenia.app.util.ZeniaTranslator
 
 @HiltViewModel
 class PostDetailViewModel @Inject constructor(
@@ -30,6 +31,7 @@ class PostDetailViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val postId: String = checkNotNull(savedStateHandle["postId"])
+    private val translator = ZeniaTranslator()
 
     val currentUserIdFlow = sessionManager.userId
 
@@ -40,7 +42,12 @@ class PostDetailViewModel @Inject constructor(
         val isSending: Boolean = false,
         val error: String? = null,
         val actionMessage: String? = null,
-        val isMainAuthorBlocked: Boolean = false
+        val isMainAuthorBlocked: Boolean = false,
+
+        val translatingMainPost: Boolean = false,
+        val translatedMainPost: String? = null,
+        val translatingCommentIds: Set<String> = emptySet(),
+        val translatedComments: Map<String, String> = emptyMap()
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -272,6 +279,48 @@ class PostDetailViewModel @Inject constructor(
             if (result.isSuccess) {
                 _uiState.update { it.copy(actionMessage = context.getString(R.string.msg_post_reported)) }
             }
+        }
+    }
+
+    fun translateMainPost(postId: String, originalText: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(translatingMainPost = true) }
+            val translatedText = translator.translateTextIfNeeded(originalText)
+            _uiState.update {
+                it.copy(
+                    translatingMainPost = false,
+                    translatedMainPost = translatedText
+                )
+            }
+        }
+    }
+
+    fun revertMainPostTranslation() {
+        _uiState.update { it.copy(translatedMainPost = null) }
+    }
+
+    fun translateComment(commentId: String, originalText: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(translatingCommentIds = it.translatingCommentIds + commentId) }
+            val translatedText = translator.translateTextIfNeeded(originalText)
+
+            _uiState.update { state ->
+                val newTranslatingSet = state.translatingCommentIds - commentId
+                if (translatedText != null) {
+                    state.copy(
+                        translatingCommentIds = newTranslatingSet,
+                        translatedComments = state.translatedComments + (commentId to translatedText)
+                    )
+                } else {
+                    state.copy(translatingCommentIds = newTranslatingSet)
+                }
+            }
+        }
+    }
+
+    fun revertCommentTranslation(commentId: String) {
+        _uiState.update { state ->
+            state.copy(translatedComments = state.translatedComments - commentId)
         }
     }
 }

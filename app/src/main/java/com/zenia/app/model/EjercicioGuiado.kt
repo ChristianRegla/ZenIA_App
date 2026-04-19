@@ -1,5 +1,6 @@
 package com.zenia.app.model
 
+import androidx.annotation.DrawableRes
 import com.google.firebase.firestore.DocumentId
 
 data class EjercicioGuiado(
@@ -11,5 +12,7 @@ data class EjercicioGuiado(
     val esPremium: Boolean = false,
     val urlAudio: String? = null,
 
-    val urlImagen: String? = null
+    val urlImagen: String? = null,
+
+    @DrawableRes val imagenLocalRes: Int? = null
 )

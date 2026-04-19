@@ -51,6 +51,10 @@ fun CommunityRoute(
 
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
+    LaunchedEffect(Unit) {
+        viewModel.refreshPosts()
+    }
+
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.addObserver(androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
@@ -193,6 +197,8 @@ fun CommunityRoute(
         onReportClick = { post -> postToReport = post },
         onCommentClick = { post -> onNavigateToPostDetail(post) },
         isRefreshing = uiState.isRefreshing,
-        onRefresh = { viewModel.refreshPosts() }
+        onRefresh = { viewModel.refreshPosts() },
+        onTranslateClick = { postId, text -> viewModel.translatePost(postId, text) },
+        onRevertTranslateClick = { postId -> viewModel.revertPostTranslation(postId) }
     )
 }

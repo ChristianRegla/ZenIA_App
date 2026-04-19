@@ -72,7 +72,8 @@ fun MoreSettingsScreen(
     onToggleNotifications: (Boolean) -> Unit,
     onToggleStreak: (Boolean) -> Unit,
     onTimeChange: (Int, Int) -> Unit,
-    onToggleAdvice: (Boolean) -> Unit
+    onToggleAdvice: (Boolean) -> Unit,
+    onChangelogClick: () -> Unit
 ) {
     var showTimePicker by remember { mutableStateOf(false) }
     var showCreditsDialog by remember { mutableStateOf(false) }
@@ -183,7 +184,7 @@ fun MoreSettingsScreen(
                             icon = Icons.Default.History,
                             title = stringResource(R.string.settings_changelog),
                             subtitle = stringResource(R.string.settings_changelog_desc),
-                            onClick = { /* TODO: Changelog */ },
+                            onClick = onChangelogClick,
                             showDivider = true
                         )
 

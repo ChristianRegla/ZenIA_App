@@ -18,6 +18,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.zenia.app.model.CommunityPost
 import com.zenia.app.ui.components.ZeniaBottomBar
 import com.zenia.app.ui.navigation.BottomNavItem
 import com.zenia.app.ui.navigation.Destinations
@@ -45,8 +46,8 @@ fun MainScreen(
     onNavigateToAnalytics: () -> Unit,
     onNavigateToCommunity: () -> Unit,
     onNavigateToRecursoDetail: (String) -> Unit,
-    onNavigateToTest: (String) -> Unit,
-    onNavigateToBreathing: () -> Unit
+    onNavigateToPlayer: (Int) -> Unit,
+    onNavigateToPostDetail: (CommunityPost) -> Unit
 ) {
     val bottomNavController = rememberNavController()
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
@@ -126,16 +127,13 @@ fun MainScreen(
                             onNavigateToDiaryEntry = onNavigateToDiaryEntry,
                             onNavigateToAnalytics = onNavigateToAnalytics,
                             onNavigateToCommunity = onNavigateToCommunity,
-                            onNavigateToTest = { testId ->
-                                onNavigateToTest(testId)
-                            }
+                            onNavigateToPostDetail = onNavigateToPostDetail
                         )
                     }
 
                     composable(BottomNavItem.Relajacion.route) {
                         RelaxRoute(
-                            onNavigateToBreathing = onNavigateToBreathing,
-                            onNavigateToPlayer = { /* TODO */ },
+                            onNavigateToPlayer = onNavigateToPlayer,
                             onNavigateToPremium = onNavigateToPremium
                         )
                     }

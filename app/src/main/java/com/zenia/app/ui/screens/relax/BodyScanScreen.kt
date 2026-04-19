@@ -1,7 +1,5 @@
 package com.zenia.app.ui.screens.relax
 
-import android.view.WindowManager
-import androidx.activity.ComponentActivity
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
@@ -18,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,25 +23,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.zenia.app.R
 import com.zenia.app.ui.theme.RobotoFlex
+import com.zenia.app.ui.theme.ZeniaDeepTeal
 import com.zenia.app.ui.theme.ZeniaTeal
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
-fun BreathingScreen(
-    uiState: BreathingUiState,
+fun BodyScanScreen(
+    uiState: BodyScanUiState,
     onStartExercise: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    val context = LocalContext.current
-
-    DisposableEffect(Unit) {
-        val activity = context as? ComponentActivity
-        activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        onDispose {
-            activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        }
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -71,20 +59,15 @@ fun BreathingScreen(
             AnimatedContent(
                 targetState = uiState.screenState,
                 transitionSpec = {
-                    fadeIn(animationSpec = tween(800)) togetherWith fadeOut(animationSpec = tween(800))
+                    fadeIn(animationSpec = tween(600)) togetherWith fadeOut(animationSpec = tween(600))
                 },
-                label = "ScreenStateTransition"
+                contentKey = { it }, // Previene recreaciones raras
+                label = "ScreenTransition"
             ) { targetState ->
                 when (targetState) {
-                    BreathingScreenState.INTRO -> {
-                        BreathingIntroCard(onStart = onStartExercise)
-                    }
-                    BreathingScreenState.EXERCISING -> {
-                        ActiveBreathingExercise(uiState = uiState)
-                    }
-                    BreathingScreenState.FINISHED -> {
-                        BreathingFinishedCard(onNavigateBack = onNavigateBack)
-                    }
+                    BodyScanScreenState.INTRO -> BodyScanIntroCard(onStart = onStartExercise)
+                    BodyScanScreenState.EXERCISING -> ActiveBodyScanExercise(uiState = uiState)
+                    BodyScanScreenState.FINISHED -> BodyScanFinishedCard(onNavigateBack)
                 }
             }
         }
@@ -92,7 +75,7 @@ fun BreathingScreen(
 }
 
 @Composable
-fun BreathingIntroCard(onStart: () -> Unit) {
+fun BodyScanIntroCard(onStart: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -111,23 +94,24 @@ fun BreathingIntroCard(onStart: () -> Unit) {
                     .background(ZeniaTeal.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text("🌬️", style = MaterialTheme.typography.headlineLarge)
+                Text("🧘", style = MaterialTheme.typography.headlineLarge)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = stringResource(R.string.exercise_breathing_478_title),
+                text = stringResource(R.string.exercise_bodyscan_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontFamily = RobotoFlex
+                fontFamily = RobotoFlex,
+                textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = stringResource(R.string.breathing_478_desc),
+                text = stringResource(R.string.bodyscan_intro_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -156,80 +140,50 @@ fun BreathingIntroCard(onStart: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun ActiveBreathingExercise(uiState: BreathingUiState) {
+fun ActiveBodyScanExercise(uiState: BodyScanUiState) {
     val haptic = LocalHapticFeedback.current
 
-    LaunchedEffect(uiState.phase) {
-        if (uiState.phase != BreathPhase.IDLE) {
-            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-        }
+    LaunchedEffect(uiState.currentPhase) {
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
     }
 
-    val scaleAnimatable = remember { Animatable(0.8f) }
+    val TenseColor = Color(0xFFE27D60)
+    val HoldColor = Color(0xFFC35A3D)
+    val RelaxColor = ZeniaTeal
 
-    LaunchedEffect(uiState.phase) {
-        val target = when (uiState.phase) {
-            BreathPhase.INHALE -> 1.5f
-            BreathPhase.HOLD -> 1.5f
-            BreathPhase.EXHALE -> 0.8f
-            BreathPhase.IDLE -> 0.8f
-        }
-        scaleAnimatable.animateTo(
-            targetValue = target,
-            animationSpec = tween(
-                durationMillis = uiState.phase.durationMs,
-                easing = LinearEasing
-            )
-        )
-    }
-
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 0.98f,
-        targetValue = 1.02f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulseAnimation"
+    val animatedColor by animateColorAsState(
+        targetValue = when (uiState.currentPhase) {
+            ScanPhase.TENSE -> TenseColor
+            ScanPhase.HOLD -> HoldColor
+            ScanPhase.RELAX -> RelaxColor
+        },
+        animationSpec = tween(1500),
+        label = "ColorTransition"
     )
 
-    val animatedScale = if (uiState.phase == BreathPhase.HOLD) {
-        scaleAnimatable.value * pulseScale
-    } else {
-        scaleAnimatable.value
-    }
-
-    val phaseText = when (uiState.phase) {
-        BreathPhase.INHALE -> R.string.breath_inhale
-        BreathPhase.HOLD -> R.string.breath_hold
-        BreathPhase.EXHALE -> R.string.breath_exhale
-        BreathPhase.IDLE -> R.string.breath_inhale
-    }
+    val animatedScale by animateFloatAsState(
+        targetValue = when (uiState.currentPhase) {
+            ScanPhase.TENSE -> 0.7f
+            ScanPhase.HOLD -> 0.65f
+            ScanPhase.RELAX -> 1.3f
+        },
+        animationSpec = tween(
+            durationMillis = uiState.currentPhase.durationMs,
+            easing = LinearEasing
+        ),
+        label = "ScaleTransition"
+    )
 
     Column(
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxSize()
+        verticalArrangement = Arrangement.Center
     ) {
-        Box(
-            modifier = Modifier.size(300.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Canvas(modifier = Modifier.size(200.dp)) {
-                drawCircle(color = ZeniaTeal.copy(alpha = 0.1f))
-            }
-
-            Canvas(modifier = Modifier.size(200.dp)) {
-                drawCircle(
-                    color = ZeniaTeal.copy(alpha = 0.4f),
-                    radius = (size.minDimension / 2) * animatedScale
-                )
-            }
-
+        AnimatedContent(targetState = uiState.currentMuscle, label = "MuscleText") { muscle ->
             Text(
-                text = stringResource(phaseText),
+                text = stringResource(muscle.titleRes),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -237,19 +191,41 @@ fun ActiveBreathingExercise(uiState: BreathingUiState) {
             )
         }
 
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(64.dp))
 
-        Text(
-            text = stringResource(R.string.cycle_progress, uiState.cyclesCompleted + 1, uiState.totalCycles),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontFamily = RobotoFlex
-        )
+        Box(
+            modifier = Modifier.size(240.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Canvas(modifier = Modifier.size(240.dp)) {
+                drawCircle(color = animatedColor.copy(alpha = 0.1f))
+            }
+
+            // Círculo animado
+            Canvas(modifier = Modifier.size(240.dp)) {
+                drawCircle(
+                    color = animatedColor.copy(alpha = 0.5f),
+                    radius = (size.minDimension / 2) * animatedScale
+                )
+            }
+
+            AnimatedContent(targetState = uiState.currentPhase, label = "ActionText") { phase ->
+                Text(
+                    text = stringResource(phase.actionRes),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = if (phase == ScanPhase.RELAX) ZeniaDeepTeal else Color.White,
+                    fontFamily = RobotoFlex,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun BreathingFinishedCard(onNavigateBack: () -> Unit) {
+fun BodyScanFinishedCard(onNavigateBack: () -> Unit) {
     Column(
         modifier = Modifier.padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -260,7 +236,7 @@ fun BreathingFinishedCard(onNavigateBack: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = stringResource(R.string.exercise_completed),
+            text = stringResource(R.string.bodyscan_finished_title),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
@@ -268,7 +244,7 @@ fun BreathingFinishedCard(onNavigateBack: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = stringResource(R.string.exercise_completed_desc),
+            text = stringResource(R.string.bodyscan_finished_desc),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,

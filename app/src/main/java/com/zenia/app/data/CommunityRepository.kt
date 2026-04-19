@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.zenia.app.R
 import android.content.Context
+import kotlinx.coroutines.flow.StateFlow
 
 @Singleton
 class CommunityRepository @Inject constructor(
@@ -344,6 +345,47 @@ class CommunityRepository @Inject constructor(
             }.await()
 
             Result.success(isLikedNow)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateAuthorProfileInCommunity(
+        userId: String,
+        newApodo: String,
+        newAvatarIndex: Int,
+        isPremium: Boolean
+    ): Result<Unit> {
+        return try {
+            val batch = firestore.batch()
+
+            val userPosts = postsCollection.whereEqualTo("authorId", userId).get().await()
+            for (doc in userPosts.documents) {
+                batch.update(
+                    doc.reference, mapOf(
+                        "authorApodo" to newApodo,
+                        "authorAvatarIndex" to newAvatarIndex,
+                        "authorIsPremium" to isPremium
+                    )
+                )
+            }
+
+            val userComments = firestore.collectionGroup("comments")
+                .whereEqualTo("authorId", userId).get().await()
+
+            for (doc in userComments.documents) {
+                batch.update(
+                    doc.reference, mapOf(
+                        "authorApodo" to newApodo,
+                        "authorAvatarIndex" to newAvatarIndex,
+                        "authorIsPremium" to isPremium
+                    )
+                )
+            }
+
+            batch.commit().await()
+
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
