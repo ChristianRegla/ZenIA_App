@@ -771,4 +771,6 @@
     <string name="changelog_1_1_5_date">08 Abril 2026</string>
     <string name="changelog_1_1_5_improvement">Sincronización con Health Connect mejorada para leer pasos y ritmo cardíaco.</string>
     <string name="changelog_1_1_5_fix">Solución a un error donde las entradas del diario a veces no guardaban las categorías creadas por el usuario.</string>
+
+    <string name="action_restore_purchases">Restaurar Compras</string>
 </resources>

@@ -779,4 +779,6 @@
     <string name="changelog_1_1_5_date">April 08, 2026</string>
     <string name="changelog_1_1_5_improvement">Improved Health Connect synchronization to read steps and heart rate.</string>
     <string name="changelog_1_1_5_fix">Fixed a bug where diary entries sometimes did not save user-created categories.</string>
+
+    <string name="action_restore_purchases">Restore Purchases</string>
 </resources>
