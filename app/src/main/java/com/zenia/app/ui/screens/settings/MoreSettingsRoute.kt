@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.os.LocaleListCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -24,7 +23,6 @@ fun MoreSettingsRoute(
     val settingsViewModel: SettingsViewModel = hiltViewModel()
 
     val isBiometricEnabled by settingsViewModel.isBiometricEnabled.collectAsState()
-    val allowWeakBiometrics by settingsViewModel.allowWeakBiometrics.collectAsState()
 
     val currentLocale = AppCompatDelegate.getApplicationLocales()[0] ?: Locale.getDefault()
     val currentLanguage = currentLocale.language
@@ -49,7 +47,6 @@ fun MoreSettingsRoute(
 
     MoreSettingsScreen(
         isBiometricEnabled = isBiometricEnabled == true,
-        allowWeakBiometrics = allowWeakBiometrics,
         currentLanguage = currentLanguage,
         onToggleBiometric = { settingsViewModel.setBiometricEnabled(it) },
         onToggleWeakBiometric = { settingsViewModel.setWeakBiometricsEnabled(it) },

@@ -13,26 +13,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Brush
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PictureAsPdf
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.rememberTimePickerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,17 +36,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.RobotoFlex
-import com.zenia.app.ui.theme.ZeniaLightGrey
+import com.zenia.app.ui.theme.ZeniaSlateGrey
 import com.zenia.app.ui.theme.ZeniaTeal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MoreSettingsScreen(
     isBiometricEnabled: Boolean,
-    allowWeakBiometrics: Boolean,
     currentLanguage: String,
     onToggleBiometric: (Boolean) -> Unit,
     onToggleWeakBiometric: (Boolean) -> Unit,
@@ -84,12 +73,12 @@ fun MoreSettingsScreen(
                 title = stringResource(R.string.settings_item_settings),
                 onNavigateBack = onNavigateBack
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(paddingValues),
             contentAlignment = Alignment.TopCenter
         ) {
@@ -99,169 +88,125 @@ fun MoreSettingsScreen(
                     .widthIn(max = 600.dp)
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.Start
+                    .padding(horizontal = 16.dp, vertical = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                SettingsSectionTitle(text = stringResource(R.string.biometric_title))
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                SettingsCard {
+                SettingsSection(title = stringResource(R.string.biometric_title)) {
                     SettingsSwitchRow(
+                        icon = Icons.Default.Fingerprint,
                         label = stringResource(R.string.account_biometrics_label),
                         checked = isBiometricEnabled,
-                        onCheckedChange = onToggleBiometric
+                        onCheckedChange = { isEnabled ->
+                            onToggleBiometric(isEnabled)
+                            onToggleWeakBiometric(isEnabled)
+                        },
+                        isLast = true
                     )
                 }
 
-                if (isBiometricEnabled) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    SettingsCard {
-                        Column {
-                            SettingsSwitchRow(
-                                label = stringResource(R.string.account_biometrics_weak_label),
-                                checked = allowWeakBiometrics,
-                                onCheckedChange = onToggleWeakBiometric,
-                                isSecondary = true
+                SettingsSection(title = stringResource(R.string.account_info_title)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 12.dp)) {
+                            Icon(imageVector = Icons.Default.Language, contentDescription = null, tint = ZeniaSlateGrey, modifier = Modifier.size(24.dp))
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text(
+                                text = stringResource(R.string.account_language_label),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color.Black,
+                                fontWeight = FontWeight.Medium
                             )
-                            if (allowWeakBiometrics) {
+                        }
+                        ModernLanguageSelector(
+                            currentLanguage = currentLanguage,
+                            onLanguageSelected = onLanguageChange
+                        )
+                    }
+                }
+
+                SettingsSection(title = stringResource(R.string.settings_notifications_title)) {
+                    SettingsSwitchRow(
+                        icon = Icons.Default.Notifications,
+                        label = stringResource(R.string.settings_notifications_enable),
+                        checked = isNotificationsEnabled,
+                        onCheckedChange = onToggleNotifications,
+                        isLast = !isNotificationsEnabled
+                    )
+
+                    if (isNotificationsEnabled) {
+                        SettingsSwitchRow(
+                            icon = Icons.Default.LocalFireDepartment,
+                            label = stringResource(R.string.settings_streak_reminder),
+                            checked = isStreakEnabled,
+                            onCheckedChange = onToggleStreak,
+                            isLast = !isStreakEnabled,
+                            isSecondary = true
+                        )
+
+                        if (isStreakEnabled) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showTimePicker = true }
+                                    .padding(start = 60.dp, end = 20.dp, top = 8.dp, bottom = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Text(
-                                    text = stringResource(R.string.account_biometrics_weak_warning),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier.padding(top = 8.dp)
+                                    text = stringResource(R.string.settings_reminder_time),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                val timeStr = String.format(java.util.Locale.US, "%02d:%02d", streakHour, streakMinute)
+                                Text(
+                                    text = timeStr,
+                                    fontWeight = FontWeight.Bold,
+                                    color = ZeniaTeal,
+                                    style = MaterialTheme.typography.bodyLarge
                                 )
                             }
+                            HorizontalDivider(modifier = Modifier.padding(start = 60.dp, end = 20.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.surfaceVariant)
                         }
-                    }
-                }
 
-                Spacer(modifier = Modifier.height(32.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                Spacer(modifier = Modifier.height(32.dp))
-
-                // --- SECCIÓN IDIOMA ---
-                SettingsSectionTitle(text = stringResource(R.string.account_info_title))
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = stringResource(R.string.account_language_label),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-
-                ModernLanguageSelector(
-                    currentLanguage = currentLanguage,
-                    onLanguageSelected = onLanguageChange
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = stringResource(R.string.settings_data_section),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                ) {
-                    Column {
-                        SettingsItem(
-                            icon = Icons.Default.PictureAsPdf,
-                            title = stringResource(R.string.settings_time_capsule),
-                            subtitle = stringResource(R.string.settings_export_pdf),
-                            onClick = { onNavigateToExport() },
-                            showDivider = true
-                        )
-
-                        SettingsItem(
-                            icon = Icons.Default.History,
-                            title = stringResource(R.string.settings_changelog),
-                            subtitle = stringResource(R.string.settings_changelog_desc),
-                            onClick = onChangelogClick,
-                            showDivider = true
-                        )
-
-                        SettingsItem(
-                            icon = Icons.Default.Brush,
-                            title = stringResource(R.string.settings_credits_title),
-                            subtitle = stringResource(R.string.settings_credits_subtitle),
-                            onClick = { showCreditsDialog = true },
-                            showDivider = false
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                SettingsSectionTitle(text = stringResource(R.string.settings_notifications_title))
-                Spacer(modifier = Modifier.height(16.dp))
-
-                SettingsCard {
-                    Column {
                         SettingsSwitchRow(
-                            label = stringResource(R.string.settings_notifications_enable),
-                            checked = isNotificationsEnabled,
-                            onCheckedChange = onToggleNotifications
+                            icon = Icons.Default.WbSunny,
+                            label = stringResource(R.string.settings_morning_advice),
+                            checked = isAdviceEnabled,
+                            onCheckedChange = onToggleAdvice,
+                            isLast = true,
+                            isSecondary = true,
+                            description = stringResource(R.string.settings_advice_desc)
                         )
-
-                        if (isNotificationsEnabled) {
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-
-                            SettingsSwitchRow(
-                                label = stringResource(R.string.settings_streak_reminder),
-                                checked = isStreakEnabled,
-                                onCheckedChange = onToggleStreak,
-                                isSecondary = true
-                            )
-
-                            if (isStreakEnabled) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(start = 16.dp, top = 8.dp, bottom = 12.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.settings_reminder_time),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    TextButton(onClick = { showTimePicker = true }) {
-                                        val timeStr = String.format(java.util.Locale.US, "%02d:%02d", streakHour, streakMinute)
-                                        Text(text = timeStr, fontWeight = FontWeight.Bold, color = ZeniaTeal)
-                                    }
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            SettingsSwitchRow(
-                                label = stringResource(R.string.settings_morning_advice),
-                                checked = isAdviceEnabled,
-                                onCheckedChange = onToggleAdvice,
-                                isSecondary = true
-                            )
-
-                            Text(
-                                text = stringResource(R.string.settings_advice_desc),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
-                            )
-                        }
                     }
                 }
-                Spacer(modifier = Modifier.height(32.dp))
+
+                SettingsSection(title = stringResource(R.string.settings_data_section)) {
+                    SettingsActionItem(
+                        icon = Icons.Default.PictureAsPdf,
+                        title = stringResource(R.string.settings_time_capsule),
+                        subtitle = stringResource(R.string.settings_export_pdf),
+                        onClick = onNavigateToExport,
+                        isLast = false
+                    )
+                    SettingsActionItem(
+                        icon = Icons.Default.History,
+                        title = stringResource(R.string.settings_changelog),
+                        subtitle = stringResource(R.string.settings_changelog_desc),
+                        onClick = onChangelogClick,
+                        isLast = false
+                    )
+                    SettingsActionItem(
+                        icon = Icons.Default.Brush,
+                        title = stringResource(R.string.settings_credits_title),
+                        subtitle = stringResource(R.string.settings_credits_subtitle),
+                        onClick = { showCreditsDialog = true },
+                        isLast = true
+                    )
+                }
             }
         }
+
         if (showTimePicker) {
             val timePickerState = rememberTimePickerState(
                 initialHour = streakHour,
@@ -270,36 +215,56 @@ fun MoreSettingsScreen(
             )
             AlertDialog(
                 onDismissRequest = { showTimePicker = false },
-                title = { Text(stringResource(R.string.settings_choose_reminder_time)) },
+                title = { Text(
+                    stringResource(R.string.settings_choose_reminder_time),
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                ) },
                 text = {
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        TimePicker(state = timePickerState)
+                        TimePicker(
+                            state = timePickerState,
+                            colors = TimePickerDefaults.colors(
+                                clockDialColor = MaterialTheme.colorScheme.surfaceVariant,
+                                clockDialSelectedContentColor = Color.White,
+                                clockDialUnselectedContentColor = ZeniaSlateGrey,
+                                selectorColor = ZeniaTeal,
+                                containerColor = Color.Transparent,
+                                periodSelectorBorderColor = ZeniaTeal,
+                                periodSelectorSelectedContainerColor = ZeniaTeal.copy(alpha = 0.15f),
+                                periodSelectorUnselectedContainerColor = Color.Transparent,
+                                periodSelectorSelectedContentColor = ZeniaTeal,
+                                periodSelectorUnselectedContentColor = ZeniaSlateGrey,
+                                timeSelectorSelectedContainerColor = ZeniaTeal.copy(alpha = 0.15f),
+                                timeSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                timeSelectorSelectedContentColor = ZeniaTeal,
+                                timeSelectorUnselectedContentColor = Color.Black
+                            )
+                        )
                     }
                 },
                 confirmButton = {
                     TextButton(onClick = {
                         onTimeChange(timePickerState.hour, timePickerState.minute)
                         showTimePicker = false
-                    }) { Text(stringResource(R.string.action_accept)) }
+                    }) { Text(stringResource(R.string.action_accept), color = ZeniaTeal) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showTimePicker = false }) { Text(stringResource(R.string.action_cancel)) }
+                    TextButton(onClick = { showTimePicker = false }) { Text(stringResource(R.string.action_cancel), color = ZeniaSlateGrey) }
                 },
-                containerColor = ZeniaLightGrey
+                containerColor = Color.White,
+                shape = RoundedCornerShape(24.dp)
             )
         }
+
         if (showCreditsDialog) {
             val uriHandler = LocalUriHandler.current
-
             AlertDialog(
                 onDismissRequest = { showCreditsDialog = false },
-                title = {
-                    Text(stringResource(R.string.settings_credits_title), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
-                },
+                title = { Text(stringResource(R.string.settings_credits_title), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text(stringResource(R.string.settings_credits_thanks))
-
+                        Text(stringResource(R.string.settings_credits_thanks), color = ZeniaSlateGrey)
                         Text(
                             text = buildAnnotatedString {
                                 append(stringResource(R.string.settings_credits_freepik))
@@ -314,19 +279,128 @@ fun MoreSettingsScreen(
                                 }
                             },
                             style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.clickable {
-                                uriHandler.openUri("https://www.freepik.com")
-                            }
+                            modifier = Modifier.clickable { uriHandler.openUri("https://www.freepik.com") }
                         )
                     }
                 },
                 confirmButton = {
                     TextButton(onClick = { showCreditsDialog = false }) {
-                        Text(stringResource(R.string.action_close))
+                        Text(stringResource(R.string.action_close), color = ZeniaTeal)
                     }
                 },
-                containerColor = MaterialTheme.colorScheme.surface
+                containerColor = Color.White
             )
+        }
+    }
+}
+
+@Composable
+fun SettingsSection(
+    title: String,
+    content: @Composable () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = title.uppercase(),
+            style = MaterialTheme.typography.labelMedium,
+            color = ZeniaSlateGrey,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+        )
+        Card(
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column {
+                content()
+            }
+        }
+    }
+}
+
+@Composable
+fun SettingsSwitchRow(
+    icon: ImageVector,
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    isLast: Boolean = false,
+    isSecondary: Boolean = false,
+    description: String? = null
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(imageVector = icon, contentDescription = null, tint = ZeniaSlateGrey, modifier = Modifier.size(24.dp))
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = label,
+                    style = if (isSecondary) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodyLarge,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Medium
+                )
+                if (description != null) {
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = ZeniaSlateGrey,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+            }
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = ZeniaTeal
+                )
+            )
+        }
+        if (!isLast) {
+            HorizontalDivider(modifier = Modifier.padding(start = 60.dp, end = 20.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+        }
+    }
+}
+
+@Composable
+fun SettingsActionItem(
+    icon: ImageVector,
+    title: String,
+    subtitle: String? = null,
+    isLast: Boolean = false,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(imageVector = icon, contentDescription = null, tint = ZeniaSlateGrey, modifier = Modifier.size(24.dp))
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = title, fontFamily = RobotoFlex, fontSize = 16.sp, color = Color.Black, fontWeight = FontWeight.Medium)
+                if (subtitle != null) {
+                    Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = ZeniaSlateGrey, modifier = Modifier.padding(top = 2.dp))
+                }
+            }
+            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(16.dp))
+        }
+        if (!isLast) {
+            HorizontalDivider(modifier = Modifier.padding(start = 60.dp, end = 20.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.surfaceVariant)
         }
     }
 }
@@ -344,7 +418,7 @@ fun ModernLanguageSelector(
             .fillMaxWidth()
             .height(56.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(4.dp)
     ) {
         val maxWidth = this.maxWidth
@@ -361,16 +435,16 @@ fun ModernLanguageSelector(
                 .offset(x = indicatorOffset)
                 .width(tabWidth)
                 .fillMaxHeight()
-                .shadow(4.dp, RoundedCornerShape(12.dp))
+                .shadow(2.dp, RoundedCornerShape(12.dp))
                 .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.primary)
+                .background(Color.White)
         )
 
         Row(modifier = Modifier.fillMaxSize()) {
             options.forEachIndexed { index, (code, label) ->
                 val isSelected = index == selectedIndex
                 val textColor by animateColorAsState(
-                    targetValue = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                    targetValue = if (isSelected) ZeniaTeal else ZeniaSlateGrey,
                     animationSpec = tween(200),
                     label = "text"
                 )
@@ -391,131 +465,11 @@ fun ModernLanguageSelector(
                     Text(
                         text = label,
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                         color = textColor
                     )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun SettingsCard(content: @Composable () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(16.dp)
-    ) {
-        content()
-    }
-}
-
-@Composable
-fun SettingsSectionTitle(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.primary,
-        fontWeight = FontWeight.Bold
-    )
-}
-
-@Composable
-fun SettingsSwitchRow(
-    label: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    isSecondary: Boolean = false
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = label,
-            style = if (isSecondary) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(1f)
-        )
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange
-        )
-    }
-}
-
-@Composable
-fun SettingsItem(
-    icon: ImageVector,
-    title: String,
-    subtitle: String? = null,
-    onClick: () -> Unit,
-    showDivider: Boolean = true,
-    trailing: @Composable (() -> Unit)? = null
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                if (subtitle != null) {
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            if (trailing != null) {
-                trailing()
-            } else {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = Color.Gray.copy(alpha = 0.5f)
-                )
-            }
-        }
-    }
-    if (showDivider) {
-        HorizontalDivider(
-            modifier = Modifier.padding(start = 72.dp),
-            thickness = 0.5.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-        )
     }
 }
