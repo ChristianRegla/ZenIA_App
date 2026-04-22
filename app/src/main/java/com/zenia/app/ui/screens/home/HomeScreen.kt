@@ -1,16 +1,12 @@
 package com.zenia.app.ui.screens.home
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -36,12 +32,14 @@ import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -51,8 +49,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,7 +61,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
@@ -92,14 +94,18 @@ import com.zenia.app.R
 import com.zenia.app.model.CommunityPost
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.components.HomeTopBar
+import com.zenia.app.ui.components.MilestoneCelebrationDialog
 import com.zenia.app.ui.components.MoodPatternsCard
+import com.zenia.app.ui.components.StreakStoryTemplate
 import com.zenia.app.ui.screens.community.UserAvatar
 import com.zenia.app.ui.theme.RobotoFlex
+import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaDeepTeal
 import com.zenia.app.ui.theme.ZeniaTeal
 import com.zenia.app.util.AnalysisUtils
 import com.zenia.app.util.ChartUtils
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.zenia.app.util.ShareUtils
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -124,6 +130,13 @@ fun HomeScreen(
     onNavigateToCommunity: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+
+    var showStreakDialog by remember { mutableStateOf(false) }
+    var streakToShare by remember { mutableIntStateOf(0) }
+
+    val context = LocalContext.current
+    val view = LocalView.current
+    val coroutineScope = rememberCoroutineScope()
 
     if (uiState is HomeUiState.Error) {
         val errorMessage = uiState.message.asString()
@@ -196,7 +209,11 @@ fun HomeScreen(
                     TodayEntryCard(
                         hasEntry = hasEntryToday,
                         streak = currentStreak,
-                        onClick = { onNavigateToDiaryEntry(LocalDate.now()) }
+                        onClick = { onNavigateToDiaryEntry(LocalDate.now()) },
+                        onShareStreak = { streak->
+                            streakToShare = streak
+                            showStreakDialog = true
+                        }
                     )
                 }
 
@@ -272,12 +289,44 @@ fun HomeScreen(
                     MindfulQuoteCard()
                 }
             }
+            if (showStreakDialog) {
+                MilestoneCelebrationDialog(
+                    streakDays = streakToShare,
+                    onDismiss = { showStreakDialog = false },
+                    onShareClick = {
+                        showStreakDialog = false
+
+                        coroutineScope.launch {
+                            try {
+                                val bitmap = ShareUtils.captureComposableAsBitmap(
+                                    view = view,
+                                    context = context
+                                ) {
+                                    ZenIATheme {
+                                        StreakStoryTemplate(streakDays = streakToShare)
+                                    }
+                                }
+
+                                ShareUtils.shareBitmap(context, bitmap)
+
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                    }
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
+private fun TodayEntryCard(
+    hasEntry: Boolean,
+    streak: Int,
+    onClick: () -> Unit,
+    onShareStreak: (Int) -> Unit
+) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.fire_animation))
     val progress by animateLottieCompositionAsState(
         composition = composition,
@@ -337,6 +386,20 @@ private fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) 
                     style = MaterialTheme.typography.bodySmall,
                     color = subtitleTextColor
                 )
+            }
+
+            if (streak > 0) {
+                IconButton(
+                    onClick = { onShareStreak(streak) },
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = stringResource(R.string.streak_share_content_desc),
+                        tint = titleTextColor.copy(alpha = 0.8f),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
 
             Box(

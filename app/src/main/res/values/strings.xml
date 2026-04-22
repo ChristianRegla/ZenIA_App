@@ -248,7 +248,7 @@
     <string name="home_view_all">Ver todo</string>
     <string name="home_streak_active">¡Racha activa!</string>
     <string name="home_log_day">Registrar mi día</string>
-    <string name="home_streak_counter">¡Llevas %1$d días seguidos! 🔥</string>
+    <string name="home_streak_counter">¡Llevas %1$d días seguidos!</string>
     <string name="home_start_streak">Inicia tu racha hoy.</string>
     <string name="home_no_chart_data">Sin datos aún. ¡Registra tu primer día!</string>
     <string name="home_community_participants">%1$d participantes</string>
@@ -866,4 +866,15 @@
 
     <string name="empty_blocked_users_title">No hay usuarios bloqueados</string>
     <string name="empty_blocked_users_desc">Las personas que bloquees en la comunidad aparecerán aquí.</string>
+
+    <string name="streak_share_content_desc">Compartir mi racha</string>
+    <string name="streak_milestone_title">¡Hito alcanzado!</string>
+    <string name="streak_milestone_desc">Has cuidado de tu bienestar por %1$d días seguidos. ¡Es un logro increíble!</string>
+    <string name="streak_milestone_share_btn">Compartir mi logro</string>
+    <string name="streak_milestone_continue_btn">Continuar</string>
+
+    <string name="story_streak_title">Mi racha en ZenIA</string>
+    <string name="story_streak_days">%1$d Días</string>
+    <string name="story_streak_footer">Priorizando mi salud mental, un día a la vez.</string>
+    <string name="story_streak_footer_desc">DÍAS</string>
 </resources>
