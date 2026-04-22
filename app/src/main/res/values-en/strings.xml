@@ -781,4 +781,78 @@
     <string name="changelog_1_1_5_fix">Fixed a bug where diary entries sometimes did not save user-created categories.</string>
 
     <string name="action_restore_purchases">Restore Purchases</string>
+
+    <string name="home_greeting_morning">Good morning, %1$s</string>
+    <string name="home_greeting_afternoon">Good afternoon, %1$s</string>
+    <string name="home_greeting_night">Good evening, %1$s</string>
+
+    <string name="daily_inspiration_title">DAILY INSPIRATION</string>
+
+    <string-array name="daily_quotes">
+        <item>Peace comes from within. Do not seek it without.</item>
+        <item>You can\'t stop the waves, but you can learn to surf.</item>
+        <item>The present moment is filled with joy. If you are attentive, you will see it.</item>
+        <item>Life is a journey, not a destination.</item>
+        <item>Be the change that you wish to see in the world.</item>
+        <item>The mind is everything. What you think you become.</item>
+        <item>Happiness is not something ready-made. It comes from your own actions.</item>
+        <item>Holding on to anger is like drinking poison and expecting the other person to die.</item>
+        <item>Patience is bitter, but its fruit is sweet.</item>
+        <item>There is no way to peace, peace is the way.</item>
+        <item>The only true voyage of discovery consists in having new eyes.</item>
+        <item>If you want to conquer the anxiety of life, live in the breath.</item>
+        <item>Your vision will become clear only when you can look into your own heart.</item>
+        <item>Each morning we are born again. What we do today is what matters most.</item>
+        <item>The best way to capture moments is to pay attention.</item>
+        <item>Nothing is permanent in this world, not even our troubles.</item>
+        <item>Focus on the journey, not the destination.</item>
+        <item>Calmness is the cradle of power.</item>
+        <item>Life is 10%% what happens to you and 90%% how you react to it.</item>
+        <item>Almost everything will work again if you unplug it for a few minutes, including you.</item>
+        <item>When the mind is calm, everything becomes clear.</item>
+        <item>Breathing is the greatest gift of nature. Be grateful for it.</item>
+        <item>Take the first step in faith. You don\'t have to see the whole staircase.</item>
+        <item>Be kind, for everyone you meet is fighting a hard battle.</item>
+        <item>Silence is sometimes the best answer.</item>
+        <item>Do not look back in anger, or forward in fear, but around in awareness.</item>
+        <item>Yesterday is history, tomorrow is a mystery, today is a gift.</item>
+        <item>What you resist persists. What you accept transforms you.</item>
+        <item>Wherever you go, go with all your heart.</item>
+        <item>You yourself, as much as anybody in the entire universe, deserve your love and affection.</item>
+        <item>Start where you are. Use what you have. Do what you can.</item>
+    </string-array>
+
+    <string-array name="daily_quote_authors">
+        <item>Buddha</item>
+        <item>Jon Kabat-Zinn</item>
+        <item>Thich Nhat Hanh</item>
+        <item>Ralph Waldo Emerson</item>
+        <item>Mahatma Gandhi</item>
+        <item>Buddha</item>
+        <item>Dalai Lama</item>
+        <item>Buddha</item>
+        <item>Jean-Jacques Rousseau</item>
+        <item>A.J. Muste</item>
+        <item>Marcel Proust</item>
+        <item>Amit Ray</item>
+        <item>Carl Jung</item>
+        <item>Buddha</item>
+        <item>Jon Kabat-Zinn</item>
+        <item>Charlie Chaplin</item>
+        <item>Greg Anderson</item>
+        <item>Josiah Gilbert Holland</item>
+        <item>Charles R. Swindoll</item>
+        <item>Anne Lamott</item>
+        <item>Prasad Mahes</item>
+        <item>Amit Ray</item>
+        <item>Martin Luther King Jr.</item>
+        <item>Plato</item>
+        <item>Dalai Lama</item>
+        <item>James Thurber</item>
+        <item>Bil Keane</item>
+        <item>Carl Jung</item>
+        <item>Confucius</item>
+        <item>Buddha</item>
+        <item>Arthur Ashe</item>
+    </string-array>
 </resources>
