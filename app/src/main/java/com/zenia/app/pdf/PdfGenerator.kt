@@ -22,6 +22,7 @@ object PdfGenerator {
     private val ZeniaTeal = "#0F766E".toColorInt()
     private val ZeniaSlateGrey = "#64748B".toColorInt()
     private val LightGrey = "#F1F5F9".toColorInt()
+    private val CardBackground = "#F8FAFC".toColorInt()
     private val DividerColor = "#E2E8F0".toColorInt()
 
     fun generateDiaryPdf(
@@ -62,10 +63,11 @@ object PdfGenerator {
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
             color = ZeniaSlateGrey
         }
+
         val dateTitlePaint = Paint().apply {
             textSize = 14f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            color = Color.BLACK
+            color = ZeniaTeal
         }
         val bodyPaint = Paint().apply {
             textSize = 12f
@@ -76,6 +78,18 @@ object PdfGenerator {
             color = DividerColor
             strokeWidth = 1f
             style = Paint.Style.STROKE
+        }
+
+        val cardBgPaint = Paint().apply {
+            color = CardBackground
+            style = Paint.Style.FILL
+            isAntiAlias = true
+        }
+        val cardBorderPaint = Paint().apply {
+            color = DividerColor
+            strokeWidth = 1.5f
+            style = Paint.Style.STROKE
+            isAntiAlias = true
         }
 
         canvas.drawRect(0f, 0f, pageWidth.toFloat(), 120f, headerBgPaint)
@@ -122,20 +136,12 @@ object PdfGenerator {
         val subtitleText = context.getString(R.string.pdf_subtitle, userName, todayStr)
         canvas.drawText(subtitleText, textStartX, currentY, subtitlePaint)
 
-        currentY = 160f
+        currentY = 150f
 
         if (filteredAndSortedEntries.isEmpty()) {
             canvas.drawText(context.getString(R.string.pdf_no_records), startX, currentY, bodyPaint)
         } else {
             for (entry in filteredAndSortedEntries) {
-                if (currentY > pageHeight - 120) {
-                    pdfDocument.finishPage(page)
-                    pageNumber++
-                    pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
-                    page = pdfDocument.startPage(pageInfo)
-                    canvas = page.canvas
-                    currentY = 60f
-                }
 
                 val entryDateStr = try {
                     LocalDate.parse(entry.fecha).format(localizedFormatter)
@@ -144,45 +150,83 @@ object PdfGenerator {
                     entry.fecha
                 }
 
-                canvas.drawText("📅 $entryDateStr", startX, currentY, dateTitlePaint)
-                currentY += 20f
+                val moodMapped = if (config.includeMood && !entry.estadoAnimo.isNullOrBlank()) {
+                    getMoodString(context, entry.estadoAnimo)
+                } else null
 
-                if (config.includeMood && !entry.estadoAnimo.isNullOrBlank()) {
-                    val moodMapped = getMoodString(context, entry.estadoAnimo)
+                var entryHeight = 0f
+                entryHeight += 35f
+                entryHeight += 15f
+
+                if (moodMapped != null) entryHeight += 20f
+                if (config.includeActivities && entry.actividades.isNotEmpty()) entryHeight += 20f
+
+                if (config.includeNotes && entry.notas.isNotBlank()) {
+                    entryHeight += 20f
+                    val textWidth = (endX - 16f) - (startX + 26f)
+                    entryHeight += measureWrappedTextHeight(entry.notas, textWidth, bodyPaint)
+                }
+                entryHeight += 20f
+
+                if (currentY + entryHeight > pageHeight - 50) {
+                    pdfDocument.finishPage(page)
+                    pageNumber++
+                    pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
+                    page = pdfDocument.startPage(pageInfo)
+                    canvas = page.canvas
+                    currentY = 60f
+                }
+
+                val cardRect = RectF(startX, currentY, endX, currentY + entryHeight)
+                canvas.drawRoundRect(cardRect, 16f, 16f, cardBgPaint)
+                canvas.drawRoundRect(cardRect, 16f, 16f, cardBorderPaint)
+
+                var textY = currentY + 25f
+                val innerStartX = startX + 16f
+                val innerEndX = endX - 16f
+
+                canvas.drawText(entryDateStr, innerStartX, textY, dateTitlePaint)
+                textY += 12f
+
+                canvas.drawLine(innerStartX, textY, innerEndX, textY, dividerPaint)
+                textY += 20f
+
+                if (moodMapped != null) {
                     val moodText = context.getString(R.string.pdf_mood_prefix, moodMapped)
-                    canvas.drawText(moodText, startX + 10f, currentY, bodyPaint)
-                    currentY += 18f
+                    canvas.drawText(moodText, innerStartX, textY, bodyPaint)
+                    textY += 20f
                 }
 
                 if (config.includeActivities && entry.actividades.isNotEmpty()) {
                     val actText = context.getString(R.string.pdf_activities_prefix, entry.actividades.joinToString(", "))
-                    canvas.drawText(actText, startX + 10f, currentY, bodyPaint)
-                    currentY += 18f
+                    canvas.drawText(actText, innerStartX, textY, bodyPaint)
+                    textY += 20f
                 }
 
                 if (config.includeNotes && entry.notas.isNotBlank()) {
-                    currentY += 4f
-                    canvas.drawText(context.getString(R.string.pdf_notes_title), startX + 10f, currentY, subtitlePaint)
-                    currentY += 16f
-                    currentY = drawWrappedText(
+                    canvas.drawText(context.getString(R.string.pdf_notes_title), innerStartX, textY, subtitlePaint)
+                    textY += 18f
+                    textY = drawWrappedText(
                         canvas,
                         entry.notas,
-                        startX + 20f,
-                        currentY,
-                        endX,
+                        innerStartX + 10f,
+                        textY,
+                        innerEndX,
                         bodyPaint
                     )
                 }
 
-                currentY += 16f
-                canvas.drawLine(startX, currentY, endX, currentY, dividerPaint)
-                currentY += 24f
+                currentY += entryHeight + 24f
             }
         }
 
         if (config.includeSmartwatchData && !smartwatchData.isNullOrEmpty()) {
 
-            if (currentY > pageHeight - 200) {
+            var swHeight = 45f
+            swHeight += smartwatchData.size * 25f
+            swHeight += 15f
+
+            if (currentY + swHeight > pageHeight - 50) {
                 pdfDocument.finishPage(page)
                 pageNumber++
                 pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
@@ -191,9 +235,17 @@ object PdfGenerator {
                 currentY = 60f
             }
 
-            canvas.drawRect(startX, currentY - 20f, endX, currentY + 10f, headerBgPaint)
-            canvas.drawText(context.getString(R.string.pdf_smartwatch_title), startX + 10f, currentY, dateTitlePaint)
-            currentY += 30f
+            val swRect = RectF(startX, currentY, endX, currentY + swHeight)
+            canvas.drawRoundRect(swRect, 16f, 16f, cardBgPaint)
+            canvas.drawRoundRect(swRect, 16f, 16f, cardBorderPaint)
+
+            var swY = currentY + 25f
+            val innerStartX = startX + 16f
+
+            canvas.drawText(context.getString(R.string.pdf_smartwatch_title), innerStartX, swY, dateTitlePaint)
+            swY += 15f
+            canvas.drawLine(innerStartX, swY, endX - 16f, swY, dividerPaint)
+            swY += 20f
 
             smartwatchData.forEach { data ->
                 val hr = data.heartRateAvg?.toString() ?: "--"
@@ -201,8 +253,8 @@ object PdfGenerator {
                 val steps = data.steps.toString()
 
                 val healthText = context.getString(R.string.pdf_smartwatch_data, hr, sleep, steps)
-                canvas.drawText(healthText, startX + 10f, currentY, bodyPaint)
-                currentY += 20f
+                canvas.drawText(healthText, innerStartX, swY, bodyPaint)
+                swY += 25f
             }
         }
 
@@ -232,6 +284,33 @@ object PdfGenerator {
             "4" -> context.getString(R.string.mood_4)
             else -> moodVal ?: "-"
         }
+    }
+
+    private fun measureWrappedTextHeight(text: String, maxWidth: Float, paint: Paint): Float {
+        var height = 0f
+        val paragraphs = text.split("\n")
+
+        for (paragraph in paragraphs) {
+            val words = paragraph.split(" ")
+            var line = ""
+
+            for (word in words) {
+                val testLine = if (line.isEmpty()) word else "$line $word"
+                val width = paint.measureText(testLine)
+
+                if (width > maxWidth) {
+                    height += 16f
+                    line = word
+                } else {
+                    line = testLine
+                }
+            }
+            if (line.isNotEmpty()) {
+                height += 16f
+            }
+            height += 4f
+        }
+        return height
     }
 
     private fun drawWrappedText(
