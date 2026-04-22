@@ -855,4 +855,6 @@
         <item>Buddha</item>
         <item>Arthur Ashe</item>
     </string-array>
+
+    <string name="profile_profanity_error">Please choose a respectful nickname for the community</string>
 </resources>

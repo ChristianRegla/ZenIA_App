@@ -847,4 +847,6 @@
         <item>Buda</item>
         <item>Arthur Ashe</item>
     </string-array>
+
+    <string name="profile_profanity_error">Elige un apodo respetuoso para la comunidad</string>
 </resources>

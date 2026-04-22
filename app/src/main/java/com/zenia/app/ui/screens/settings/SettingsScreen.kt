@@ -1,14 +1,19 @@
 package com.zenia.app.ui.screens.settings
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -21,9 +26,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,6 +55,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -74,6 +83,7 @@ import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaSlateGrey
 import com.zenia.app.ui.theme.ZeniaTeal
 import com.zenia.app.util.ProfanityFilter
+import kotlinx.coroutines.delay
 
 val availableAvatars = listOf(
     R.drawable.avatar_1,
@@ -350,6 +360,14 @@ fun EditProfileDialog(
     var isError by remember { mutableStateOf(false) }
     val maxChar = 20
 
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(Unit) {
+        delay(400)
+        listState.animateScrollBy(150f, tween(600, easing = FastOutSlowInEasing))
+        listState.animateScrollBy(-150f, tween(600, easing = FastOutSlowInEasing))
+    }
+
     Dialog(onDismissRequest = onDismiss) {
         Card(
             shape = RoundedCornerShape(24.dp),
@@ -358,51 +376,73 @@ fun EditProfileDialog(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(24.dp)
+                    .padding(vertical = 24.dp)
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = stringResource(R.string.profile_edit_title),
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 24.dp)
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Selector de Avatar
                 Text(
                     text = stringResource(R.string.profile_select_avatar),
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 24.dp)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.height(150.dp)
+                LazyRow(
+                    state = listState,
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(horizontal = 24.dp)
                 ) {
                     itemsIndexed(availableAvatars) { index, drawableRes ->
+                        val isSelected = selectedAvatarIdx == index
+                        val avatarSize by animateDpAsState(
+                            targetValue = if (isSelected) 84.dp else 68.dp,
+                            label = "avatarSize"
+                        )
+
+                        val interactionSource = remember { MutableInteractionSource() }
+
                         Box(
                             modifier = Modifier
-                                .aspectRatio(1f)
-                                .clip(CircleShape)
-                                .border(
-                                    width = if (selectedAvatarIdx == index) 3.dp else 0.dp,
-                                    color = if (selectedAvatarIdx == index) ZeniaTeal else Color.Transparent,
-                                    shape = CircleShape
-                                )
-                                .clickable { selectedAvatarIdx = index },
+                                .size(84.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Image(
-                                painter = painterResource(id = drawableRes),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize().padding(4.dp).clip(CircleShape)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(avatarSize)
+                                    .clip(CircleShape)
+                                    .border(
+                                        width = if (isSelected) 3.dp else 0.dp,
+                                        color = if (isSelected) ZeniaTeal else Color.Transparent,
+                                        shape = CircleShape
+                                    )
+                                    .clickable(
+                                        interactionSource = interactionSource,
+                                        indication = null,
+                                        onClick = { selectedAvatarIdx = index }
+                                    )
+                                    .padding(if (isSelected) 6.dp else 0.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(id = drawableRes),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape)
+                                )
+                            }
                         }
                     }
                 }
@@ -424,7 +464,7 @@ fun EditProfileDialog(
                     supportingText = {
                         if (isError) {
                             Text(
-                                text = "Elige un apodo respetuoso para la comunidad",
+                                text = stringResource(R.string.profile_profanity_error),
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodySmall
                             )
@@ -450,18 +490,19 @@ fun EditProfileDialog(
                         capitalization = KeyboardCapitalization.Sentences,
                         imeAction = ImeAction.Done
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
                         Text(stringResource(R.string.profile_cancel), color = ZeniaSlateGrey)
                     }
+                    Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = {
                             if (!ProfanityFilter.hasProfanity(nickname)) {
