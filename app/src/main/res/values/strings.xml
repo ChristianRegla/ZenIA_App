@@ -863,4 +863,7 @@
     <string name="mood_2">Triste</string>
     <string name="mood_3">Feliz</string>
     <string name="mood_4">Muy Feliz</string>
+
+    <string name="empty_blocked_users_title">No hay usuarios bloqueados</string>
+    <string name="empty_blocked_users_desc">Las personas que bloquees en la comunidad aparecerán aquí.</string>
 </resources>
