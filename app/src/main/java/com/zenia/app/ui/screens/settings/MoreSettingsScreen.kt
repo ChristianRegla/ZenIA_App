@@ -1,5 +1,6 @@
 package com.zenia.app.ui.screens.settings
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -29,6 +30,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -108,8 +110,16 @@ fun MoreSettingsScreen(
 
                 SettingsSection(title = stringResource(R.string.account_info_title)) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 12.dp)) {
-                            Icon(imageVector = Icons.Default.Language, contentDescription = null, tint = ZeniaSlateGrey, modifier = Modifier.size(24.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Language,
+                                contentDescription = null,
+                                tint = ZeniaSlateGrey,
+                                modifier = Modifier.size(24.dp)
+                            )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
                                 text = stringResource(R.string.account_language_label),
@@ -127,7 +137,7 @@ fun MoreSettingsScreen(
 
                 SettingsSection(title = stringResource(R.string.settings_notifications_title)) {
                     SettingsSwitchRow(
-                        icon = Icons.Default.Notifications,
+                        iconRes = R.drawable.ic_bell,
                         label = stringResource(R.string.settings_notifications_enable),
                         checked = isNotificationsEnabled,
                         onCheckedChange = onToggleNotifications,
@@ -166,11 +176,15 @@ fun MoreSettingsScreen(
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                             }
-                            HorizontalDivider(modifier = Modifier.padding(start = 60.dp, end = 20.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = 60.dp, end = 20.dp),
+                                thickness = 0.5.dp,
+                                color = MaterialTheme.colorScheme.surfaceVariant
+                            )
                         }
 
                         SettingsSwitchRow(
-                            icon = Icons.Default.WbSunny,
+                            iconRes = R.drawable.ic_sun,
                             label = stringResource(R.string.settings_morning_advice),
                             checked = isAdviceEnabled,
                             onCheckedChange = onToggleAdvice,
@@ -197,7 +211,7 @@ fun MoreSettingsScreen(
                         isLast = false
                     )
                     SettingsActionItem(
-                        icon = Icons.Default.Brush,
+                        iconRes = R.drawable.ic_paint_brush,
                         title = stringResource(R.string.settings_credits_title),
                         subtitle = stringResource(R.string.settings_credits_subtitle),
                         onClick = { showCreditsDialog = true },
@@ -244,13 +258,27 @@ fun MoreSettingsScreen(
                     }
                 },
                 confirmButton = {
-                    TextButton(onClick = {
-                        onTimeChange(timePickerState.hour, timePickerState.minute)
-                        showTimePicker = false
-                    }) { Text(stringResource(R.string.action_accept), color = ZeniaTeal) }
+                    TextButton(
+                        onClick = {
+                            onTimeChange(timePickerState.hour, timePickerState.minute)
+                            showTimePicker = false
+                        }
+                    ) {
+                        Text(
+                            stringResource(R.string.action_accept),
+                            color = ZeniaTeal
+                        )
+                    }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showTimePicker = false }) { Text(stringResource(R.string.action_cancel), color = ZeniaSlateGrey) }
+                    TextButton(
+                        onClick = { showTimePicker = false }
+                    ) {
+                        Text(
+                            stringResource(R.string.action_cancel),
+                            color = ZeniaSlateGrey
+                        )
+                    }
                 },
                 containerColor = Color.White,
                 shape = RoundedCornerShape(24.dp)
@@ -261,10 +289,19 @@ fun MoreSettingsScreen(
             val uriHandler = LocalUriHandler.current
             AlertDialog(
                 onDismissRequest = { showCreditsDialog = false },
-                title = { Text(stringResource(R.string.settings_credits_title), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        stringResource(R.string.settings_credits_title),
+                        fontFamily = RobotoFlex,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text(stringResource(R.string.settings_credits_thanks), color = ZeniaSlateGrey)
+                        Text(
+                            stringResource(R.string.settings_credits_thanks),
+                            color = ZeniaSlateGrey
+                        )
                         Text(
                             text = buildAnnotatedString {
                                 append(stringResource(R.string.settings_credits_freepik))
@@ -322,7 +359,8 @@ fun SettingsSection(
 
 @Composable
 fun SettingsSwitchRow(
-    icon: ImageVector,
+    icon: ImageVector? = null,
+    @DrawableRes iconRes: Int? = null,
     label: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
@@ -337,8 +375,26 @@ fun SettingsSwitchRow(
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(imageVector = icon, contentDescription = null, tint = ZeniaSlateGrey, modifier = Modifier.size(24.dp))
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = ZeniaSlateGrey,
+                    modifier = Modifier.size(24.dp)
+                )
+            } else if (iconRes != null) {
+                Icon(
+                    painter = painterResource(id = iconRes),
+                    contentDescription = null,
+                    tint = ZeniaSlateGrey,
+                    modifier = Modifier.size(20.dp)
+                )
+            } else {
+                Spacer(modifier = Modifier.size(24.dp))
+            }
+
             Spacer(modifier = Modifier.width(16.dp))
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = label,
@@ -365,14 +421,19 @@ fun SettingsSwitchRow(
             )
         }
         if (!isLast) {
-            HorizontalDivider(modifier = Modifier.padding(start = 60.dp, end = 20.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 60.dp, end = 20.dp),
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.surfaceVariant
+            )
         }
     }
 }
 
 @Composable
 fun SettingsActionItem(
-    icon: ImageVector,
+    icon: ImageVector? = null,
+    @DrawableRes iconRes: Int? = null,
     title: String,
     subtitle: String? = null,
     isLast: Boolean = false,
@@ -389,18 +450,56 @@ fun SettingsActionItem(
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(imageVector = icon, contentDescription = null, tint = ZeniaSlateGrey, modifier = Modifier.size(24.dp))
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = ZeniaSlateGrey,
+                    modifier = Modifier.size(24.dp)
+                )
+            } else if (iconRes != null) {
+                Icon(
+                    painter = painterResource(id = iconRes),
+                    contentDescription = null,
+                    tint = ZeniaSlateGrey,
+                    modifier = Modifier.size(20.dp)
+                )
+            } else {
+                Spacer(modifier = Modifier.size(24.dp))
+            }
+
             Spacer(modifier = Modifier.width(16.dp))
+
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = title, fontFamily = RobotoFlex, fontSize = 16.sp, color = Color.Black, fontWeight = FontWeight.Medium)
+                Text(
+                    text = title,
+                    fontFamily = RobotoFlex,
+                    fontSize = 16.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Medium
+                )
                 if (subtitle != null) {
-                    Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = ZeniaSlateGrey, modifier = Modifier.padding(top = 2.dp))
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = ZeniaSlateGrey,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
                 }
             }
-            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(16.dp))
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                contentDescription = null,
+                tint = Color.LightGray,
+                modifier = Modifier.size(16.dp)
+            )
         }
         if (!isLast) {
-            HorizontalDivider(modifier = Modifier.padding(start = 60.dp, end = 20.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 60.dp, end = 20.dp),
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.surfaceVariant
+            )
         }
     }
 }
