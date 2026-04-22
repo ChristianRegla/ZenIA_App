@@ -857,4 +857,18 @@
     </string-array>
 
     <string name="profile_profanity_error">Please choose a respectful nickname for the community</string>
+
+    <string name="pdf_title">ZenIA Time Capsule</string>
+    <string name="pdf_subtitle">Personal report for: %1$s  |  Generated on: %2$s</string>
+    <string name="pdf_no_records">No records found for the selected period.</string>
+    <string name="pdf_mood_prefix">Main mood: %1$s</string>
+    <string name="pdf_activities_prefix">Activities: %1$s</string>
+    <string name="pdf_notes_title">Notes:</string>
+    <string name="pdf_smartwatch_title">Health Metrics (Smartwatch)</string>
+    <string name="pdf_smartwatch_data">• Heart Rate: %1$s bpm   |   Sleep: %2$s hrs   |   Steps: %3$s</string>
+
+    <string name="mood_1">Very Sad</string>
+    <string name="mood_2">Sad</string>
+    <string name="mood_3">Happy</string>
+    <string name="mood_4">Very Happy</string>
 </resources>

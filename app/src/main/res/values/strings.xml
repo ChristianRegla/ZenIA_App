@@ -849,4 +849,18 @@
     </string-array>
 
     <string name="profile_profanity_error">Elige un apodo respetuoso para la comunidad</string>
+
+    <string name="pdf_title">Cápsula del Tiempo ZenIA</string>
+    <string name="pdf_subtitle">Reporte personal de: %1$s | Generado el: %2$s</string>
+    <string name="pdf_no_records">No hay registros en el periodo seleccionado.</string>
+    <string name="pdf_mood_prefix">Ánimo principal: %1$s</string>
+    <string name="pdf_activities_prefix">Actividades: %1$s</string>
+    <string name="pdf_notes_title">Notas:</string>
+    <string name="pdf_smartwatch_title">Métricas de Salud (Smartwatch)</string>
+    <string name="pdf_smartwatch_data">• Frecuencia Cardíaca: %1$s bpm | Sueño: %2$s hrs | Pasos: %3$s</string>
+
+    <string name="mood_1">Muy Triste</string>
+    <string name="mood_2">Triste</string>
+    <string name="mood_3">Feliz</string>
+    <string name="mood_4">Muy Feliz</string>
 </resources>
