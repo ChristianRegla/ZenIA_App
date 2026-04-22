@@ -780,6 +780,11 @@
     <string name="changelog_1_1_5_improvement">Improved Health Connect synchronization to read steps and heart rate.</string>
     <string name="changelog_1_1_5_fix">Fixed a bug where diary entries sometimes did not save user-created categories.</string>
 
+    <string name="changelog_1_4_0_date">April 22, 2026</string>
+    <string name="changelog_1_4_0_feature_1">Streak gamification! Celebrate your wellness milestones and share your achievements in Story format for social media.</string>
+    <string name="changelog_1_4_0_improvement_1">Complete redesign of PDF export. Your logs now look like a premium report with rounded cards and high-res logo support.</string>
+    <string name="changelog_1_4_0_improvement_2">Fluidity optimization in avatar selection, SOS screen redesign with expandable cards, and new visual states for offline mode.</string>
+
     <string name="action_restore_purchases">Restore Purchases</string>
 
     <string name="home_greeting_morning">Good morning, %1$s</string>

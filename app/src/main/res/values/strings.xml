@@ -772,6 +772,11 @@
     <string name="changelog_1_1_5_improvement">Sincronización con Health Connect mejorada para leer pasos y ritmo cardíaco.</string>
     <string name="changelog_1_1_5_fix">Solución a un error donde las entradas del diario a veces no guardaban las categorías creadas por el usuario.</string>
 
+    <string name="changelog_1_4_0_date">22 Abril 2026</string>
+    <string name="changelog_1_4_0_feature_1">¡Gamificación de rachas! Celebra tus hitos de bienestar y comparte tus logros en formato Story para redes sociales.</string>
+    <string name="changelog_1_4_0_improvement_1">Rediseño completo de la exportación a PDF. Ahora tus registros se ven como un reporte premium con tarjetas redondeadas y logo en alta resolución.</string>
+    <string name="changelog_1_4_0_improvement_2">Optimización de fluidez en la selección de avatares, rediseño de la pantalla SOS con tarjetas expandibles y nuevos estados visuales para modo sin conexión.</string>
+
     <string name="action_restore_purchases">Restaurar Compras</string>
 
     <string name="home_greeting_morning">Buenos días, %1$s</string>

@@ -74,6 +74,15 @@ fun ChangelogScreen(
 ) {
     val releaseHistory = listOf(
         ChangelogRelease(
+            version = "v1.4.0",
+            dateRes = R.string.changelog_1_4_0_date,
+            changes = listOf(
+                ChangeItem(R.string.changelog_1_4_0_feature_1, ChangeType.FEATURE),
+                ChangeItem(R.string.changelog_1_4_0_improvement_1, ChangeType.IMPROVEMENT),
+                ChangeItem(R.string.changelog_1_4_0_improvement_2, ChangeType.IMPROVEMENT)
+            )
+        ),
+        ChangelogRelease(
             version = "v1.3.0",
             dateRes = R.string.changelog_1_3_0_date,
             changes = listOf(
