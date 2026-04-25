@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,7 +20,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.LottieAnimation
@@ -30,7 +31,8 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.zenia.app.R
 import com.zenia.app.ui.theme.Lobster
 import com.zenia.app.ui.theme.Nunito
-import com.zenia.app.ui.theme.ZenIATheme // Asegúrate de tener este import si usas tu tema en el preview
+import com.zenia.app.ui.theme.ZenIATheme
+import com.zenia.app.util.DevicePreviews
 
 @Composable
 fun VerificationScreen(
@@ -41,6 +43,8 @@ fun VerificationScreen(
     isLoading: Boolean,
     isResending: Boolean
 ) {
+    val dimensions = ZenIATheme.dimensions
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -59,9 +63,9 @@ fun VerificationScreen(
         Column(
             modifier = Modifier
                 .fillMaxHeight()
-                .widthIn(max = 600.dp)
+                .widthIn(max = 500.dp)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 32.dp),
+                .padding(horizontal = dimensions.paddingLarge, vertical = dimensions.paddingExtraLarge),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -69,9 +73,7 @@ fun VerificationScreen(
                 modifier = Modifier
                     .size(140.dp)
                     .clip(CircleShape)
-                    .background(
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                    ),
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
             ) {
                 val composition by rememberLottieComposition(
@@ -88,22 +90,24 @@ fun VerificationScreen(
                     progress = { progress },
                     modifier = Modifier
                         .size(100.dp)
-                        .padding(8.dp),
+                        .padding(dimensions.paddingSmall),
                     contentScale = ContentScale.Fit
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(dimensions.paddingExtraLarge))
 
             Text(
                 text = stringResource(id = R.string.verification_title),
                 fontFamily = Lobster,
                 fontSize = 30.sp,
                 color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(dimensions.paddingMedium))
 
             Text(
                 text = stringResource(id = R.string.verification_subtitle_1),
@@ -120,7 +124,9 @@ fun VerificationScreen(
                 fontSize = 18.sp,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(vertical = 4.dp)
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(vertical = dimensions.paddingSmall)
             )
 
             Text(
@@ -129,7 +135,7 @@ fun VerificationScreen(
                 fontSize = 14.sp,
                 color = Color.Gray,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 16.dp)
+                modifier = Modifier.padding(top = dimensions.paddingMedium)
             )
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -158,8 +164,10 @@ fun VerificationScreen(
                 onClick = onResendClick,
                 enabled = resendTimer == 0 && !isResending,
                 modifier = Modifier
-                    .fillMaxWidth(0.9f),
-                shape = RoundedCornerShape(12.dp)
+                    .widthIn(max = dimensions.buttonMaxWidth)
+                    .fillMaxWidth()
+                    .heightIn(min = dimensions.buttonHeight),
+                shape = RoundedCornerShape(dimensions.cornerRadiusNormal)
             ) {
                 if (isResending) {
                     CircularProgressIndicator(
@@ -170,27 +178,31 @@ fun VerificationScreen(
                 } else {
                     Text(
                         text = if (resendTimer > 0) {
-                            stringResource(
-                                id = R.string.verification_resend_timer,
-                                resendTimer
-                            )
+                            stringResource(id = R.string.verification_resend_timer, resendTimer)
                         } else {
                             stringResource(id = R.string.verification_resend_btn)
                         },
                         fontFamily = Nunito,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
 
             TextButton(
                 onClick = onCancelClick,
-                modifier = Modifier.fillMaxWidth(0.9f)
+                modifier = Modifier
+                    .widthIn(max = dimensions.buttonMaxWidth)
+                    .fillMaxWidth()
+                    .heightIn(min = dimensions.buttonHeight)
             ) {
                 Text(
                     text = stringResource(id = R.string.verification_cancel_btn),
                     fontFamily = Nunito,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -198,5 +210,35 @@ fun VerificationScreen(
         if (isLoading) {
             ZenLoadingOverlay()
         }
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun VerificationScreenPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Compact) {
+        VerificationScreen(
+            email = "usuario.nuevo@ejemplo.com",
+            onResendClick = {},
+            onCancelClick = {},
+            resendTimer = 0,
+            isLoading = false,
+            isResending = false
+        )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun VerificationScreenTimerPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Expanded) {
+        VerificationScreen(
+            email = "un.correo.extremadamente.largo.que.podria.romper.todo@empresa.com.mx",
+            onResendClick = {},
+            onCancelClick = {},
+            resendTimer = 45,
+            isLoading = false,
+            isResending = false
+        )
     }
 }

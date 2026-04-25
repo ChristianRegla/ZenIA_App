@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -23,6 +24,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
@@ -37,11 +40,14 @@ import com.patrykandpatrick.vico.core.chart.line.LineChart
 import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
+import com.patrykandpatrick.vico.core.entry.entryOf
 import com.zenia.app.ui.components.MoodPatternsCard
 import com.zenia.app.ui.components.ZeniaTopBar
+import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaTeal
 import com.zenia.app.util.AnalysisUtils
 import com.zenia.app.util.ChartUtils
+import com.zenia.app.util.DevicePreviews
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -64,10 +70,13 @@ fun AnalyticsScreen(
     onNavigateToPremium: () -> Unit,
     onTimeRangeSelected: (TimeRange) -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
     val pagerState = rememberPagerState(pageCount = { 3 })
     val coroutineScope = rememberCoroutineScope()
     val tabs = listOf("Mental", "Descanso", "Físico")
-    val tabIcons = listOf(Icons.Default.Face, Icons.Default.Bedtime,
+    val tabIcons = listOf(
+        Icons.Default.Face,
+        Icons.Default.Bedtime,
         Icons.AutoMirrored.Filled.DirectionsWalk
     )
 
@@ -77,75 +86,91 @@ fun AnalyticsScreen(
         },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
-                .padding(padding)
                 .fillMaxSize()
+                .padding(padding),
+            contentAlignment = Alignment.TopCenter
         ) {
-            Row(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                    .fillMaxHeight()
+                    .widthIn(max = 800.dp)
             ) {
-                TimeRange.entries.forEach { range ->
-                    val isLocked = !isPremium && range != TimeRange.WEEK
-                    FilterChip(
-                        selected = selectedRange == range,
-                        onClick = {
-                            if (isLocked) onNavigateToPremium()
-                            else onTimeRangeSelected(range)
-                        },
-                        label = { Text(range.label) },
-                        leadingIcon = if (isLocked) {
-                            { Icon(Icons.Default.Lock, null, Modifier.size(14.dp)) }
-                        } else null,
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = ZeniaTeal,
-                            selectedLabelColor = Color.White
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = dimensions.paddingMedium, vertical = dimensions.paddingSmall),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    TimeRange.entries.forEach { range ->
+                        val isLocked = !isPremium && range != TimeRange.WEEK
+                        FilterChip(
+                            selected = selectedRange == range,
+                            onClick = {
+                                if (isLocked) onNavigateToPremium()
+                                else onTimeRangeSelected(range)
+                            },
+                            label = {
+                                Text(
+                                    text = range.label,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            },
+                            leadingIcon = if (isLocked) {
+                                { Icon(Icons.Default.Lock, null, Modifier.size(14.dp)) }
+                            } else null,
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = ZeniaTeal,
+                                selectedLabelColor = Color.White
+                            )
                         )
-                    )
+                    }
                 }
-            }
 
-            MainInsightCard(insightText = uiState.mainInsight)
+                MainInsightCard(insightText = uiState.mainInsight)
 
-            SecondaryTabRow(
-                selectedTabIndex = pagerState.currentPage,
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = ZeniaTeal,
-                indicator = {
-                    TabRowDefaults.SecondaryIndicator(
-                        modifier = Modifier.tabIndicatorOffset(pagerState.currentPage),
-                        color = ZeniaTeal,
-                        height = 3.dp
-                    )
+                SecondaryTabRow(
+                    selectedTabIndex = pagerState.currentPage,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = ZeniaTeal,
+                    indicator = {
+                        TabRowDefaults.SecondaryIndicator(
+                            modifier = Modifier.tabIndicatorOffset(pagerState.currentPage),
+                            color = ZeniaTeal,
+                            height = 3.dp
+                        )
+                    }
+                ) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = pagerState.currentPage == index,
+                            onClick = { coroutineScope.launch { pagerState.animateScrollToPage(index) } },
+                            text = {
+                                Text(
+                                    text = title,
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            },
+                            icon = { Icon(tabIcons[index], contentDescription = null) },
+                            unselectedContentColor = Color.Gray,
+                            selectedContentColor = ZeniaTeal
+                        )
+                    }
                 }
-            ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = pagerState.currentPage == index,
-                        onClick = {
-                            coroutineScope.launch {
-                                pagerState.animateScrollToPage(index)
-                            }
-                        },
-                        text = { Text(title, fontWeight = FontWeight.SemiBold) },
-                        icon = { Icon(tabIcons[index], contentDescription = null) },
-                        unselectedContentColor = Color.Gray,
-                        selectedContentColor = ZeniaTeal
-                    )
-                }
-            }
 
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize()
-            ) { page ->
-                when (page) {
-                    0 -> MentalAnalyticsTab(uiState, selectedRange, lineChartProducer)
-                    1 -> SleepAnalyticsTab(uiState, selectedRange, sleepChartProducer)
-                    2 -> PhysicalAnalyticsTab(uiState, selectedRange, physicalChartProducer)
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize()
+                ) { page ->
+                    when (page) {
+                        0 -> MentalAnalyticsTab(uiState, selectedRange, lineChartProducer)
+                        1 -> SleepAnalyticsTab(uiState, selectedRange, sleepChartProducer)
+                        2 -> PhysicalAnalyticsTab(uiState, selectedRange, physicalChartProducer)
+                    }
                 }
             }
         }
@@ -154,30 +179,34 @@ fun AnalyticsScreen(
 
 @Composable
 fun MainInsightCard(insightText: String) {
+    val dimensions = ZenIATheme.dimensions
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = dimensions.paddingMedium, vertical = dimensions.paddingSmall),
         colors = CardDefaults.cardColors(containerColor = ZeniaTeal.copy(alpha = 0.1f)),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(dimensions.cornerRadiusNormal),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(dimensions.paddingMedium),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Default.Lightbulb,
                 contentDescription = "Insight",
                 tint = ZeniaTeal,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(dimensions.iconMedium)
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = insightText,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
-                lineHeight = 20.sp
+                lineHeight = 20.sp,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -189,14 +218,16 @@ fun MentalAnalyticsTab(
     selectedRange: TimeRange,
     lineChartProducer: ChartEntryModelProducer
 ) {
+    val dimensions = ZenIATheme.dimensions
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(dimensions.paddingMedium),
+        verticalArrangement = Arrangement.spacedBy(dimensions.paddingMedium)
     ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(dimensions.paddingSmall)) {
             StatCard(
                 modifier = Modifier.weight(1f),
                 title = "Ánimo Promedio",
@@ -211,11 +242,16 @@ fun MentalAnalyticsTab(
             )
         }
 
-        Text("Evolución del Ánimo", fontWeight = FontWeight.Bold)
+        Text(
+            text = "Evolución del Ánimo",
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
 
         Card(
             colors = CardDefaults.cardColors(containerColor = Color.White),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(dimensions.cornerRadiusNormal),
             modifier = Modifier.fillMaxWidth().height(260.dp)
         ) {
             if (uiState.totalEntries > 0) {
@@ -247,7 +283,7 @@ fun MentalAnalyticsTab(
                 )
             } else {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Sin datos suficientes", color = Color.Gray)
+                    Text("Sin datos suficientes", color = Color.Gray, textAlign = TextAlign.Center)
                 }
             }
         }
@@ -260,7 +296,7 @@ fun MentalAnalyticsTab(
                 MoodPatternsCard(topBooster = booster, topDrainer = drainer)
             }
         }
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(dimensions.paddingLarge))
     }
 }
 
@@ -271,15 +307,16 @@ fun SleepAnalyticsTab(
     sleepChartProducer: ChartEntryModelProducer
 ) {
     val sleepColor = Color(0xFF7E57C2)
+    val dimensions = ZenIATheme.dimensions
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(dimensions.paddingMedium),
+        verticalArrangement = Arrangement.spacedBy(dimensions.paddingMedium)
     ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(dimensions.paddingSmall)) {
             StatCard(
                 modifier = Modifier.weight(1f),
                 title = "Promedio de Sueño",
@@ -288,11 +325,16 @@ fun SleepAnalyticsTab(
             )
         }
 
-        Text("Horas de Descanso", fontWeight = FontWeight.Bold)
+        Text(
+            text = "Horas de Descanso",
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
 
         Card(
             colors = CardDefaults.cardColors(containerColor = Color.White),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(dimensions.cornerRadiusNormal),
             modifier = Modifier.fillMaxWidth().height(260.dp)
         ) {
             if (uiState.averageSleepHours > 0f) {
@@ -319,7 +361,7 @@ fun SleepAnalyticsTab(
                 )
             } else {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No hay registros de sueño", color = Color.Gray)
+                    Text("No hay registros de sueño", color = Color.Gray, textAlign = TextAlign.Center)
                 }
             }
         }
@@ -333,15 +375,16 @@ fun PhysicalAnalyticsTab(
     physicalChartProducer: ChartEntryModelProducer
 ) {
     val physicalColor = Color(0xFFFF7043)
+    val dimensions = ZenIATheme.dimensions
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(dimensions.paddingMedium),
+        verticalArrangement = Arrangement.spacedBy(dimensions.paddingMedium)
     ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(dimensions.paddingSmall)) {
             StatCard(
                 modifier = Modifier.weight(1f),
                 title = "Promedio Pasos",
@@ -356,11 +399,16 @@ fun PhysicalAnalyticsTab(
             )
         }
 
-        Text("Actividad Diaria (Pasos)", fontWeight = FontWeight.Bold)
+        Text(
+            text = "Actividad Diaria (Pasos)",
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
 
         Card(
             colors = CardDefaults.cardColors(containerColor = Color.White),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(dimensions.cornerRadiusNormal),
             modifier = Modifier.fillMaxWidth().height(260.dp)
         ) {
             if (uiState.averageSteps > 0) {
@@ -387,7 +435,7 @@ fun PhysicalAnalyticsTab(
                 )
             } else {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No hay registros de actividad física", color = Color.Gray)
+                    Text("No hay registros de actividad física", color = Color.Gray, textAlign = TextAlign.Center)
                 }
             }
         }
@@ -396,18 +444,72 @@ fun PhysicalAnalyticsTab(
 
 @Composable
 fun StatCard(modifier: Modifier = Modifier, title: String, value: String, subtext: String) {
+    val dimensions = ZenIATheme.dimensions
+
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(dimensions.cornerRadiusNormal)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(dimensions.paddingMedium),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(title, style = MaterialTheme.typography.labelMedium, color = Color.Gray)
-            Text(value, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = ZeniaTeal)
-            Text(subtext, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelMedium,
+                color = Color.Gray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = ZeniaTeal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = subtext,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.Gray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
+            )
         }
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun AnalyticsScreenPreview() {
+    val windowSizeClass = WindowWidthSizeClass.Compact
+
+    ZenIATheme(windowSizeClass = windowSizeClass) {
+        AnalyticsScreen(
+            uiState = AnalyticsUiState(
+                mainInsight = "Has mantenido un buen ritmo de sueño en los últimos días. ¡Sigue así para mejorar tu ánimo general!",
+                averageMood = 4.2f,
+                totalEntries = 12,
+                topActivities = listOf(
+                    AnalysisUtils.Insight("Caminar", 4.8f, 5, AnalysisUtils.InsightType.POSITIVE),
+                    AnalysisUtils.Insight("Trabajo Tarde", 2.1f, 3, AnalysisUtils.InsightType.NEGATIVE)
+                ),
+                averageSleepHours = 7.5f,
+                averageSteps = 8450,
+                averageHeartRate = 72
+            ),
+            selectedRange = TimeRange.WEEK,
+            isPremium = true,
+            lineChartProducer = ChartEntryModelProducer(listOf(entryOf(1f, 3f), entryOf(2f, 5f), entryOf(3f, 4f))),
+            sleepChartProducer = ChartEntryModelProducer(listOf(entryOf(1f, 6f), entryOf(2f, 8f), entryOf(3f, 7.5f))),
+            physicalChartProducer = ChartEntryModelProducer(listOf(entryOf(1f, 5000f), entryOf(2f, 9000f), entryOf(3f, 8500f))),
+            onNavigateBack = {},
+            onNavigateToPremium = {},
+            onTimeRangeSelected = {}
+        )
     }
 }
