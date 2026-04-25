@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -16,6 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -25,9 +27,11 @@ import com.zenia.app.R
 import com.zenia.app.model.BlockedUserProfile
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.screens.community.UserAvatar
+import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaDark
 import com.zenia.app.ui.theme.ZeniaSlateGrey
 import com.zenia.app.ui.theme.ZeniaTeal
+import com.zenia.app.util.DevicePreviews
 
 @Composable
 fun BlockedUsersScreen(
@@ -36,6 +40,8 @@ fun BlockedUsersScreen(
     onUnblockClick: (BlockedUserProfile) -> Unit,
     onRetry: () -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
+
     Scaffold(
         topBar = { ZeniaTopBar(title = stringResource(R.string.title_blocked_users), onNavigateBack = onNavigateBack) },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -43,7 +49,8 @@ fun BlockedUsersScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(padding),
+            contentAlignment = Alignment.TopCenter
         ) {
             when {
                 uiState.isLoading -> {
@@ -57,6 +64,7 @@ fun BlockedUsersScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
+                            .widthIn(max = 500.dp)
                             .padding(24.dp),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -69,7 +77,7 @@ fun BlockedUsersScreen(
                             modifier = Modifier.size(250.dp)
                         )
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(dimensions.paddingLarge))
 
                         Text(
                             text = stringResource(R.string.error_connection_title),
@@ -78,7 +86,7 @@ fun BlockedUsersScreen(
                             color = MaterialTheme.colorScheme.onSurface
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(dimensions.paddingSmall))
 
                         Text(
                             text = stringResource(R.string.error_connection_message),
@@ -87,13 +95,14 @@ fun BlockedUsersScreen(
                             textAlign = TextAlign.Center
                         )
 
-                        Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(dimensions.paddingExtraLarge))
 
                         Button(
                             onClick = onRetry,
                             modifier = Modifier
-                                .fillMaxWidth(0.7f)
-                                .height(50.dp),
+                                .widthIn(max = dimensions.buttonMaxWidth)
+                                .fillMaxWidth()
+                                .heightIn(min = dimensions.buttonHeight),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal)
                         ) {
@@ -110,7 +119,8 @@ fun BlockedUsersScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(32.dp),
+                            .widthIn(max = 500.dp)
+                            .padding(dimensions.paddingExtraLarge),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
@@ -120,7 +130,7 @@ fun BlockedUsersScreen(
                             modifier = Modifier.size(200.dp),
                         )
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(dimensions.paddingMedium))
 
                         Text(
                             text = stringResource(R.string.empty_blocked_users_title),
@@ -130,7 +140,7 @@ fun BlockedUsersScreen(
                             textAlign = TextAlign.Center
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(dimensions.paddingSmall))
 
                         Text(
                             text = stringResource(R.string.empty_blocked_users_desc),
@@ -144,9 +154,10 @@ fun BlockedUsersScreen(
                 else -> {
                     Card(
                         modifier = Modifier
+                            .widthIn(max = 600.dp)
                             .fillMaxWidth()
-                            .padding(16.dp),
-                        shape = RoundedCornerShape(20.dp),
+                            .padding(dimensions.paddingMedium),
+                        shape = RoundedCornerShape(dimensions.cornerRadiusNormal),
                         colors = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
                         LazyColumn {
@@ -154,19 +165,23 @@ fun BlockedUsersScreen(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(16.dp),
+                                        .padding(dimensions.paddingMedium),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     UserAvatar(user.avatarIndex, user.isPremium, 40.dp)
 
-                                    Spacer(Modifier.width(12.dp))
+                                    Spacer(Modifier.width(dimensions.paddingSmall))
 
                                     Text(
                                         text = user.apodo,
                                         modifier = Modifier.weight(1f),
                                         fontWeight = FontWeight.Medium,
-                                        color = ZeniaDark
+                                        color = ZeniaDark,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
+
+                                    Spacer(Modifier.width(dimensions.paddingSmall))
 
                                     OutlinedButton(
                                         onClick = { onUnblockClick(user) },
@@ -174,12 +189,16 @@ fun BlockedUsersScreen(
                                         shape = RoundedCornerShape(8.dp),
                                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                                     ) {
-                                        Text(stringResource(R.string.action_unblock), color = ZeniaTeal)
+                                        Text(
+                                            text = stringResource(R.string.action_unblock),
+                                            color = ZeniaTeal,
+                                            maxLines = 1
+                                        )
                                     }
                                 }
                                 if (index < uiState.blockedUsers.size - 1) {
                                     HorizontalDivider(
-                                        modifier = Modifier.padding(horizontal = 16.dp),
+                                        modifier = Modifier.padding(horizontal = dimensions.paddingMedium),
                                         thickness = 0.5.dp,
                                         color = MaterialTheme.colorScheme.surfaceVariant
                                     )
@@ -190,5 +209,60 @@ fun BlockedUsersScreen(
                 }
             }
         }
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun BlockedUsersScreenListPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Compact) {
+        BlockedUsersScreen(
+            uiState = BlockedUsersViewModel.UiState(
+                isLoading = false,
+                error = null,
+                blockedUsers = listOf(
+                    BlockedUserProfile(id = "1", apodo = "UsuarioTóxico99", avatarIndex = 2, isPremium = false),
+                    BlockedUserProfile(id = "2", apodo = "HaterDeMeditación", avatarIndex = 5, isPremium = true),
+                    BlockedUserProfile(id = "3", apodo = "NombreSúperLargoQueRomperíaLaPantallaSiNoTuvieraMaxLines", avatarIndex = 1, isPremium = false)
+                )
+            ),
+            onNavigateBack = {},
+            onUnblockClick = {},
+            onRetry = {}
+        )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun BlockedUsersScreenEmptyPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Compact) {
+        BlockedUsersScreen(
+            uiState = BlockedUsersViewModel.UiState(
+                isLoading = false,
+                error = null,
+                blockedUsers = emptyList()
+            ),
+            onNavigateBack = {},
+            onUnblockClick = {},
+            onRetry = {}
+        )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun BlockedUsersScreenErrorPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Compact) {
+        BlockedUsersScreen(
+            uiState = BlockedUsersViewModel.UiState(
+                isLoading = false,
+                error = "Sin conexión",
+                blockedUsers = emptyList()
+            ),
+            onNavigateBack = {},
+            onUnblockClick = {},
+            onRetry = {}
+        )
     }
 }
