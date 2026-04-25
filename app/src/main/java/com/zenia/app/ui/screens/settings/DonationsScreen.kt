@@ -227,12 +227,10 @@ fun DonationCard(
 @Preview(showBackground = true)
 @Composable
 fun DonationsScreenPreview() {
-    ZenIATheme {
-        DonationsScreen(
-            onNavigateBack = {},
-            onDonateCafe = {},
-            onDonatePizza = {},
-            onDonateAmor = {}
-        )
-    }
+    DonationsScreen(
+        onNavigateBack = {},
+        onDonateCafe = {},
+        onDonatePizza = {},
+        onDonateAmor = {}
+    )
 }

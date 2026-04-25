@@ -416,20 +416,3 @@ private fun AccountActionItem(
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun AccountScreenPreview() {
-    ZenIATheme {
-        AccountScreen(
-            state = AccountScreenState(
-                isLoading = false,
-                userEmail = "usuario@zenia.com",
-                isVerified = false,
-                showDeleteDialog = false,
-                snackbarHostState = SnackbarHostState()
-            ),
-            actions = AccountScreenActions({}, {}, {}, {}, {}, {}, {})
-        )
-    }
-}

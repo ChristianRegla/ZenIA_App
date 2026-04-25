@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,9 +26,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -79,7 +75,6 @@ import androidx.compose.ui.window.Dialog
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.RobotoFlex
-import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaSlateGrey
 import com.zenia.app.ui.theme.ZeniaTeal
 import com.zenia.app.util.ProfanityFilter
@@ -119,143 +114,141 @@ fun SettingsScreen(
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
 
-    ZenIATheme {
-        Scaffold(
-            topBar = {
-                ZeniaTopBar(
-                    title = stringResource(R.string.settings_title),
-                    onNavigateBack = onNavigateBack
-                )
-            },
-            containerColor = Color.White
-        ) { paddingValues ->
-            Box(
+    Scaffold(
+        topBar = {
+            ZeniaTopBar(
+                title = stringResource(R.string.settings_title),
+                onNavigateBack = onNavigateBack
+            )
+        },
+        containerColor = Color.White
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .padding(paddingValues),
-                contentAlignment = Alignment.TopCenter
+                    .fillMaxHeight()
+                    .widthIn(max = 600.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
+                Spacer(modifier = Modifier.height(8.dp))
+
+                ProfileHeader(
+                    nickname = name,
+                    email = email,
+                    avatarIndex = avatarIndex,
+                    onClick = { showEditDialog = true }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // --- BOTÓN PREMIUM ---
+                Button(
+                    onClick = onNavigateToPremium,
+                    colors = if (isPremium) ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFD946EF)) else ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD946EF)
+                    ),
+                    shape = RoundedCornerShape(50),
+                    border = if (isPremium) BorderStroke(1.dp, Color(0xFFD946EF)) else null,
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .widthIn(max = 600.dp)
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                        .fillMaxWidth(0.8f)
+                        .height(48.dp)
                 ) {
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    ProfileHeader(
-                        nickname = name,
-                        email = email,
-                        avatarIndex = avatarIndex,
-                        onClick = { showEditDialog = true }
+                    if (isPremium) {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    Text(
+                        text = if (isPremium) stringResource(R.string.settings_btn_premium_now) else stringResource(R.string.settings_btn_premium),
+                        fontFamily = RobotoFlex,
+                        fontWeight = FontWeight.Bold,
                     )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // --- BOTÓN PREMIUM ---
-                    Button(
-                        onClick = onNavigateToPremium,
-                        colors = if (isPremium) ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFD946EF)) else ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFD946EF)
-                        ),
-                        shape = RoundedCornerShape(50),
-                        border = if (isPremium) BorderStroke(1.dp, Color(0xFFD946EF)) else null,
-                        modifier = Modifier
-                            .fillMaxWidth(0.8f)
-                            .height(48.dp)
-                    ) {
-                        if (isPremium) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
-                        Text(
-                            text = if (isPremium) stringResource(R.string.settings_btn_premium_now) else stringResource(R.string.settings_btn_premium),
-                            fontFamily = RobotoFlex,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Column(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        SettingsDivider()
-                        SettingsItem(
-                            iconRes = R.drawable.ic_settings,
-                            text = stringResource(R.string.settings_item_settings),
-                            textColor = ZeniaSlateGrey,
-                            onClick = onNavigateToMoreSettings
-                        )
-                        SettingsDivider()
-                        SettingsItem(
-                            iconRes = R.drawable.ic_watch_outlined,
-                            text = stringResource(R.string.health_title),
-                            textColor = ZeniaSlateGrey,
-                            onClick = onNavigateToHealthSync
-                        )
-                        SettingsDivider()
-                        SettingsItem(
-                            iconRes = R.drawable.ic_account,
-                            text = stringResource(R.string.settings_item_account),
-                            textColor = ZeniaSlateGrey,
-                            onClick = onNavigateToProfile
-                        )
-                        SettingsDivider()
-                        SettingsItem(
-                            iconRes = R.drawable.ic_help_center,
-                            text = stringResource(R.string.settings_item_help_center),
-                            textColor = ZeniaSlateGrey,
-                            onClick = onNavigateToHelp
-                        )
-                        SettingsDivider()
-                        SettingsItem(
-                            iconRes = R.drawable.ic_donations,
-                            text = stringResource(R.string.settings_item_donations),
-                            textColor = ZeniaSlateGrey,
-                            onClick = onNavigateToDonations
-                        )
-                        SettingsDivider()
-                        SettingsItem(
-                            iconRes = R.drawable.ic_privacy_policy,
-                            text = stringResource(R.string.settings_item_privacy),
-                            textColor = ZeniaSlateGrey,
-                            onClick = onNavigateToPrivacy
-                        )
-                        SettingsDivider()
-                        SettingsItem(
-                            iconRes = R.drawable.ic_logout,
-                            text = stringResource(R.string.settings_item_logout),
-                            textColor = Color.Red.copy(alpha = 0.8f),
-                            showArrow = false,
-                            onClick = onSignOut
-                        )
-                        SettingsDivider()
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    SettingsDivider()
+                    SettingsItem(
+                        iconRes = R.drawable.ic_settings,
+                        text = stringResource(R.string.settings_item_settings),
+                        textColor = ZeniaSlateGrey,
+                        onClick = onNavigateToMoreSettings
+                    )
+                    SettingsDivider()
+                    SettingsItem(
+                        iconRes = R.drawable.ic_watch_outlined,
+                        text = stringResource(R.string.health_title),
+                        textColor = ZeniaSlateGrey,
+                        onClick = onNavigateToHealthSync
+                    )
+                    SettingsDivider()
+                    SettingsItem(
+                        iconRes = R.drawable.ic_account,
+                        text = stringResource(R.string.settings_item_account),
+                        textColor = ZeniaSlateGrey,
+                        onClick = onNavigateToProfile
+                    )
+                    SettingsDivider()
+                    SettingsItem(
+                        iconRes = R.drawable.ic_help_center,
+                        text = stringResource(R.string.settings_item_help_center),
+                        textColor = ZeniaSlateGrey,
+                        onClick = onNavigateToHelp
+                    )
+                    SettingsDivider()
+                    SettingsItem(
+                        iconRes = R.drawable.ic_donations,
+                        text = stringResource(R.string.settings_item_donations),
+                        textColor = ZeniaSlateGrey,
+                        onClick = onNavigateToDonations
+                    )
+                    SettingsDivider()
+                    SettingsItem(
+                        iconRes = R.drawable.ic_privacy_policy,
+                        text = stringResource(R.string.settings_item_privacy),
+                        textColor = ZeniaSlateGrey,
+                        onClick = onNavigateToPrivacy
+                    )
+                    SettingsDivider()
+                    SettingsItem(
+                        iconRes = R.drawable.ic_logout,
+                        text = stringResource(R.string.settings_item_logout),
+                        textColor = Color.Red.copy(alpha = 0.8f),
+                        showArrow = false,
+                        onClick = onSignOut
+                    )
+                    SettingsDivider()
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
-        if (showEditDialog) {
-            EditProfileDialog(
-                currentNickname = name ?: "",
-                currentAvatarIndex = avatarIndex,
-                onDismiss = { showEditDialog = false },
-                onSave = { newName, newAvatarIdx ->
-                    onUpdateProfile(newName, newAvatarIdx)
-                    showEditDialog = false
-                }
-            )
-        }
+    }
+    if (showEditDialog) {
+        EditProfileDialog(
+            currentNickname = name ?: "",
+            currentAvatarIndex = avatarIndex,
+            onDismiss = { showEditDialog = false },
+            onSave = { newName, newAvatarIdx ->
+                onUpdateProfile(newName, newAvatarIdx)
+                showEditDialog = false
+            }
+        )
     }
 }
 
@@ -581,15 +574,13 @@ private fun SettingsDivider() {
 @Preview(name = "Phone", showBackground = true, device = "spec:width=411dp,height=891dp,dpi=420")
 @Composable
 fun SettingsPhonePreview() {
-    ZenIATheme {
-        SettingsScreen(
-            name = null,
-            email = "john.doe@example.com",
-            avatarIndex = -1,
-            isPremium = false,
-            onUpdateProfile = { _, _ -> },
-            {}, {}, {}, {}, {}, {}, {}, {},
-            onSignOut = {}
-        )
-    }
+    SettingsScreen(
+        name = null,
+        email = "john.doe@example.com",
+        avatarIndex = -1,
+        isPremium = false,
+        onUpdateProfile = { _, _ -> },
+        {}, {}, {}, {}, {}, {}, {}, {},
+        onSignOut = {}
+    )
 }

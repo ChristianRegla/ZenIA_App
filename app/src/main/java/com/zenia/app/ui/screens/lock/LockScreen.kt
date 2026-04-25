@@ -39,113 +39,110 @@ fun LockScreen(
     onUnlockClick: () -> Unit,
     onSignOut: () -> Unit
 ) {
-    ZenIATheme {
-        Surface(
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.surfaceVariant
+    ) {
+
+        Box(
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.surfaceVariant
+            contentAlignment = Alignment.TopCenter
         ) {
 
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.TopCenter
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .widthIn(max = 600.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
+                Spacer(modifier = Modifier.height(40.dp))
+
                 Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .widthIn(max = 600.dp)
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 24.dp, vertical = 32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.weight(1f)
                 ) {
 
-                    Spacer(modifier = Modifier.height(40.dp))
-
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                        modifier = Modifier.weight(1f)
+                    Box(
+                        modifier = Modifier
+                            .size(110.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
-
-                        Box(
-                            modifier = Modifier
-                                .size(110.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                                    shape = CircleShape
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_fingerprint),
-                                contentDescription = stringResource(
-                                    R.string.lock_content_description_fingerprint
-                                ),
-                                modifier = Modifier.size(56.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(32.dp))
-
-                        Text(
-                            text = stringResource(R.string.lock_title),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            textAlign = TextAlign.Center
+                        Icon(
+                            painter = painterResource(R.drawable.ic_fingerprint),
+                            contentDescription = stringResource(
+                                R.string.lock_content_description_fingerprint
+                            ),
+                            modifier = Modifier.size(56.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = stringResource(R.string.lock_subtitle),
-                            style = MaterialTheme.typography.bodyLarge,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.fillMaxWidth(0.9f)
-                        )
-
-                        Spacer(modifier = Modifier.height(48.dp))
-
-                        Button(
-                            onClick = onUnlockClick,
-                            modifier = Modifier
-                                .fillMaxWidth(0.8f),
-                            shape = MaterialTheme.shapes.medium
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_lock_outlined),
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(text = stringResource(R.string.lock_btn_unlock))
-                        }
                     }
 
-                    // 🔹 Footer
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Text(
+                        text = stringResource(R.string.lock_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = stringResource(R.string.lock_subtitle),
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.fillMaxWidth(0.9f)
+                    )
+
+                    Spacer(modifier = Modifier.height(48.dp))
+
+                    Button(
+                        onClick = onUnlockClick,
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f),
+                        shape = MaterialTheme.shapes.medium
                     ) {
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        Text(
-                            text = stringResource(R.string.lock_footer_trouble),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.outline,
-                            textAlign = TextAlign.Center
+                        Icon(
+                            painter = painterResource(R.drawable.ic_lock_outlined),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
                         )
-
-                        TextButton(onClick = onSignOut) {
-                            Text(
-                                text = stringResource(R.string.lock_btn_sign_out),
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = stringResource(R.string.lock_btn_unlock))
                     }
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Text(
+                        text = stringResource(R.string.lock_footer_trouble),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline,
+                        textAlign = TextAlign.Center
+                    )
+
+                    TextButton(onClick = onSignOut) {
+                        Text(
+                            text = stringResource(R.string.lock_btn_sign_out),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }

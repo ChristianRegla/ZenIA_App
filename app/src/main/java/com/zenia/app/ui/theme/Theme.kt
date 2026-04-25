@@ -3,7 +3,10 @@ package com.zenia.app.ui.theme
 import android.app.Activity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -35,6 +38,7 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun ZenIATheme(
+    windowSizeClass: WindowWidthSizeClass,
     content: @Composable () -> Unit
 ) {
     val colorScheme = LightColorScheme
@@ -48,9 +52,33 @@ fun ZenIATheme(
         }
     }
 
+    val dimensions = when (windowSizeClass) {
+        WindowWidthSizeClass.Compact -> compactDimensions
+        WindowWidthSizeClass.Medium -> mediumDimensions
+        WindowWidthSizeClass.Expanded -> expandedDimensions
+        else -> compactDimensions
+    }
+
+    CompositionLocalProvider(
+        LocalAppDimensions provides dimensions
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
+
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
         content = content
     )
+}
+
+object ZenIATheme {
+    val dimensions: AppDimensions
+    @Composable
+    @ReadOnlyComposable
+    get() = LocalAppDimensions.current
 }

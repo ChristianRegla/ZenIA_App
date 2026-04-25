@@ -81,7 +81,6 @@ import com.zenia.app.R
 import com.zenia.app.model.EmergencyContact
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.RobotoFlex
-import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaTeal
 import kotlinx.coroutines.delay
 
@@ -106,87 +105,85 @@ fun HelplineScreen(
         visible.value = true
     }
 
-    ZenIATheme {
-        Scaffold(
-            topBar = {
-                ZeniaTopBar(
-                    title = stringResource(R.string.helpline),
-                    onNavigateBack = onNavigateBack
-                    )
-            },
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ) { paddingValues ->
-            Box(
+    Scaffold(
+        topBar = {
+            ZeniaTopBar(
+                title = stringResource(R.string.helpline),
+                onNavigateBack = onNavigateBack
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.surfaceVariant
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Column(
                 modifier = Modifier
+                    .widthIn(max = 600.dp)
                     .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.TopCenter
+                    .padding(horizontal = 24.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier
-                        .widthIn(max = 600.dp)
-                        .fillMaxSize()
-                        .padding(horizontal = 24.dp)
-                        .verticalScroll(rememberScrollState()),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Spacer(modifier = Modifier.height(24.dp))
+
+                ExpandableInfoCard()
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                AnimatedVisibility(
+                    visible = visible.value,
+                    enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
                 ) {
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    ExpandableInfoCard()
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    AnimatedVisibility(
-                        visible = visible.value,
-                        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            SosButton(
-                                icon = Icons.Default.Favorite,
-                                text = stringResource(R.string.sos_btn_lifeline),
-                                subText = stringResource(R.string.sos_lifeline_sub),
-                                accentColor = ColorLifeline,
-                                isPrimary = true,
-                                onClick = onCallLifeline
-                            )
+                        SosButton(
+                            icon = Icons.Default.Favorite,
+                            text = stringResource(R.string.sos_btn_lifeline),
+                            subText = stringResource(R.string.sos_lifeline_sub),
+                            accentColor = ColorLifeline,
+                            isPrimary = true,
+                            onClick = onCallLifeline
+                        )
 
-                            SosButton(
-                                icon = Icons.Default.Person,
-                                text = stringResource(R.string.sos_btn_friend),
-                                subText = stringResource(R.string.sos_contacts_sub),
-                                accentColor = ColorFriend,
-                                onClick = onNavigateToContacts
-                            )
+                        SosButton(
+                            icon = Icons.Default.Person,
+                            text = stringResource(R.string.sos_btn_friend),
+                            subText = stringResource(R.string.sos_contacts_sub),
+                            accentColor = ColorFriend,
+                            onClick = onNavigateToContacts
+                        )
 
-                            SosButton(
-                                icon = Icons.Default.ChatBubble,
-                                text = stringResource(R.string.sos_btn_support_chat),
-                                accentColor = ColorChat,
-                                onClick = onNavigateToChat
-                            )
+                        SosButton(
+                            icon = Icons.Default.ChatBubble,
+                            text = stringResource(R.string.sos_btn_support_chat),
+                            accentColor = ColorChat,
+                            onClick = onNavigateToChat
+                        )
 
-                            SosButton(
-                                icon = Icons.Default.SelfImprovement,
-                                text = stringResource(R.string.sos_btn_calm_exercises),
-                                accentColor = ColorCalm,
-                                onClick = onNavigateToExercises
-                            )
-                        }
+                        SosButton(
+                            icon = Icons.Default.SelfImprovement,
+                            text = stringResource(R.string.sos_btn_calm_exercises),
+                            accentColor = ColorCalm,
+                            onClick = onNavigateToExercises
+                        )
                     }
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    Text(
-                        text = stringResource(R.string.sos_disclaimer),
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
                 }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Text(
+                    text = stringResource(R.string.sos_disclaimer),
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
             }
         }
     }
@@ -575,13 +572,11 @@ fun AddContactDialog(
 @Preview(showBackground = true, name = "SOS Screen Light", locale = "es")
 @Composable
 fun SosScreenPreview() {
-    ZenIATheme {
-        HelplineScreen(
-            onCallLifeline = {},
-            onNavigateToChat = {},
-            onNavigateToContacts = {},
-            onNavigateToExercises = {},
-            onNavigateBack = {}
-        )
-    }
+    HelplineScreen(
+        onCallLifeline = {},
+        onNavigateToChat = {},
+        onNavigateToContacts = {},
+        onNavigateToExercises = {},
+        onNavigateBack = {}
+    )
 }

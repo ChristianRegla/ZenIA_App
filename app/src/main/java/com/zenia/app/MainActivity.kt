@@ -15,6 +15,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.ui.Modifier
 import androidx.core.animation.doOnEnd
 import com.zenia.app.ui.navigation.AppNavigation
@@ -44,6 +46,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -92,7 +95,8 @@ class MainActivity : AppCompatActivity() {
 
         enableEdgeToEdge()
         setContent {
-            ZenIATheme {
+            val windowSizeClass = calculateWindowSizeClass(this)
+            ZenIATheme(windowSizeClass = windowSizeClass.widthSizeClass) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     AppNavigation(pendingDeepLink = pendingDeepLink)
 

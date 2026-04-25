@@ -24,100 +24,97 @@ import androidx.compose.ui.unit.sp
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.RobotoFlex
-import com.zenia.app.ui.theme.ZenIATheme
 
 @Composable
 fun HelpCenterScreen(
     onNavigateBack: () -> Unit,
     onContactSupportClick: () -> Unit
 ) {
-    ZenIATheme {
-        Scaffold(
-            topBar = {
-                ZeniaTopBar(
-                    title = stringResource(R.string.settings_item_help_center),
-                    onNavigateBack = onNavigateBack
-                )
-            },
-            containerColor = MaterialTheme.colorScheme.background
-        ) { paddingValues ->
-            Box(
+    Scaffold(
+        topBar = {
+            ZeniaTopBar(
+                title = stringResource(R.string.settings_item_help_center),
+                onNavigateBack = onNavigateBack
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .padding(paddingValues),
-                contentAlignment = Alignment.TopCenter
+                    .widthIn(max = 600.dp)
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Box(
                     modifier = Modifier
-                        .widthIn(max = 600.dp)
-                        .fillMaxWidth()
-                        .fillMaxHeight()
-                        .verticalScroll(rememberScrollState())
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                        .size(160.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_help_center),
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp),
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                    )
+                }
 
-                    Box(
-                        modifier = Modifier
-                            .size(160.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                                shape = CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_help_center),
-                            contentDescription = null,
-                            modifier = Modifier.size(80.dp),
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-                        )
-                    }
+                Spacer(modifier = Modifier.height(40.dp))
 
-                    Spacer(modifier = Modifier.height(40.dp))
+                Text(
+                    text = stringResource(R.string.help_center_title),
+                    fontFamily = RobotoFlex,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Center
+                )
 
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = stringResource(R.string.help_center_desc),
+                    fontFamily = RobotoFlex,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 24.sp
+                )
+
+                Spacer(modifier = Modifier.height(48.dp))
+
+                Button(
+                    onClick = onContactSupportClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = MaterialTheme.shapes.large
+                ) {
                     Text(
-                        text = stringResource(R.string.help_center_title),
+                        text = stringResource(R.string.help_center_btn_contact),
                         fontFamily = RobotoFlex,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        textAlign = TextAlign.Center
+                        fontSize = 18.sp
                     )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = stringResource(R.string.help_center_desc),
-                        fontFamily = RobotoFlex,
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 24.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(48.dp))
-
-                    Button(
-                        onClick = onContactSupportClick,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = MaterialTheme.shapes.large
-                    ) {
-                        Text(
-                            text = stringResource(R.string.help_center_btn_contact),
-                            fontFamily = RobotoFlex,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(32.dp))
                 }
+
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }

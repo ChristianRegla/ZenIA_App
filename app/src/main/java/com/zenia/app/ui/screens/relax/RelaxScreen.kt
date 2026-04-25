@@ -296,11 +296,9 @@ fun RelaxExerciseCard(
 @Preview
 @Composable
 fun RelaxScreenPreview() {
-    ZenIATheme {
-        RelaxScreen(
-            onNavigateToPlayer = {},
-            onNavigateToPremium = {},
-            isUserPremium = false
-        )
-    }
+    RelaxScreen(
+        onNavigateToPlayer = {},
+        onNavigateToPremium = {},
+        isUserPremium = false
+    )
 }

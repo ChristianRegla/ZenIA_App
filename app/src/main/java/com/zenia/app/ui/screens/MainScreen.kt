@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -90,76 +91,74 @@ fun MainScreen(
         }
     }
 
-    ZenIATheme {
-        Scaffold(
-            bottomBar = {
-                AnimatedVisibility(
-                    visible = showBottomBar,
-                    enter = slideInVertically(initialOffsetY = { it }),
-                    exit = slideOutVertically(targetOffsetY = { it })
-                ) {
-                    ZeniaBottomBar(navController = bottomNavController, items = items)
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(
-                        bottom = if (showBottomBar) innerPadding.calculateBottomPadding() else 0.dp,
-                        top = 0.dp
-                    )
+    Scaffold(
+        bottomBar = {
+            AnimatedVisibility(
+                visible = showBottomBar,
+                enter = slideInVertically(initialOffsetY = { it }),
+                exit = slideOutVertically(targetOffsetY = { it })
             ) {
-                NavHost(
-                    navController = bottomNavController,
-                    startDestination = BottomNavItem.Inicio.route,
-                    enterTransition = { fadeIn() },
-                    exitTransition = { fadeOut() },
-                    popEnterTransition = { fadeIn() },
-                    popExitTransition = { fadeOut() }
-                ) {
-                    composable(BottomNavItem.Inicio.route) {
-                        HomeRoute(
-                            onNavigateToSettings = onNavigateToSettings,
-                            onNotificationClick = onNotificationClick,
-                            onNavigateToSOS = onNavigateToSOS,
-                            onNavigateToDiaryEntry = onNavigateToDiaryEntry,
-                            onNavigateToAnalytics = onNavigateToAnalytics,
-                            onNavigateToCommunity = onNavigateToCommunity,
-                            onNavigateToPostDetail = onNavigateToPostDetail
-                        )
-                    }
+                ZeniaBottomBar(navController = bottomNavController, items = items)
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surfaceVariant
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    bottom = if (showBottomBar) innerPadding.calculateBottomPadding() else 0.dp,
+                    top = 0.dp
+                )
+        ) {
+            NavHost(
+                navController = bottomNavController,
+                startDestination = BottomNavItem.Inicio.route,
+                enterTransition = { fadeIn() },
+                exitTransition = { fadeOut() },
+                popEnterTransition = { fadeIn() },
+                popExitTransition = { fadeOut() }
+            ) {
+                composable(BottomNavItem.Inicio.route) {
+                    HomeRoute(
+                        onNavigateToSettings = onNavigateToSettings,
+                        onNotificationClick = onNotificationClick,
+                        onNavigateToSOS = onNavigateToSOS,
+                        onNavigateToDiaryEntry = onNavigateToDiaryEntry,
+                        onNavigateToAnalytics = onNavigateToAnalytics,
+                        onNavigateToCommunity = onNavigateToCommunity,
+                        onNavigateToPostDetail = onNavigateToPostDetail
+                    )
+                }
 
-                    composable(BottomNavItem.Relajacion.route) {
-                        RelaxRoute(
-                            onNavigateToPlayer = onNavigateToPlayer,
-                            onNavigateToPremium = onNavigateToPremium
-                        )
-                    }
+                composable(BottomNavItem.Relajacion.route) {
+                    RelaxRoute(
+                        onNavigateToPlayer = onNavigateToPlayer,
+                        onNavigateToPremium = onNavigateToPremium
+                    )
+                }
 
-                    composable(BottomNavItem.Zenia.route) {
-                        ZeniaBotRoute(
-                            onNavigateBack = { bottomNavController.popBackStack() }
-                        )
-                    }
+                composable(BottomNavItem.Zenia.route) {
+                    ZeniaBotRoute(
+                        onNavigateBack = { bottomNavController.popBackStack() }
+                    )
+                }
 
-                    composable(BottomNavItem.Diario.route) {
-                        DiarioRoute(
-                            onToggleBottomBar = { isVisible ->
-                                isDiaryEntryActive = !isVisible
-                            }
-                        )
-                    }
+                composable(BottomNavItem.Diario.route) {
+                    DiarioRoute(
+                        onToggleBottomBar = { isVisible ->
+                            isDiaryEntryActive = !isVisible
+                        }
+                    )
+                }
 
-                    composable(BottomNavItem.Recursos.route) {
-                        RecursosRoute(
-                            onNavigateToDetail = { id ->
-                                onNavigateToRecursoDetail(id)
-                            },
-                            onNavigateToPremium = onNavigateToPremium
-                        )
-                    }
+                composable(BottomNavItem.Recursos.route) {
+                    RecursosRoute(
+                        onNavigateToDetail = { id ->
+                            onNavigateToRecursoDetail(id)
+                        },
+                        onNavigateToPremium = onNavigateToPremium
+                    )
                 }
             }
         }

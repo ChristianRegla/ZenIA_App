@@ -200,33 +200,3 @@ fun VerificationScreen(
         }
     }
 }
-
-@Preview(showBackground = true, showSystemUi = true, device = "id:pixel_7_pro")
-@Composable
-fun VerificationScreenPreview() {
-    ZenIATheme {
-        VerificationScreen(
-            email = "usuario.demo@gmail.com",
-            onResendClick = {},
-            onCancelClick = {},
-            resendTimer = 45,
-            isLoading = false,
-            isResending = false
-        )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true, device = "id:pixel_7_pro")
-@Composable
-fun VerificationScreenResendReadyPreview() {
-    ZenIATheme {
-        VerificationScreen(
-            email = "usuario.demo@gmail.com",
-            onResendClick = {},
-            onCancelClick = {},
-            resendTimer = 0,
-            isLoading = false,
-            isResending = false
-        )
-    }
-}

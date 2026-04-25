@@ -18,11 +18,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -46,6 +48,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -90,6 +93,7 @@ import com.patrykandpatrick.vico.core.chart.line.LineChart
 import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
+import com.patrykandpatrick.vico.core.entry.entryOf
 import com.zenia.app.R
 import com.zenia.app.model.CommunityPost
 import com.zenia.app.model.DiarioEntrada
@@ -104,6 +108,7 @@ import com.zenia.app.ui.theme.ZeniaDeepTeal
 import com.zenia.app.ui.theme.ZeniaTeal
 import com.zenia.app.util.AnalysisUtils
 import com.zenia.app.util.ChartUtils
+import com.zenia.app.util.DevicePreviews
 import com.zenia.app.util.ShareUtils
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -137,6 +142,8 @@ fun HomeScreen(
     val context = LocalContext.current
     val view = LocalView.current
     val coroutineScope = rememberCoroutineScope()
+
+    val dimensions = ZenIATheme.dimensions
 
     if (uiState is HomeUiState.Error) {
         val errorMessage = uiState.message.asString()
@@ -177,10 +184,10 @@ fun HomeScreen(
         ) {
             LazyColumn(
                 modifier = Modifier
-                    .widthIn(max = 600.dp)
+                    .widthIn(max = 800.dp)
                     .fillMaxSize()
-                    .padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                    .padding(horizontal = dimensions.paddingMedium),
+                verticalArrangement = Arrangement.spacedBy(dimensions.paddingMedium)
             ) {
 
                 item {
@@ -196,7 +203,9 @@ fun HomeScreen(
                         style = MaterialTheme.typography.headlineMedium,
                         fontFamily = RobotoFlex,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = stringResource(R.string.home_how_are_you),
@@ -302,7 +311,7 @@ fun HomeScreen(
                                     view = view,
                                     context = context
                                 ) {
-                                    ZenIATheme {
+                                    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Compact) {
                                         StreakStoryTemplate(streakDays = streakToShare)
                                     }
                                 }
@@ -327,6 +336,8 @@ private fun TodayEntryCard(
     onClick: () -> Unit,
     onShareStreak: (Int) -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
+
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.fire_animation))
     val progress by animateLottieCompositionAsState(
         composition = composition,
@@ -359,18 +370,18 @@ private fun TodayEntryCard(
 
     Card(
         onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(dimensions.cornerRadiusNormal),
         colors = CardDefaults.cardColors(
             containerColor = containerColor
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .height(100.dp)
+            .heightIn(100.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp, vertical = 10.dp),
+                .padding(horizontal = dimensions.paddingMedium, vertical = dimensions.paddingSmall),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -379,12 +390,16 @@ private fun TodayEntryCard(
                     text = if (hasEntry) stringResource(R.string.home_streak_active) else stringResource(R.string.home_log_day),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = titleTextColor
+                    color = titleTextColor,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = if (streak > 0) stringResource(R.string.home_streak_counter, streak) else stringResource(R.string.home_start_streak),
                     style = MaterialTheme.typography.bodySmall,
-                    color = subtitleTextColor
+                    color = subtitleTextColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
@@ -532,18 +547,11 @@ private fun EmptyChartCard(onClick: () -> Unit) {
 }
 
 @Composable
-private fun CommunityPostCard(post: CommunityPost, onClick: () -> Unit) {
-    val windowInfo = LocalWindowInfo.current
-    val density = LocalDensity.current
-    val screenWidth = with(density) { windowInfo.containerSize.width.toDp() }
-
-    val availableWidth = if (screenWidth > 600.dp) 600.dp else screenWidth
-    val cardWidth = (availableWidth - 40.dp) / 1.3f
-
+private fun LazyItemScope.CommunityPostCard(post: CommunityPost, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         modifier = Modifier
-            .width(cardWidth)
+            .fillParentMaxWidth(0.85f)
             .height(160.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -628,14 +636,7 @@ private fun CommunityPostCard(post: CommunityPost, onClick: () -> Unit) {
 }
 
 @Composable
-private fun CommunityPostPlaceholder() {
-    val windowInfo = LocalWindowInfo.current
-    val density = LocalDensity.current
-    val screenWidth = with(density) { windowInfo.containerSize.width.toDp() }
-
-    val availableWidth = if (screenWidth > 600.dp) 600.dp else screenWidth
-    val cardWidth = (availableWidth - 40.dp) / 1.3f
-
+private fun LazyItemScope.CommunityPostPlaceholder() {
     val transition = rememberInfiniteTransition(label = "shimmer")
     val translateAnim = transition.animateFloat(
         initialValue = 0f,
@@ -659,7 +660,7 @@ private fun CommunityPostPlaceholder() {
 
     Card(
         modifier = Modifier
-            .width(cardWidth)
+            .fillParentMaxWidth(0.85f)
             .height(160.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -707,7 +708,7 @@ private fun MindfulQuoteCard() {
         shape = RoundedCornerShape(24.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 24.dp),
+            .padding(bottom = ZenIATheme.dimensions.paddingLarge),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(
@@ -760,5 +761,82 @@ private fun MindfulQuoteCard() {
                 )
             }
         }
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun HomeScreenPreview() {
+    val windowSizeClass = WindowWidthSizeClass.Medium
+
+    ZenIATheme(windowSizeClass = windowSizeClass) {
+        HomeScreen(
+            uiState = HomeUiState.Idle,
+            userName = "Slappy",
+            registrosDiario = listOf(
+                DiarioEntrada(
+                    fecha = LocalDate.now().minusDays(1).toString(),
+                    estadoAnimo = "Excelente",
+                    calidadSueno = "Bueno",
+                    actividades = listOf("Correr", "Leer")
+                ),
+                DiarioEntrada(
+                    fecha = LocalDate.now().minusDays(2).toString(),
+                    estadoAnimo = "Triste",
+                    actividades = listOf("Trabajo pesado")
+                )
+            ),
+            hasEntryToday = false,
+            trendingPosts = listOf(
+                CommunityPost(
+                    id = "1",
+                    authorApodo = "UsuarioZen",
+                    authorAvatarIndex = 2,
+                    authorIsPremium = true,
+                    content = "Hoy completé mi primer ejercicio de relajación y me siento increíble. ¡Sí se puede!",
+                    category = "Logros",
+                    likesCount = 24,
+                    commentsCount = 5,
+                    isLikedByCurrentUser = true
+                ),
+                CommunityPost(
+                    id = "2",
+                    authorApodo = "MenteTranquila",
+                    authorAvatarIndex = 5,
+                    content = "A veces es difícil levantarse de la cama, pero aquí estamos intentándolo un día más.",
+                    category = "Desahogo",
+                    likesCount = 42,
+                    commentsCount = 12
+                )
+            ),
+            onNavigateToPostDetail = {},
+            chartProducer = ChartEntryModelProducer(
+                listOf(entryOf(1f, 3f)),
+                listOf(entryOf(2f, 2f)),
+                listOf(entryOf(3f, 5f)),
+                listOf(entryOf(4f, 4f)),
+                listOf(entryOf(5f, 5f))
+            ),
+            onNavigateToDiaryEntry = {},
+            onSettingsClick = {},
+            onNotificationClick = {},
+            onResetState = {},
+            onNavigateToSOS = {},
+            currentStreak = 12,
+            topBooster = AnalysisUtils.Insight(
+                activityName = "Leer",
+                score = 4.8f,
+                count = 6,
+                type = AnalysisUtils.InsightType.POSITIVE
+            ),
+            topDrainer = AnalysisUtils.Insight(
+                activityName = "Desvelo",
+                score = 1.5f,
+                count = 4,
+                type = AnalysisUtils.InsightType.NEGATIVE
+            ),
+            onNavigateToAnalytics = {},
+            onNavigateToCommunity = {}
+        )
     }
 }

@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.sp
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.Nunito
-import com.zenia.app.ui.theme.ZenIATheme
 
 @Composable
 fun PrivacyScreen(
@@ -36,109 +35,106 @@ fun PrivacyScreen(
     onTermsClick: () -> Unit,
     onPrivacyClick: () -> Unit
 ) {
-    ZenIATheme {
-        Scaffold(
-            topBar = {
-                ZeniaTopBar(
-                    title = stringResource(R.string.settings_item_privacy),
-                    onNavigateBack = onNavigateBack
-                )
-            },
-            containerColor = MaterialTheme.colorScheme.background
-        ) { paddingValues ->
-            Box(
+    Scaffold(
+        topBar = {
+            ZeniaTopBar(
+                title = stringResource(R.string.settings_item_privacy),
+                onNavigateBack = onNavigateBack
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(paddingValues),
-                contentAlignment = Alignment.TopCenter
+                    .widthIn(max = 600.dp)
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Box(
                     modifier = Modifier
-                        .widthIn(max = 600.dp)
-                        .fillMaxWidth()
-                        .fillMaxHeight()
-                        .verticalScroll(rememberScrollState())
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .size(120.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // Icono Superior
-                    Box(
-                        modifier = Modifier
-                            .size(120.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                                shape = CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_privacy_policy),
-                            contentDescription = null,
-                            modifier = Modifier.size(60.dp),
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Text(
-                        text = stringResource(R.string.privacy_screen_title),
-                        fontFamily = Nunito,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 22.sp,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = stringResource(R.string.privacy_screen_desc),
-                        fontFamily = Nunito,
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 22.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    // Botones
-                    LinkButton(
-                        text = stringResource(R.string.privacy_link_about),
-                        icon = Icons.Default.Info,
-                        onClick = onAboutClick
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    LinkButton(
-                        text = stringResource(R.string.privacy_link_terms),
-                        icon = Icons.Default.Description,
-                        onClick = onTermsClick
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    LinkButton(
-                        text = stringResource(R.string.privacy_link_policy),
-                        icon = Icons.Default.Security,
-                        onClick = onPrivacyClick
-                    )
-
-                    Spacer(modifier = Modifier.weight(1f))
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Text(
-                        text = "ZenIA v1.0.0",
-                        fontFamily = Nunito,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.outline
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_privacy_policy),
+                        contentDescription = null,
+                        modifier = Modifier.size(60.dp),
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                     )
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = stringResource(R.string.privacy_screen_title),
+                    fontFamily = Nunito,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = stringResource(R.string.privacy_screen_desc),
+                    fontFamily = Nunito,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 22.sp
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Botones
+                LinkButton(
+                    text = stringResource(R.string.privacy_link_about),
+                    icon = Icons.Default.Info,
+                    onClick = onAboutClick
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                LinkButton(
+                    text = stringResource(R.string.privacy_link_terms),
+                    icon = Icons.Default.Description,
+                    onClick = onTermsClick
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                LinkButton(
+                    text = stringResource(R.string.privacy_link_policy),
+                    icon = Icons.Default.Security,
+                    onClick = onPrivacyClick
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = "ZenIA v1.0.0",
+                    fontFamily = Nunito,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.outline
+                )
             }
         }
     }

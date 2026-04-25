@@ -68,127 +68,125 @@ fun DiarioScreen(
         }
     }
 
-    ZenIATheme {
-        Scaffold(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            topBar = {
-                Box(
-                    modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.TopCenter
-                ) {
-                    Box(modifier = Modifier.widthIn(max = 450.dp).fillMaxWidth()) {
-                        AnimatedContent(
-                            targetState = isEntryView,
-                            label = "TopBarAnimation",
-                            transitionSpec = {
-                                (fadeIn(tween(300)) + slideInVertically(tween(300)) { -it })
-                                    .togetherWith(fadeOut(tween(300)) + slideOutVertically(tween(300)) { -it })
-                            }
-                        ) { isEntry ->
-                            if (isEntry) {
-                                if (uiState.selectedDate != null) {
-                                    Box(modifier = Modifier.background(ZeniaTeal)) {
-                                        MiniCalendarTopBar(
-                                            selectedDate = uiState.selectedDate,
-                                            entries = entries,
-                                            isFavorite = isCurrentFavoriteState.value,
-                                            onFavoriteClick = { onToggleFavorite(uiState.selectedDate) },
-                                            onBackClick = onBackToCalendar,
-                                            onDateClick = onDateSelected
-                                        )
-                                    }
-
-                                }
-                            } else {
-                                Box(modifier = Modifier.statusBarsPadding()) {
-                                    CalendarTopBar(
-                                        selectedYear = uiState.selectedYear,
-                                        onYearClick = { showYearDialog = true },
-                                        onPrevYear = { onYearChange(-1) },
-                                        onNextYear = { onYearChange(1) }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            floatingActionButton = {
-                if (!isEntryView) {
-                    FloatingActionButton(
-                        onClick = {
-                            onDateSelected(LocalDate.now())
-                        },
-                        shape = CircleShape,
-                        containerColor = ZeniaTeal,
-                        contentColor = Color.White
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_simbolo_mas),
-                            contentDescription = "mas"
-                        )
-                    }
-                }
-            }
-        ) { innerPadding ->
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        topBar = {
             Box(
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .padding(innerPadding)
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.TopCenter
             ) {
-                Box(modifier = Modifier.widthIn(max = 600.dp).fillMaxSize()) {
-                    Crossfade(
-                        targetState = uiState.isLoading,
-                        animationSpec = tween(500),
-                        label = "LoadingTransition"
-                    ) { isLoading ->
-                        if (isLoading) {
-                            CalendarSkeleton()
-                        } else {
-                            AnimatedContent(
-                                targetState = uiState.selectedDate,
-                                label = "DiarioTransition",
-                                transitionSpec = {
-                                    if (targetState != null) {
-                                        (fadeIn(tween(300)) + scaleIn(initialScale = 0.92f, animationSpec = tween(300)))
-                                            .togetherWith(fadeOut(tween(300)))
-                                    } else {
-                                        (fadeIn(tween(300)) + scaleIn(initialScale = 1.05f, animationSpec = tween(300)))
-                                            .togetherWith(fadeOut(tween(300)) + scaleOut(targetScale = 0.92f, animationSpec = tween(300)))
-                                    }
-                                }
-                            ) { date ->
-                                if (date != null) {
-                                    entryContent(date)
-                                } else {
-                                    CalendarPagerView(
-                                        uiState = uiState,
-                                        onDateClick = onDateSelected,
-                                        onYearPageChanged = { diff -> onYearChange(diff) },
-                                        onJumpToToday = onJumpToToday,
-                                        onScrollConsumed = onScrollConsumed
+                Box(modifier = Modifier.widthIn(max = 450.dp).fillMaxWidth()) {
+                    AnimatedContent(
+                        targetState = isEntryView,
+                        label = "TopBarAnimation",
+                        transitionSpec = {
+                            (fadeIn(tween(300)) + slideInVertically(tween(300)) { -it })
+                                .togetherWith(fadeOut(tween(300)) + slideOutVertically(tween(300)) { -it })
+                        }
+                    ) { isEntry ->
+                        if (isEntry) {
+                            if (uiState.selectedDate != null) {
+                                Box(modifier = Modifier.background(ZeniaTeal)) {
+                                    MiniCalendarTopBar(
+                                        selectedDate = uiState.selectedDate,
+                                        entries = entries,
+                                        isFavorite = isCurrentFavoriteState.value,
+                                        onFavoriteClick = { onToggleFavorite(uiState.selectedDate) },
+                                        onBackClick = onBackToCalendar,
+                                        onDateClick = onDateSelected
                                     )
                                 }
+
+                            }
+                        } else {
+                            Box(modifier = Modifier.statusBarsPadding()) {
+                                CalendarTopBar(
+                                    selectedYear = uiState.selectedYear,
+                                    onYearClick = { showYearDialog = true },
+                                    onPrevYear = { onYearChange(-1) },
+                                    onNextYear = { onYearChange(1) }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        floatingActionButton = {
+            if (!isEntryView) {
+                FloatingActionButton(
+                    onClick = {
+                        onDateSelected(LocalDate.now())
+                    },
+                    shape = CircleShape,
+                    containerColor = ZeniaTeal,
+                    contentColor = Color.White
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_simbolo_mas),
+                        contentDescription = "mas"
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .padding(innerPadding)
+                .fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Box(modifier = Modifier.widthIn(max = 600.dp).fillMaxSize()) {
+                Crossfade(
+                    targetState = uiState.isLoading,
+                    animationSpec = tween(500),
+                    label = "LoadingTransition"
+                ) { isLoading ->
+                    if (isLoading) {
+                        CalendarSkeleton()
+                    } else {
+                        AnimatedContent(
+                            targetState = uiState.selectedDate,
+                            label = "DiarioTransition",
+                            transitionSpec = {
+                                if (targetState != null) {
+                                    (fadeIn(tween(300)) + scaleIn(initialScale = 0.92f, animationSpec = tween(300)))
+                                        .togetherWith(fadeOut(tween(300)))
+                                } else {
+                                    (fadeIn(tween(300)) + scaleIn(initialScale = 1.05f, animationSpec = tween(300)))
+                                        .togetherWith(fadeOut(tween(300)) + scaleOut(targetScale = 0.92f, animationSpec = tween(300)))
+                                }
+                            }
+                        ) { date ->
+                            if (date != null) {
+                                entryContent(date)
+                            } else {
+                                CalendarPagerView(
+                                    uiState = uiState,
+                                    onDateClick = onDateSelected,
+                                    onYearPageChanged = { diff -> onYearChange(diff) },
+                                    onJumpToToday = onJumpToToday,
+                                    onScrollConsumed = onScrollConsumed
+                                )
                             }
                         }
                     }
                 }
             }
         }
+    }
 
-        if (showYearDialog) {
-            YearPickerDialog(
-                currentYear = uiState.selectedYear,
-                onYearSelected = { newYear ->
-                    val diff = newYear - uiState.selectedYear
-                    if (diff != 0) onYearChange(diff)
-                    showYearDialog = false
-                },
-                onDismiss = { showYearDialog = false }
-            )
-        }
+    if (showYearDialog) {
+        YearPickerDialog(
+            currentYear = uiState.selectedYear,
+            onYearSelected = { newYear ->
+                val diff = newYear - uiState.selectedYear
+                if (diff != 0) onYearChange(diff)
+                showYearDialog = false
+            },
+            onDismiss = { showYearDialog = false }
+        )
     }
 }
 

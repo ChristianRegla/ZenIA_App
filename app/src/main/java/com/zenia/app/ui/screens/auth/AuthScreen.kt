@@ -128,69 +128,67 @@ fun AuthScreen(
             else -> {}
         }
     }
-    ZenIATheme {
-        Scaffold(
-            containerColor = Color.Transparent
-        ) { paddingValues ->
-            Box(
+    Scaffold(
+        containerColor = Color.Transparent
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.background_login_signup),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.background_login_signup),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(ZeniaTeal.copy(alpha = 0.75f))
-                )
-            }
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(ZeniaTeal.copy(alpha = 0.75f))
+            )
+        }
 
-            val configuration = LocalConfiguration.current
-            val screenHeight = configuration.screenHeightDp.dp
-            val screenWidth = configuration.screenWidthDp.dp
-            val isPortraitPhone = screenHeight > 600.dp && screenHeight > screenWidth
-            val bottomPadding = if (isPortraitPhone) 32.dp else 0.dp
-            val adjustedMinHeight = screenHeight - bottomPadding
+        val configuration = LocalConfiguration.current
+        val screenHeight = configuration.screenHeightDp.dp
+        val screenWidth = configuration.screenWidthDp.dp
+        val isPortraitPhone = screenHeight > 600.dp && screenHeight > screenWidth
+        val bottomPadding = if (isPortraitPhone) 32.dp else 0.dp
+        val adjustedMinHeight = screenHeight - bottomPadding
 
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-                AuthContent(
-                    state = state,
-                    actions = actions,
-                    minHeight = adjustedMinHeight,
-                    isPortraitPhone = isPortraitPhone,
-                    bottomPadding = bottomPadding,
-                    contentAlignment =
-                        if (isPortraitPhone) Alignment.BottomCenter else Alignment.Center,
-                )
-            }
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            AuthContent(
+                state = state,
+                actions = actions,
+                minHeight = adjustedMinHeight,
+                isPortraitPhone = isPortraitPhone,
+                bottomPadding = bottomPadding,
+                contentAlignment =
+                    if (isPortraitPhone) Alignment.BottomCenter else Alignment.Center,
+            )
+        }
 
-            if (state.uiState is AuthUiState.VerificationRequired) {
-                val email = state.uiState.email
+        if (state.uiState is AuthUiState.VerificationRequired) {
+            val email = state.uiState.email
 
-                AlertDialog(
-                    onDismissRequest = { actions.onDismissVerificationDialog() },
-                    title = { Text(stringResource(R.string.auth_verification_required_title)) },
-                    text = {
-                        Text(stringResource(R.string.auth_verification_required_message, email))
-                    },
-                    confirmButton = {
-                        TextButton(onClick = { actions.onResendVerificationClick() }) {
-                            Text(stringResource(R.string.auth_resend_email))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { actions.onDismissVerificationDialog() }) {
-                            Text(stringResource(R.string.auth_understood))
-                        }
-                    },
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    textContentColor = Color.DarkGray
-                )
-            }
+            AlertDialog(
+                onDismissRequest = { actions.onDismissVerificationDialog() },
+                title = { Text(stringResource(R.string.auth_verification_required_title)) },
+                text = {
+                    Text(stringResource(R.string.auth_verification_required_message, email))
+                },
+                confirmButton = {
+                    TextButton(onClick = { actions.onResendVerificationClick() }) {
+                        Text(stringResource(R.string.auth_resend_email))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { actions.onDismissVerificationDialog() }) {
+                        Text(stringResource(R.string.auth_understood))
+                    }
+                },
+                containerColor = Color.White,
+                titleContentColor = Color.Black,
+                textContentColor = Color.DarkGray
+            )
         }
     }
 }
@@ -667,34 +665,4 @@ private fun RequirementRow(text: String, isMet: Boolean) {
             fontFamily = Nunito
         )
     }
-}
-
-@Preview(name = "Modo Login", showBackground = true)
-@Composable
-fun AuthScreenPreview_Login() {
-    val state = AuthScreenState(
-        uiState = AuthUiState.Idle,
-        isRegisterMode = false,
-        email = "",
-        password = "",
-        confirmPassword = "",
-        termsAccepted = false
-    )
-    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})
-    ZenIATheme { AuthScreen(state = state, actions = actions) }
-}
-
-@Preview(name = "Modo Cargando Zen", showBackground = true)
-@Composable
-fun AuthScreenPreview_Loading_Zen() {
-    val state = AuthScreenState(
-        uiState = AuthUiState.Loading,
-        isRegisterMode = false,
-        email = "test@zen.ia",
-        password = "password",
-        confirmPassword = "",
-        termsAccepted = false
-    )
-    val actions = AuthScreenActions({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})
-    ZenIATheme { AuthScreen(state = state, actions = actions) }
 }
