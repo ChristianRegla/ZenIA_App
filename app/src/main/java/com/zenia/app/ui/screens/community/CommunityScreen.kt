@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,15 +39,24 @@ import androidx.compose.ui.unit.dp
 import com.zenia.app.model.CommunityPost
 import com.zenia.app.ui.components.ZeniaTopBar
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.window.DialogProperties
 import com.zenia.app.R
 import com.zenia.app.ui.theme.*
+import com.zenia.app.util.DevicePreviews
 
 val AVATAR_LIST = listOf(
     R.drawable.avatar_1,
     R.drawable.avatar_2,
     R.drawable.avatar_3,
     R.drawable.avatar_4,
-    R.drawable.avatar_5
+    R.drawable.avatar_5,
+    R.drawable.avatar_6,
+    R.drawable.avatar_7,
+    R.drawable.avatar_8,
+    R.drawable.avatar_9,
+    R.drawable.avatar_10,
+    R.drawable.avatar_11
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,6 +78,8 @@ fun CommunityScreen(
     onTranslateClick: (String, String) -> Unit,
     onRevertTranslateClick: (String) -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
+
     val isAtBottom by remember {
         derivedStateOf {
             val layoutInfo = listState.layoutInfo
@@ -107,40 +120,48 @@ fun CommunityScreen(
         ) {
             if (uiState.isLoading && uiState.posts.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = ZeniaTeal)
                 }
             } else {
-                LazyColumn(
-                    state = listState,
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxSize()
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.TopCenter
                 ) {
-                    items(uiState.posts, key = { it.id }) { post ->
-                        CommunityPostItem(
-                            post = post,
-                            currentUserId = currentUserId,
-                            isTranslating = uiState.translatingPostIds.contains(post.id),
-                            translatedText = uiState.translatedPosts[post.id],
-                            onLikeClick = { onLikeClick(post) },
-                            onDeleteClick = { onDeleteClick(post) },
-                            onBlockClick = { onBlockClick(post.authorId) },
-                            onReportClick = { onReportClick(post) },
-                            onCommentClick = { onCommentClick(post) },
-                            onTranslateClick = { onTranslateClick(post.id, post.content) },
-                            onRevertTranslateClick = { onRevertTranslateClick(post.id) }
-                        )
-                    }
+                    LazyColumn(
+                        state = listState,
+                        contentPadding = PaddingValues(dimensions.paddingMedium),
+                        verticalArrangement = Arrangement.spacedBy(dimensions.paddingMedium),
+                        modifier = Modifier.widthIn(max = 650.dp).fillMaxSize()
+                    ) {
+                        items(uiState.posts, key = { it.id }) { post ->
+                            CommunityPostItem(
+                                post = post,
+                                currentUserId = currentUserId,
+                                isTranslating = uiState.translatingPostIds.contains(post.id),
+                                translatedText = uiState.translatedPosts[post.id],
+                                onLikeClick = { onLikeClick(post) },
+                                onDeleteClick = { onDeleteClick(post) },
+                                onBlockClick = { onBlockClick(post.authorId) },
+                                onReportClick = { onReportClick(post) },
+                                onCommentClick = { onCommentClick(post) },
+                                onTranslateClick = { onTranslateClick(post.id, post.content) },
+                                onRevertTranslateClick = { onRevertTranslateClick(post.id) }
+                            )
+                        }
 
-                    if (uiState.isLoading && !isRefreshing) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        if (uiState.isLoading && !isRefreshing) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(dimensions.paddingSmall),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(dimensions.iconMedium),
+                                        color = ZeniaTeal
+                                    )
+                                }
                             }
                         }
                     }
@@ -164,6 +185,7 @@ fun CommunityPostItem(
     onTranslateClick: (() -> Unit)? = null,
     onRevertTranslateClick: (() -> Unit)? = null
 ) {
+    val dimensions = ZenIATheme.dimensions
     var expandedMenu by remember { mutableStateOf(false) }
     val isOwnPost = currentUserId != null && post.authorId == currentUserId
 
@@ -177,12 +199,12 @@ fun CommunityPostItem(
     )
 
     Card(
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(dimensions.cornerRadiusNormal),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(dimensions.paddingMedium)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -200,13 +222,17 @@ fun CommunityPostItem(
                         text = post.authorApodo,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = ZeniaDark
+                        color = ZeniaDark,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     if (post.authorIsPremium) {
                         Text(
                             text = stringResource(R.string.badge_premium_member),
                             style = MaterialTheme.typography.labelSmall,
-                            color = ZeniaPremiumPurple
+                            color = ZeniaPremiumPurple,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -256,7 +282,7 @@ fun CommunityPostItem(
             Text(
                 text = translatedText ?: post.content,
                 style = MaterialTheme.typography.bodyMedium,
-                color = ZeniaSlateGrey
+                color = ZeniaSlateGrey,
             )
 
             if (translatedText == null && onTranslateClick != null) {
@@ -265,7 +291,7 @@ fun CommunityPostItem(
                         onClick = onTranslateClick,
                         enabled = !isTranslating,
                         contentPadding = PaddingValues(0.dp),
-                        modifier = Modifier.height(24.dp)
+                        modifier = Modifier.heightIn(min = 24.dp)
                     ) {
                         if (isTranslating) {
                             CircularProgressIndicator(modifier = Modifier.size(12.dp), color = ZeniaTeal, strokeWidth = 2.dp)
@@ -281,19 +307,19 @@ fun CommunityPostItem(
                     TextButton(
                         onClick = onRevertTranslateClick,
                         contentPadding = PaddingValues(0.dp),
-                        modifier = Modifier.height(24.dp)
+                        modifier = Modifier.heightIn(min = 24.dp)
                     ) {
                         Text(text = stringResource(R.string.action_see_original), style = MaterialTheme.typography.labelSmall, color = ZeniaTeal)
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(dimensions.paddingMedium))
 
             HorizontalDivider(color = ZeniaLightGrey.copy(alpha = 0.5f))
 
             Row(
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.padding(top = dimensions.paddingSmall),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -316,7 +342,7 @@ fun CommunityPostItem(
                     )
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(dimensions.paddingMedium))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { onCommentClick?.invoke() }) {
@@ -356,11 +382,7 @@ fun UserAvatar(
             .border(
                 width = 3.dp,
                 brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color(0xFFFFD700),
-                        ZeniaPremiumPurple,
-                        Color(0xFFFF8C00)
-                    )
+                    colors = listOf(Color(0xFFFFD700), ZeniaPremiumPurple, Color(0xFFFF8C00))
                 ),
                 shape = CircleShape
             )
@@ -388,6 +410,7 @@ fun CreatePostDialog(
     errorMessage: String?,
     onSuccess: () -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
     var text by remember { mutableStateOf("") }
     var hasSubmitted by remember { mutableStateOf(false) }
 
@@ -399,11 +422,14 @@ fun CreatePostDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        properties = DialogProperties(decorFitsSystemWindows = true),
         title = {
             Text(
                 stringResource(R.string.dialog_new_post_title),
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         },
         text = {
@@ -453,26 +479,101 @@ fun CreatePostDialog(
                 },
                 enabled = text.isNotBlank() && !isLoading && errorMessage == null,
                 colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal),
+                modifier = Modifier.heightIn(min = dimensions.buttonHeight),
                 shape = RoundedCornerShape(8.dp)
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(modifier = Modifier.size(16.dp), color = Color.White)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.action_publishing))
+                    Text(stringResource(R.string.action_publishing), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 } else {
                     Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.action_publish))
+                    Text(stringResource(R.string.action_publish), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel), color = ZeniaSlateGrey)
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.heightIn(min = dimensions.buttonHeight)
+            ) {
+                Text(stringResource(R.string.common_cancel), color = ZeniaSlateGrey, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         },
         containerColor = Color.White,
         tonalElevation = 0.dp,
         shape = RoundedCornerShape(24.dp)
     )
+}
+
+@DevicePreviews
+@Composable
+private fun CommunityScreenPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Expanded) {
+        CommunityScreen(
+            uiState = CommunityViewModel.UiState(
+                isLoading = false,
+                isRefreshing = false,
+                posts = listOf(
+                    CommunityPost(
+                        id = "1",
+                        authorId = "user1",
+                        authorApodo = "ZenMaster99",
+                        authorAvatarIndex = 3,
+                        authorIsPremium = true,
+                        content = "Hoy completé 5 minutos de respiración profunda y siento que puedo conquistar el mundo. Recomiendo mucho la sección de Relajación a todos los que empiezan el día estresados.",
+                        category = "Logros",
+                        likesCount = 42,
+                        commentsCount = 12,
+                        isLikedByCurrentUser = true
+                    ),
+                    CommunityPost(
+                        id = "2",
+                        authorId = "user2",
+                        authorApodo = "AlmaLibre",
+                        authorAvatarIndex = 1,
+                        authorIsPremium = false,
+                        content = "A veces está bien no estar bien. Llevo un par de días grises pero leerlos a ustedes en esta comunidad me ayuda un montón.",
+                        category = "Desahogo",
+                        likesCount = 15,
+                        commentsCount = 3,
+                        isLikedByCurrentUser = false
+                    )
+                ),
+                error = null
+            ),
+            listState = androidx.compose.foundation.lazy.rememberLazyListState(),
+            currentUserId = "user1",
+            onNavigateBack = {},
+            onLoadMore = {},
+            onFabClick = {},
+            onLikeClick = {},
+            onDeleteClick = {},
+            onBlockClick = {},
+            onReportClick = {},
+            isRefreshing = false,
+            onRefresh = {},
+            onCommentClick = {},
+            onTranslateClick = { _, _ -> },
+            onRevertTranslateClick = {}
+        )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun CreatePostDialogPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Compact) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f))) {
+            CreatePostDialog(
+                onDismiss = {},
+                onSend = {},
+                onValidate = {},
+                isLoading = false,
+                errorMessage = null,
+                onSuccess = {}
+            )
+        }
+    }
 }

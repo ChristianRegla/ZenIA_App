@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,7 +28,9 @@ import com.zenia.app.model.CommunityPost
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.*
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import com.zenia.app.R
+import com.zenia.app.util.DevicePreviews
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,6 +51,7 @@ fun PostDetailScreen(
     onTranslateMainPostClick: (String, String) -> Unit,
     onRevertMainPostTranslationClick: () -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
     var inputText by remember { mutableStateOf("") }
 
     val displayPost = uiState.mainPost ?: mainPost
@@ -67,94 +71,101 @@ fun PostDetailScreen(
         },
         containerColor = ZeniaLightGrey
     ) { padding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            contentAlignment = Alignment.TopCenter
         ) {
-            item {
-                CommunityPostItem(
-                    post = displayPost,
-                    currentUserId = currentUserId,
-                    isTranslating = uiState.translatingMainPost,
-                    translatedText = uiState.translatedMainPost,
-                    onLikeClick = onLikeMainPost,
-                    onDeleteClick = {},
-                    onBlockClick = { onBlockComment(displayPost.authorId) },
-                    onReportClick = { onReportMainPost() },
-                    onCommentClick = null,
-                    onTranslateClick = { onTranslateMainPostClick(displayPost.id, displayPost.content) },
-                    onRevertTranslateClick = onRevertMainPostTranslationClick
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.title_responses),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = ZeniaDark,
-                    modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
-                )
-            }
-
-            if (uiState.comments.isEmpty() && !uiState.isLoading) {
+            LazyColumn(
+                modifier = Modifier
+                    .widthIn(max = 650.dp)
+                    .fillMaxSize(),
+                contentPadding = PaddingValues(dimensions.paddingMedium),
+                verticalArrangement = Arrangement.spacedBy(dimensions.paddingMedium)
+            ) {
                 item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 48.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Box(
+                    CommunityPostItem(
+                        post = displayPost,
+                        currentUserId = currentUserId,
+                        isTranslating = uiState.translatingMainPost,
+                        translatedText = uiState.translatedMainPost,
+                        onLikeClick = onLikeMainPost,
+                        onDeleteClick = {},
+                        onBlockClick = { onBlockComment(displayPost.authorId) },
+                        onReportClick = { onReportMainPost() },
+                        onCommentClick = null,
+                        onTranslateClick = { onTranslateMainPostClick(displayPost.id, displayPost.content) },
+                        onRevertTranslateClick = onRevertMainPostTranslationClick
+                    )
+                    Spacer(modifier = Modifier.height(dimensions.paddingSmall))
+                    Text(
+                        text = stringResource(R.string.title_responses),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = ZeniaDark,
+                        modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+                    )
+                }
+
+                if (uiState.comments.isEmpty() && !uiState.isLoading) {
+                    item {
+                        Column(
                             modifier = Modifier
-                                .size(80.dp)
-                                .background(ZeniaTeal.copy(alpha = 0.1f), shape = RoundedCornerShape(24.dp)),
-                            contentAlignment = Alignment.Center
+                                .fillMaxWidth()
+                                .padding(vertical = 48.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            Icon(
-                                painter = androidx.compose.ui.res.painterResource(R.drawable.ic_chat),
-                                contentDescription = null,
-                                tint = ZeniaTeal,
-                                modifier = Modifier.size(40.dp)
+                            Box(
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .background(ZeniaTeal.copy(alpha = 0.1f), shape = RoundedCornerShape(24.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = androidx.compose.ui.res.painterResource(R.drawable.ic_chat),
+                                    contentDescription = null,
+                                    tint = ZeniaTeal,
+                                    modifier = Modifier.size(40.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(dimensions.paddingMedium))
+
+                            Text(
+                                text = stringResource(R.string.no_comments_yet),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = ZeniaDark,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(dimensions.paddingSmall))
+
+                            Text(
+                                text = stringResource(R.string.be_the_first_to_comment),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = ZeniaSlateGrey,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
                             )
                         }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Text(
-                            text = stringResource(R.string.no_comments_yet),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = ZeniaDark,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = stringResource(R.string.be_the_first_to_comment),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = ZeniaSlateGrey,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    }
+                } else {
+                    items(uiState.comments, key = { it.id }) { comment ->
+                        CommunityCommentItem(
+                            comment = comment,
+                            currentUserId = currentUserId,
+                            isTranslating = uiState.translatingCommentIds.contains(comment.id),
+                            translatedText = uiState.translatedComments[comment.id],
+                            onLikeClick = { onLikeComment(comment) },
+                            onDeleteClick = { onDeleteComment(comment) },
+                            onReportClick = { onReportComment(comment) },
+                            onBlockClick = { onBlockComment(comment.authorId) },
+                            onTranslateClick = { onTranslateClick(comment.id, comment.content) },
+                            onRevertTranslateClick = { onRevertTranslateClick(comment.id) }
                         )
                     }
-                }
-            } else {
-                items(uiState.comments, key = { it.id }) { comment ->
-                    CommunityCommentItem(
-                        comment = comment,
-                        currentUserId = currentUserId,
-                        isTranslating = uiState.translatingCommentIds.contains(comment.id),
-                        translatedText = uiState.translatedComments[comment.id],
-                        onLikeClick = { onLikeComment(comment) },
-                        onDeleteClick = { onDeleteComment(comment) },
-                        onReportClick = { onReportComment(comment) },
-                        onBlockClick = { onBlockComment(comment.authorId) },
-                        onTranslateClick = { onTranslateClick(comment.id, comment.content) },
-                        onRevertTranslateClick = { onRevertTranslateClick(comment.id) }
-                    )
                 }
             }
         }
@@ -176,6 +187,7 @@ fun CommunityCommentItem(
 ) {
     var expandedMenu by remember { mutableStateOf(false) }
     val isOwnComment = currentUserId != null && comment.authorId == currentUserId
+    val dimensions = ZenIATheme.dimensions
 
     val scale by animateFloatAsState(
         targetValue = if (comment.isLikedByCurrentUser) 1.2f else 1.0f,
@@ -193,7 +205,7 @@ fun CommunityCommentItem(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(dimensions.paddingMedium)) {
             Row(
                 verticalAlignment = Alignment.Top,
                 modifier = Modifier.fillMaxWidth()
@@ -212,14 +224,18 @@ fun CommunityCommentItem(
                             text = comment.authorApodo,
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
-                            color = ZeniaDark
+                            color = ZeniaDark,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         if (comment.authorIsPremium) {
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = stringResource(R.string.badge_premium),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = ZeniaPremiumPurple
+                                color = ZeniaPremiumPurple,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -237,7 +253,7 @@ fun CommunityCommentItem(
                                 onClick = onTranslateClick,
                                 enabled = !isTranslating,
                                 contentPadding = PaddingValues(0.dp),
-                                modifier = Modifier.height(24.dp)
+                                modifier = Modifier.heightIn(min = 24.dp)
                             ) {
                                 if (isTranslating) {
                                     CircularProgressIndicator(modifier = Modifier.size(10.dp), color = ZeniaTeal, strokeWidth = 1.dp)
@@ -253,7 +269,7 @@ fun CommunityCommentItem(
                             TextButton(
                                 onClick = onRevertTranslateClick,
                                 contentPadding = PaddingValues(0.dp),
-                                modifier = Modifier.height(24.dp)
+                                modifier = Modifier.heightIn(min = 24.dp)
                             ) {
                                 Text(text = stringResource(R.string.action_see_original), style = MaterialTheme.typography.labelSmall, color = ZeniaTeal)
                             }
@@ -311,7 +327,7 @@ fun CommunityCommentItem(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp),
+                    .padding(top = dimensions.paddingSmall),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start
             ) {
@@ -354,49 +370,117 @@ fun CommentInputBar(
         shadowElevation = 8.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier
-                .imePadding()
-                .navigationBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            OutlinedTextField(
-                value = text,
-                onValueChange = { if (it.length <= 500) onTextChange(it) },
-                placeholder = {
-                    Text(
-                        stringResource(R.string.hint_write_reply),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                },
-                modifier = Modifier.weight(1f),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = ZeniaTeal,
-                    unfocusedBorderColor = ZeniaLightGrey
-                ),
-                shape = RoundedCornerShape(24.dp),
-                maxLines = 4
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            IconButton(
-                onClick = onSend,
-                enabled = text.isNotBlank() && !isSending,
-                modifier = Modifier.background(
-                    if (text.isNotBlank() && !isSending) ZeniaTeal else ZeniaLightGrey,
-                    shape = RoundedCornerShape(50)
-                )
+        Box(contentAlignment = Alignment.Center) {
+            Row(
+                modifier = Modifier
+                    .widthIn(max = 650.dp)
+                    .fillMaxWidth()
+                    .imePadding()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                if (isSending) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
-                } else {
-                    Icon(
-                        Icons.AutoMirrored.Filled.Send,
-                        contentDescription = stringResource(R.string.cd_send),
-                        tint = Color.White
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { if (it.length <= 500) onTextChange(it) },
+                    placeholder = {
+                        Text(
+                            stringResource(R.string.hint_write_reply),
+                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = ZeniaTeal,
+                        unfocusedBorderColor = ZeniaLightGrey
+                    ),
+                    shape = RoundedCornerShape(24.dp),
+                    maxLines = 4
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(
+                    onClick = onSend,
+                    enabled = text.isNotBlank() && !isSending,
+                    modifier = Modifier.background(
+                        if (text.isNotBlank() && !isSending) ZeniaTeal else ZeniaLightGrey,
+                        shape = RoundedCornerShape(50)
                     )
+                ) {
+                    if (isSending) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+                    } else {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Send,
+                            contentDescription = stringResource(R.string.cd_send),
+                            tint = Color.White
+                        )
+                    }
                 }
             }
         }
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun PostDetailScreenPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Expanded) {
+        PostDetailScreen(
+            mainPost = CommunityPost(
+                id = "1",
+                authorId = "user1",
+                authorApodo = "ZenMaster99",
+                authorAvatarIndex = 3,
+                authorIsPremium = true,
+                content = "Hoy completé 5 minutos de respiración profunda y siento que puedo conquistar el mundo. Recomiendo mucho la sección de Relajación a todos los que empiezan el día estresados.",
+                category = "Logros",
+                likesCount = 42,
+                commentsCount = 2,
+                isLikedByCurrentUser = true
+            ),
+            uiState = PostDetailViewModel.UiState(
+                isLoading = false,
+                isSending = false,
+                comments = listOf(
+                    CommunityComment(
+                        id = "c1",
+                        postId = "1",
+                        authorId = "user2",
+                        authorApodo = "AlmaLibre",
+                        authorAvatarIndex = 1,
+                        authorIsPremium = false,
+                        content = "¡Qué gran logro! Yo empezaré mañana.",
+                        likesCount = 5,
+                        isLikedByCurrentUser = false
+                    ),
+                    CommunityComment(
+                        id = "c2",
+                        postId = "1",
+                        authorId = "user3",
+                        authorApodo = "RespiraciónProfunda",
+                        authorAvatarIndex = 4,
+                        authorIsPremium = true,
+                        content = "Confirmo, la técnica de 4-7-8 que tienen aquí es oro puro para la ansiedad nocturna.",
+                        likesCount = 12,
+                        isLikedByCurrentUser = true
+                    )
+                )
+            ),
+            currentUserId = "user2",
+            onNavigateBack = {},
+            onSendComment = {},
+            onLikeComment = {},
+            onDeleteComment = {},
+            onBlockComment = {},
+            onReportComment = {},
+            onReportMainPost = {},
+            onLikeMainPost = {},
+            onTranslateClick = {_,_->},
+            onRevertTranslateClick = {},
+            onTranslateMainPostClick = {_,_->},
+            onRevertMainPostTranslationClick = {}
+        )
     }
 }
