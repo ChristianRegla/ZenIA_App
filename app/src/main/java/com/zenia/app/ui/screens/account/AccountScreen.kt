@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,7 +32,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -42,6 +43,7 @@ import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaSlateGrey
 import com.zenia.app.ui.theme.ZeniaTeal
+import com.zenia.app.util.DevicePreviews
 import kotlinx.coroutines.delay
 
 data class AccountScreenState(
@@ -68,6 +70,7 @@ fun AccountScreen(
     state: AccountScreenState,
     actions: AccountScreenActions
 ) {
+    val dimensions = ZenIATheme.dimensions
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = state.snackbarHostState) },
         topBar = {
@@ -90,9 +93,9 @@ fun AccountScreen(
                     .fillMaxHeight()
                     .widthIn(max = 600.dp)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 24.dp),
+                    .padding(horizontal = dimensions.paddingMedium, vertical = dimensions.paddingLarge),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                verticalArrangement = Arrangement.spacedBy(dimensions.paddingLarge)
             ) {
 
                 AccountSection(title = stringResource(R.string.account_info_title)) {
@@ -112,7 +115,7 @@ fun AccountScreen(
                 }
 
                 if (state.isLoading) {
-                    CircularProgressIndicator(color = ZeniaTeal, modifier = Modifier.padding(32.dp))
+                    CircularProgressIndicator(color = ZeniaTeal, modifier = Modifier.padding(dimensions.paddingExtraLarge))
                 } else {
                     AccountSection(title = stringResource(R.string.account_security_title)) {
                         AccountActionItem(
@@ -156,7 +159,7 @@ fun AccountScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier.padding(horizontal = dimensions.paddingMedium)
                     )
                 }
             }
@@ -177,6 +180,7 @@ fun TwoStepDeleteDialog(
     onConfirm: () -> Unit
 ) {
     var currentStep by remember { mutableIntStateOf(1) }
+    val dimensions = ZenIATheme.dimensions
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -191,7 +195,7 @@ fun TwoStepDeleteDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp),
+                    .padding(dimensions.paddingLarge),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
@@ -205,11 +209,11 @@ fun TwoStepDeleteDialog(
                         imageVector = if (currentStep == 1) Icons.Default.Warning else Icons.Default.DeleteForever,
                         contentDescription = null,
                         tint = Color(0xFFE53935),
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(dimensions.iconLarge)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(dimensions.paddingMedium))
 
                 Text(
                     text = if (currentStep == 1) stringResource(R.string.account_delete_dialog_title) else stringResource(R.string.account_delete_dialog_final_title),
@@ -218,7 +222,7 @@ fun TwoStepDeleteDialog(
                     color = Color.Black
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(dimensions.paddingSmall))
 
                 Text(
                     text = if (currentStep == 1) {
@@ -231,16 +235,18 @@ fun TwoStepDeleteDialog(
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(dimensions.paddingExtraLarge))
 
                 if (currentStep == 1) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(dimensions.paddingSmall)
                     ) {
                         OutlinedButton(
                             onClick = onDismiss,
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .heightIn(min = dimensions.buttonHeight),
                             shape = RoundedCornerShape(16.dp),
                             border = BorderStroke(1.dp, ZeniaSlateGrey)
                         ) {
@@ -248,7 +254,9 @@ fun TwoStepDeleteDialog(
                         }
                         Button(
                             onClick = { currentStep = 2 },
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .heightIn(min = dimensions.buttonHeight),
                             shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))
                         ) {
@@ -260,7 +268,7 @@ fun TwoStepDeleteDialog(
                         timerSeconds = 5,
                         onConfirm = onConfirm
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(dimensions.paddingSmall))
                     TextButton(onClick = onDismiss) {
                         Text(stringResource(R.string.account_delete_cancel_process), color = ZeniaSlateGrey)
                     }
@@ -277,6 +285,7 @@ fun AnimatedTimerButton(
 ) {
     var timeLeft by remember { mutableIntStateOf(timerSeconds) }
     var isRunning by remember { mutableStateOf(false) }
+    val dimensions = ZenIATheme.dimensions
 
     val animatedProgress by animateFloatAsState(
         targetValue = if (isRunning) 1f else 0f,
@@ -304,8 +313,8 @@ fun AnimatedTimerButton(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .heightIn(min = dimensions.buttonHeight)
+            .clip(RoundedCornerShape(dimensions.cornerRadiusNormal))
             .background(Color(0xFFFCE4E4))
             .clickable(enabled = timeLeft == 0, onClick = onConfirm)
     ) {
@@ -334,16 +343,18 @@ fun AccountSection(
     title: String,
     content: @Composable () -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = title.uppercase(),
             style = MaterialTheme.typography.labelMedium,
             color = ZeniaSlateGrey,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+            modifier = Modifier.padding(start = dimensions.paddingMedium, bottom = dimensions.paddingSmall)
         )
         Card(
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(dimensions.cornerRadiusNormal),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
             modifier = Modifier.fillMaxWidth()
@@ -363,22 +374,46 @@ private fun AccountInfoItem(
     valueColor: Color = Color.Black,
     isLast: Boolean
 ) {
+    val dimensions = ZenIATheme.dimensions
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .padding(horizontal = dimensions.paddingLarge, vertical = dimensions.paddingMedium),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(imageVector = icon, contentDescription = null, tint = ZeniaSlateGrey, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.width(16.dp))
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = ZeniaSlateGrey,
+                modifier = Modifier.size(dimensions.iconMedium)
+            )
+            Spacer(modifier = Modifier.width(dimensions.paddingMedium))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = label, style = MaterialTheme.typography.bodySmall, color = ZeniaSlateGrey)
-                Text(text = value, style = MaterialTheme.typography.bodyLarge, color = valueColor, fontWeight = FontWeight.Medium)
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    color = ZeniaSlateGrey,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = valueColor,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
         if (!isLast) {
-            HorizontalDivider(modifier = Modifier.padding(start = 60.dp, end = 20.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 56.dp, end = dimensions.paddingMedium),
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.surfaceVariant
+            )
         }
     }
 }
@@ -392,27 +427,96 @@ private fun AccountActionItem(
     isLast: Boolean = false,
     onClick: () -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = dimensions.buttonHeight)
             .clickable(onClick = onClick)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .padding(horizontal = dimensions.paddingLarge, vertical = dimensions.paddingMedium),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(imageVector = icon, contentDescription = null, tint = textColor, modifier = Modifier.size(24.dp))
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = textColor,
+                modifier = Modifier.size(dimensions.iconMedium)
+            )
             Spacer(modifier = Modifier.width(16.dp))
-            Text(text = text, fontFamily = RobotoFlex, fontSize = 16.sp, color = textColor, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+            Text(
+                text = text,
+                fontFamily = RobotoFlex,
+                fontSize = 16.sp,
+                color = textColor,
+                fontWeight = FontWeight.Medium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
 
             if (showArrow) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(dimensions.paddingSmall))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = Color.LightGray,
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
         if (!isLast) {
-            HorizontalDivider(modifier = Modifier.padding(start = 60.dp, end = 20.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 56.dp, end = dimensions.paddingMedium),
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.surfaceVariant
+            )
+        }
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun AccountScreenPreview() {
+    val windowSizeClass = WindowWidthSizeClass.Compact
+
+    ZenIATheme(windowSizeClass = windowSizeClass) {
+        AccountScreen(
+            state = AccountScreenState(
+                isLoading = false,
+                userEmail = "christian.regla@ejemplo.com",
+                isVerified = true,
+                showDeleteDialog = false,
+                snackbarHostState = SnackbarHostState()
+            ),
+            actions = AccountScreenActions(
+                onNavigateBack = {},
+                onNavigateToBlockedUsers = {},
+                onResendVerification = {},
+                onChangePassword = {},
+                onDeleteAccountRequest = {},
+                onConfirmDeleteAccount = {},
+                onDismissDeleteDialog = {}
+            )
+        )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun AccountScreenDeleteDialogPreview() {
+    val windowSizeClass = WindowWidthSizeClass.Compact
+
+    ZenIATheme(windowSizeClass = windowSizeClass) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.Gray.copy(alpha = 0.5f))) {
+            TwoStepDeleteDialog(
+                onDismiss = {},
+                onConfirm = {}
+            )
         }
     }
 }
