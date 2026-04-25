@@ -72,10 +72,6 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Idle)
     val uiState = _uiState.asStateFlow()
 
-    /**
-     * Carga la racha usando la función eficiente del repositorio.
-     * Esto evita descargar todo el contenido de meses pasados.
-     */
     private fun loadStreak() {
         viewModelScope.launch {
             val userId = sessionManager.currentUserId

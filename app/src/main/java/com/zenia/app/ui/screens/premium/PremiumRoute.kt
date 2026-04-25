@@ -28,6 +28,7 @@ fun PremiumRoute(
         onSubscribe = { activity, planId ->
             viewModel.comprarSuscripcion(activity, planId)
         },
+        onRestorePurchases = viewModel::restaurarCompras,
         prices = prices
     )
 }

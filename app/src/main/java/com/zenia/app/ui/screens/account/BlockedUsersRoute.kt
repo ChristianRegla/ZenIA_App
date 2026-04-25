@@ -88,6 +88,7 @@ fun BlockedUsersRoute(
     BlockedUsersScreen(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
-        onUnblockClick = { user -> userToUnblock = user }
+        onUnblockClick = { user -> userToUnblock = user },
+        onRetry = { viewModel.loadBlockedUsers() }
     )
 }

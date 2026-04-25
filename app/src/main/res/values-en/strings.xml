@@ -251,7 +251,7 @@
     <string name="home_view_all">View all</string>
     <string name="home_streak_active">Streak active!</string>
     <string name="home_log_day">Log my day</string>
-    <string name="home_streak_counter">You\'re on a %1$d day streak! 🔥</string>
+    <string name="home_streak_counter">You\'re on a %1$d day streak!</string>
     <string name="home_start_streak">Start your streak today.</string>
     <string name="home_no_chart_data">No data yet. Log your first day!</string>
     <string name="home_community_participants">%1$d participants</string>
@@ -779,4 +779,115 @@
     <string name="changelog_1_1_5_date">April 08, 2026</string>
     <string name="changelog_1_1_5_improvement">Improved Health Connect synchronization to read steps and heart rate.</string>
     <string name="changelog_1_1_5_fix">Fixed a bug where diary entries sometimes did not save user-created categories.</string>
+
+    <string name="changelog_1_4_0_date">April 22, 2026</string>
+    <string name="changelog_1_4_0_feature_1">Streak gamification! Celebrate your wellness milestones and share your achievements in Story format for social media.</string>
+    <string name="changelog_1_4_0_improvement_1">Complete redesign of PDF export. Your logs now look like a premium report with rounded cards and high-res logo support.</string>
+    <string name="changelog_1_4_0_improvement_2">Fluidity optimization in avatar selection, SOS screen redesign with expandable cards, and new visual states for offline mode.</string>
+
+    <string name="action_restore_purchases">Restore Purchases</string>
+
+    <string name="home_greeting_morning">Good morning, %1$s</string>
+    <string name="home_greeting_afternoon">Good afternoon, %1$s</string>
+    <string name="home_greeting_night">Good evening, %1$s</string>
+
+    <string name="daily_inspiration_title">DAILY INSPIRATION</string>
+
+    <string-array name="daily_quotes">
+        <item>Peace comes from within. Do not seek it without.</item>
+        <item>You can\'t stop the waves, but you can learn to surf.</item>
+        <item>The present moment is filled with joy. If you are attentive, you will see it.</item>
+        <item>Life is a journey, not a destination.</item>
+        <item>Be the change that you wish to see in the world.</item>
+        <item>The mind is everything. What you think you become.</item>
+        <item>Happiness is not something ready-made. It comes from your own actions.</item>
+        <item>Holding on to anger is like drinking poison and expecting the other person to die.</item>
+        <item>Patience is bitter, but its fruit is sweet.</item>
+        <item>There is no way to peace, peace is the way.</item>
+        <item>The only true voyage of discovery consists in having new eyes.</item>
+        <item>If you want to conquer the anxiety of life, live in the breath.</item>
+        <item>Your vision will become clear only when you can look into your own heart.</item>
+        <item>Each morning we are born again. What we do today is what matters most.</item>
+        <item>The best way to capture moments is to pay attention.</item>
+        <item>Nothing is permanent in this world, not even our troubles.</item>
+        <item>Focus on the journey, not the destination.</item>
+        <item>Calmness is the cradle of power.</item>
+        <item>Life is 10%% what happens to you and 90%% how you react to it.</item>
+        <item>Almost everything will work again if you unplug it for a few minutes, including you.</item>
+        <item>When the mind is calm, everything becomes clear.</item>
+        <item>Breathing is the greatest gift of nature. Be grateful for it.</item>
+        <item>Take the first step in faith. You don\'t have to see the whole staircase.</item>
+        <item>Be kind, for everyone you meet is fighting a hard battle.</item>
+        <item>Silence is sometimes the best answer.</item>
+        <item>Do not look back in anger, or forward in fear, but around in awareness.</item>
+        <item>Yesterday is history, tomorrow is a mystery, today is a gift.</item>
+        <item>What you resist persists. What you accept transforms you.</item>
+        <item>Wherever you go, go with all your heart.</item>
+        <item>You yourself, as much as anybody in the entire universe, deserve your love and affection.</item>
+        <item>Start where you are. Use what you have. Do what you can.</item>
+    </string-array>
+
+    <string-array name="daily_quote_authors">
+        <item>Buddha</item>
+        <item>Jon Kabat-Zinn</item>
+        <item>Thich Nhat Hanh</item>
+        <item>Ralph Waldo Emerson</item>
+        <item>Mahatma Gandhi</item>
+        <item>Buddha</item>
+        <item>Dalai Lama</item>
+        <item>Buddha</item>
+        <item>Jean-Jacques Rousseau</item>
+        <item>A.J. Muste</item>
+        <item>Marcel Proust</item>
+        <item>Amit Ray</item>
+        <item>Carl Jung</item>
+        <item>Buddha</item>
+        <item>Jon Kabat-Zinn</item>
+        <item>Charlie Chaplin</item>
+        <item>Greg Anderson</item>
+        <item>Josiah Gilbert Holland</item>
+        <item>Charles R. Swindoll</item>
+        <item>Anne Lamott</item>
+        <item>Prasad Mahes</item>
+        <item>Amit Ray</item>
+        <item>Martin Luther King Jr.</item>
+        <item>Plato</item>
+        <item>Dalai Lama</item>
+        <item>James Thurber</item>
+        <item>Bil Keane</item>
+        <item>Carl Jung</item>
+        <item>Confucius</item>
+        <item>Buddha</item>
+        <item>Arthur Ashe</item>
+    </string-array>
+
+    <string name="profile_profanity_error">Please choose a respectful nickname for the community</string>
+
+    <string name="pdf_title">ZenIA Time Capsule</string>
+    <string name="pdf_subtitle">Personal report for: %1$s  |  Generated on: %2$s</string>
+    <string name="pdf_no_records">No records found for the selected period.</string>
+    <string name="pdf_mood_prefix">Main mood: %1$s</string>
+    <string name="pdf_activities_prefix">Activities: %1$s</string>
+    <string name="pdf_notes_title">Notes:</string>
+    <string name="pdf_smartwatch_title">Health Metrics (Smartwatch)</string>
+    <string name="pdf_smartwatch_data">• Heart Rate: %1$s bpm   |   Sleep: %2$s hrs   |   Steps: %3$s</string>
+
+    <string name="mood_1">Very Sad</string>
+    <string name="mood_2">Sad</string>
+    <string name="mood_3">Happy</string>
+    <string name="mood_4">Very Happy</string>
+
+    <string name="empty_blocked_users_title">No blocked users</string>
+    <string name="empty_blocked_users_desc">People you block in the community will appear here.</string>
+
+    <string name="streak_share_content_desc">Share my streak</string>
+    <string name="streak_milestone_title">Milestone reached!</string>
+    <string name="streak_milestone_desc">You\'ve taken care of your well-being for %1$d days in a row. That\'s an amazing achievement!</string>
+    <string name="streak_milestone_share_btn">Share my achievement</string>
+    <string name="streak_milestone_continue_btn">Continue</string>
+
+    <string name="story_streak_title">My ZenIA streak</string>
+    <string name="story_streak_days">%1$d Days</string>
+    <string name="story_streak_footer">Prioritizing my mental health, one day at a time.</string>
+    <string name="story_streak_footer_desc">DAYS</string>
 </resources>

@@ -32,12 +32,14 @@ import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -47,7 +49,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,10 +61,14 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -84,14 +94,20 @@ import com.zenia.app.R
 import com.zenia.app.model.CommunityPost
 import com.zenia.app.model.DiarioEntrada
 import com.zenia.app.ui.components.HomeTopBar
+import com.zenia.app.ui.components.MilestoneCelebrationDialog
 import com.zenia.app.ui.components.MoodPatternsCard
+import com.zenia.app.ui.components.StreakStoryTemplate
 import com.zenia.app.ui.screens.community.UserAvatar
 import com.zenia.app.ui.theme.RobotoFlex
+import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaDeepTeal
 import com.zenia.app.ui.theme.ZeniaTeal
 import com.zenia.app.util.AnalysisUtils
 import com.zenia.app.util.ChartUtils
+import com.zenia.app.util.ShareUtils
+import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalTime
 
 @Composable
 fun HomeScreen(
@@ -114,6 +130,13 @@ fun HomeScreen(
     onNavigateToCommunity: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+
+    var showStreakDialog by remember { mutableStateOf(false) }
+    var streakToShare by remember { mutableIntStateOf(0) }
+
+    val context = LocalContext.current
+    val view = LocalView.current
+    val coroutineScope = rememberCoroutineScope()
 
     if (uiState is HomeUiState.Error) {
         val errorMessage = uiState.message.asString()
@@ -162,8 +185,14 @@ fun HomeScreen(
 
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
+                    val currentHour = remember { LocalTime.now().hour }
+                    val greetingText = when (currentHour) {
+                        in 5..11 -> stringResource(R.string.home_greeting_morning, userName)
+                        in 12..18 -> stringResource(R.string.home_greeting_afternoon, userName)
+                        else -> stringResource(R.string.home_greeting_night, userName)
+                    }
                     Text(
-                        text = stringResource(R.string.home_greeting, userName),
+                        text = greetingText,
                         style = MaterialTheme.typography.headlineMedium,
                         fontFamily = RobotoFlex,
                         fontWeight = FontWeight.Bold,
@@ -180,7 +209,11 @@ fun HomeScreen(
                     TodayEntryCard(
                         hasEntry = hasEntryToday,
                         streak = currentStreak,
-                        onClick = { onNavigateToDiaryEntry(LocalDate.now()) }
+                        onClick = { onNavigateToDiaryEntry(LocalDate.now()) },
+                        onShareStreak = { streak->
+                            streakToShare = streak
+                            showStreakDialog = true
+                        }
                     )
                 }
 
@@ -251,13 +284,49 @@ fun HomeScreen(
                         }
                     }
                 }
+
+                item {
+                    MindfulQuoteCard()
+                }
+            }
+            if (showStreakDialog) {
+                MilestoneCelebrationDialog(
+                    streakDays = streakToShare,
+                    onDismiss = { showStreakDialog = false },
+                    onShareClick = {
+                        showStreakDialog = false
+
+                        coroutineScope.launch {
+                            try {
+                                val bitmap = ShareUtils.captureComposableAsBitmap(
+                                    view = view,
+                                    context = context
+                                ) {
+                                    ZenIATheme {
+                                        StreakStoryTemplate(streakDays = streakToShare)
+                                    }
+                                }
+
+                                ShareUtils.shareBitmap(context, bitmap)
+
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                    }
+                )
             }
         }
     }
 }
 
 @Composable
-private fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) {
+private fun TodayEntryCard(
+    hasEntry: Boolean,
+    streak: Int,
+    onClick: () -> Unit,
+    onShareStreak: (Int) -> Unit
+) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.fire_animation))
     val progress by animateLottieCompositionAsState(
         composition = composition,
@@ -317,6 +386,20 @@ private fun TodayEntryCard(hasEntry: Boolean, streak: Int, onClick: () -> Unit) 
                     style = MaterialTheme.typography.bodySmall,
                     color = subtitleTextColor
                 )
+            }
+
+            if (streak > 0) {
+                IconButton(
+                    onClick = { onShareStreak(streak) },
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = stringResource(R.string.streak_share_content_desc),
+                        tint = titleTextColor.copy(alpha = 0.8f),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
 
             Box(
@@ -583,5 +666,99 @@ private fun CommunityPostPlaceholder() {
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Spacer(modifier = Modifier.fillMaxSize().background(brush))
+    }
+}
+
+@Composable
+private fun MindfulQuoteCard() {
+    val infiniteTransition = rememberInfiniteTransition(label = "fluid_background")
+    val offset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(15000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "offset"
+    )
+
+    val backgroundBrush = remember(offset) {
+        Brush.linearGradient(
+            colors = listOf(
+                ZeniaTeal,
+                ZeniaDeepTeal,
+                Color(0xFF4A90E2)
+            ),
+            start = Offset(offset, offset),
+            end = Offset(offset + 800f, offset + 800f)
+        )
+    }
+
+    val quotes = stringArrayResource(id = R.array.daily_quotes)
+    val authors = stringArrayResource(id = R.array.daily_quote_authors)
+
+    val dayOfMonth = remember { LocalDate.now().dayOfMonth }
+    val index = (dayOfMonth - 1) % quotes.size
+
+    val dailyQuoteText = quotes[index]
+    val dailyQuoteAuthor = authors[index]
+
+    Card(
+        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 24.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(backgroundBrush),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.15f))
+            )
+
+            Column(
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.daily_inspiration_title),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.5.sp
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "\"$dailyQuoteText\"",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = RobotoFlex,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 24.sp
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "- $dailyQuoteAuthor",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontStyle = FontStyle.Italic,
+                    fontWeight = FontWeight.Normal,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
     }
 }

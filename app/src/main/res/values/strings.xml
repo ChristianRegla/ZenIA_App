@@ -248,7 +248,7 @@
     <string name="home_view_all">Ver todo</string>
     <string name="home_streak_active">¡Racha activa!</string>
     <string name="home_log_day">Registrar mi día</string>
-    <string name="home_streak_counter">¡Llevas %1$d días seguidos! 🔥</string>
+    <string name="home_streak_counter">¡Llevas %1$d días seguidos!</string>
     <string name="home_start_streak">Inicia tu racha hoy.</string>
     <string name="home_no_chart_data">Sin datos aún. ¡Registra tu primer día!</string>
     <string name="home_community_participants">%1$d participantes</string>
@@ -771,4 +771,115 @@
     <string name="changelog_1_1_5_date">08 Abril 2026</string>
     <string name="changelog_1_1_5_improvement">Sincronización con Health Connect mejorada para leer pasos y ritmo cardíaco.</string>
     <string name="changelog_1_1_5_fix">Solución a un error donde las entradas del diario a veces no guardaban las categorías creadas por el usuario.</string>
+
+    <string name="changelog_1_4_0_date">22 Abril 2026</string>
+    <string name="changelog_1_4_0_feature_1">¡Gamificación de rachas! Celebra tus hitos de bienestar y comparte tus logros en formato Story para redes sociales.</string>
+    <string name="changelog_1_4_0_improvement_1">Rediseño completo de la exportación a PDF. Ahora tus registros se ven como un reporte premium con tarjetas redondeadas y logo en alta resolución.</string>
+    <string name="changelog_1_4_0_improvement_2">Optimización de fluidez en la selección de avatares, rediseño de la pantalla SOS con tarjetas expandibles y nuevos estados visuales para modo sin conexión.</string>
+
+    <string name="action_restore_purchases">Restaurar Compras</string>
+
+    <string name="home_greeting_morning">Buenos días, %1$s</string>
+    <string name="home_greeting_afternoon">Buenas tardes, %1$s</string>
+    <string name="home_greeting_night">Buenas noches, %1$s</string>
+
+    <string name="daily_inspiration_title">INSPIRACIÓN DIARIA</string>
+
+    <string-array name="daily_quotes">
+        <item>La paz viene de adentro. No la busques afuera.</item>
+        <item>No puedes detener las olas, pero puedes aprender a surfear.</item>
+        <item>El momento presente está lleno de alegría. Si estás atento, lo verás.</item>
+        <item>La vida es un viaje, no un destino.</item>
+        <item>Sé el cambio que quieres ver en el mundo.</item>
+        <item>La mente es todo. En lo que piensas, te conviertes.</item>
+        <item>La felicidad no es algo confeccionado. Viene de tus propias acciones.</item>
+        <item>Aferrarse a la ira es como beber veneno y esperar que el otro muera.</item>
+        <item>La paciencia es amarga, pero su fruto es dulce.</item>
+        <item>No hay camino para la paz, la paz es el camino.</item>
+        <item>El único verdadero viaje de descubrimiento consiste en tener nuevos ojos.</item>
+        <item>Si quieres dominar la ansiedad de la vida, vive en la respiración.</item>
+        <item>Tu visión se aclarará solamente cuando puedas mirar en tu propio corazón.</item>
+        <item>Cada mañana nacemos de nuevo. Lo que hacemos hoy es lo que más importa.</item>
+        <item>La mejor manera de capturar momentos es prestar atención.</item>
+        <item>Nada es permanente en este mundo, ni siquiera nuestros problemas.</item>
+        <item>Concéntrate en el viaje, no en el destino.</item>
+        <item>La calma es la cuna del poder.</item>
+        <item>La vida es 10%% lo que te sucede y 90%% cómo reaccionas ante ello.</item>
+        <item>Casi todo volverá a funcionar si lo desenchufas por unos minutos, incluyéndote a ti.</item>
+        <item>Cuando la mente está en calma, todo se vuelve claro.</item>
+        <item>Respirar es el mejor regalo de la naturaleza. Agradécelo.</item>
+        <item>Da tu primer paso con fe. No tienes que ver toda la escalera.</item>
+        <item>Sé amable, porque todos los que conoces están librando una dura batalla.</item>
+        <item>El silencio a veces es la mejor respuesta.</item>
+        <item>No mires atrás con ira, ni adelante con miedo, sino a tu alrededor con conciencia.</item>
+        <item>Ayer es historia, mañana es un misterio, hoy es un regalo.</item>
+        <item>Lo que niegas te somete. Lo que aceptas te transforma.</item>
+        <item>Dondequiera que vayas, ve con todo tu corazón.</item>
+        <item>Tú mismo, tanto como cualquiera en el universo, mereces tu propio amor y afecto.</item>
+        <item>Empieza donde estás. Usa lo que tienes. Haz lo que puedas.</item>
+    </string-array>
+
+    <string-array name="daily_quote_authors">
+        <item>Buda</item>
+        <item>Jon Kabat-Zinn</item>
+        <item>Thich Nhat Hanh</item>
+        <item>Ralph Waldo Emerson</item>
+        <item>Mahatma Gandhi</item>
+        <item>Buda</item>
+        <item>Dalai Lama</item>
+        <item>Buda</item>
+        <item>Jean-Jacques Rousseau</item>
+        <item>A.J. Muste</item>
+        <item>Marcel Proust</item>
+        <item>Amit Ray</item>
+        <item>Carl Jung</item>
+        <item>Buda</item>
+        <item>Jon Kabat-Zinn</item>
+        <item>Charles Chaplin</item>
+        <item>Greg Anderson</item>
+        <item>Josiah Gilbert Holland</item>
+        <item>Charles R. Swindoll</item>
+        <item>Anne Lamott</item>
+        <item>Prasad Mahes</item>
+        <item>Amit Ray</item>
+        <item>Martin Luther King Jr.</item>
+        <item>Platón</item>
+        <item>Dalai Lama</item>
+        <item>James Thurber</item>
+        <item>Bil Keane</item>
+        <item>Carl Jung</item>
+        <item>Confucio</item>
+        <item>Buda</item>
+        <item>Arthur Ashe</item>
+    </string-array>
+
+    <string name="profile_profanity_error">Elige un apodo respetuoso para la comunidad</string>
+
+    <string name="pdf_title">Cápsula del Tiempo ZenIA</string>
+    <string name="pdf_subtitle">Reporte personal de: %1$s | Generado el: %2$s</string>
+    <string name="pdf_no_records">No hay registros en el periodo seleccionado.</string>
+    <string name="pdf_mood_prefix">Ánimo principal: %1$s</string>
+    <string name="pdf_activities_prefix">Actividades: %1$s</string>
+    <string name="pdf_notes_title">Notas:</string>
+    <string name="pdf_smartwatch_title">Métricas de Salud (Smartwatch)</string>
+    <string name="pdf_smartwatch_data">• Frecuencia Cardíaca: %1$s bpm | Sueño: %2$s hrs | Pasos: %3$s</string>
+
+    <string name="mood_1">Muy Triste</string>
+    <string name="mood_2">Triste</string>
+    <string name="mood_3">Feliz</string>
+    <string name="mood_4">Muy Feliz</string>
+
+    <string name="empty_blocked_users_title">No hay usuarios bloqueados</string>
+    <string name="empty_blocked_users_desc">Las personas que bloquees en la comunidad aparecerán aquí.</string>
+
+    <string name="streak_share_content_desc">Compartir mi racha</string>
+    <string name="streak_milestone_title">¡Hito alcanzado!</string>
+    <string name="streak_milestone_desc">Has cuidado de tu bienestar por %1$d días seguidos. ¡Es un logro increíble!</string>
+    <string name="streak_milestone_share_btn">Compartir mi logro</string>
+    <string name="streak_milestone_continue_btn">Continuar</string>
+
+    <string name="story_streak_title">Mi racha en ZenIA</string>
+    <string name="story_streak_days">%1$d Días</string>
+    <string name="story_streak_footer">Priorizando mi salud mental, un día a la vez.</string>
+    <string name="story_streak_footer_desc">DÍAS</string>
 </resources>

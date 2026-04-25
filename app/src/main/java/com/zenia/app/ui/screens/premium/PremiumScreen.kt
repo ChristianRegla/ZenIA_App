@@ -3,12 +3,10 @@ package com.zenia.app.ui.screens.premium
 import android.app.Activity
 import android.content.Intent
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -23,58 +21,52 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import com.zenia.app.R
 import com.zenia.app.ui.theme.*
-import androidx.core.net.toUri
 
-enum class PlanType { MONTHLY, ANNUAL }
+enum class PlanType(val id: String) {
+    MONTHLY("mensual"),
+    ANNUAL("anual")
+}
 
 @Composable
 fun PremiumScreen(
     onNavigateBack: () -> Unit,
     isPremium: Boolean,
     onSubscribe: (Activity, String) -> Unit,
+    onRestorePurchases: () -> Unit,
     isBillingReady: Boolean,
     prices: Map<String, String>,
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
-    val configuration = LocalConfiguration.current
 
-    val isTablet = configuration.screenWidthDp > 600
+    val windowInfo = LocalWindowInfo.current
+    val density = LocalDensity.current
+    val screenWidthDp = with(density) { windowInfo.containerSize.width.toDp() }
+    val isTablet = screenWidthDp > 600.dp
 
     var selectedPlan by remember { mutableStateOf(PlanType.ANNUAL) }
 
-    val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(
-            ZeniaPremiumBackground.copy(alpha = 0.3f),
-            MaterialTheme.colorScheme.surface
-        )
-    )
-
     Scaffold(
-        topBar = {
-            PremiumTopBar(onNavigateBack = onNavigateBack)
-        }
+        topBar = { PremiumTopBar(onNavigateBack = onNavigateBack) },
+        containerColor = ZeniaLightGrey
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(backgroundBrush)
                 .padding(paddingValues),
             contentAlignment = Alignment.TopCenter
         ) {
@@ -86,9 +78,22 @@ fun PremiumScreen(
                     .padding(horizontal = 24.dp, vertical = 10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
+                val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+                val scale by infiniteTransition.animateFloat(
+                    initialValue = 1f,
+                    targetValue = 1.08f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(1200, easing = FastOutSlowInEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "scale"
+                )
+
                 Box(
                     modifier = Modifier
                         .size(100.dp)
+                        .scale(scale)
                         .clip(CircleShape)
                         .background(ZeniaPremiumPurple.copy(alpha = 0.1f)),
                     contentAlignment = Alignment.Center
@@ -107,7 +112,7 @@ fun PremiumScreen(
                     text = if (isPremium) stringResource(R.string.premium_title_active) else stringResource(R.string.premium_title_inactive),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
-                    color = ZeniaDark,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 )
 
@@ -122,7 +127,12 @@ fun PremiumScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                     PremiumBenefitItem(stringResource(R.string.benefit_analysis))
                     PremiumBenefitItem(stringResource(R.string.benefit_sync))
                     PremiumBenefitItem(stringResource(R.string.benefit_calm))
@@ -137,222 +147,175 @@ fun PremiumScreen(
                             val intent = Intent(Intent.ACTION_VIEW).apply {
                                 data = "https://play.google.com/store/account/subscriptions".toUri()
                             }
-
                             context.startActivity(intent)
                         }
                     )
                 } else {
                     Text(
-                        text = stringResource(R.string.choose_plan),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = ZeniaDark,
-                        modifier = Modifier.fillMaxWidth(),
+                        text = stringResource(R.string.choose_plan).uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = ZeniaSlateGrey,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 4.dp, bottom = 12.dp),
                         textAlign = TextAlign.Start
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    val layoutModifier = if (isTablet) Modifier.fillMaxWidth(0.8f) else Modifier.fillMaxWidth()
 
-                    if (isTablet) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            PlanCard(
-                                title = stringResource(R.string.plan_annual),
-                                price = prices["anual"] ?: "...",
-                                period = stringResource(R.string.period_year),
-                                subtitle = stringResource(R.string.plan_annual_subtitle),
-                                badgeText = stringResource(R.string.plan_annual_badge),
-                                isSelected = selectedPlan == PlanType.ANNUAL,
-                                onSelect = { selectedPlan = PlanType.ANNUAL },
-                                modifier = Modifier.weight(1f)
-                            )
-                            PlanCard(
-                                title = stringResource(R.string.plan_monthly),
-                                price = prices["mensual"] ?: "...",
-                                period = stringResource(R.string.period_month),
-                                subtitle = stringResource(R.string.plan_monthly_subtitle),
-                                badgeText = null,
-                                isSelected = selectedPlan == PlanType.MONTHLY,
-                                onSelect = { selectedPlan = PlanType.MONTHLY },
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                    } else {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            PlanCard(
-                                title = stringResource(R.string.plan_annual),
-                                price = prices["anual"] ?: "...",
-                                period = stringResource(R.string.period_year),
-                                subtitle = stringResource(R.string.plan_annual_subtitle),
-                                badgeText = stringResource(R.string.plan_annual_badge),
-                                isSelected = selectedPlan == PlanType.ANNUAL,
-                                onSelect = { selectedPlan = PlanType.ANNUAL },
-                                modifier = Modifier.width(160.dp)
-                            )
+                    Column(
+                        modifier = layoutModifier,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        ModernPlanRow(
+                            title = stringResource(R.string.plan_annual),
+                            price = prices[PlanType.ANNUAL.id] ?: "...",
+                            period = stringResource(R.string.period_year),
+                            badgeText = stringResource(R.string.plan_annual_badge),
+                            isSelected = selectedPlan == PlanType.ANNUAL,
+                            onSelect = { selectedPlan = PlanType.ANNUAL }
+                        )
 
-                            PlanCard(
-                                title = stringResource(R.string.plan_monthly),
-                                price = prices["mensual"] ?: "...",
-                                period = stringResource(R.string.period_month),
-                                subtitle = stringResource(R.string.plan_monthly_subtitle),
-                                badgeText = null,
-                                isSelected = selectedPlan == PlanType.MONTHLY,
-                                onSelect = { selectedPlan = PlanType.MONTHLY },
-                                modifier = Modifier.width(160.dp)
-                            )
-                        }
+                        ModernPlanRow(
+                            title = stringResource(R.string.plan_monthly),
+                            price = prices[PlanType.MONTHLY.id] ?: "...",
+                            period = stringResource(R.string.period_month),
+                            badgeText = null,
+                            isSelected = selectedPlan == PlanType.MONTHLY,
+                            onSelect = { selectedPlan = PlanType.MONTHLY }
+                        )
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    val buttonText = when (selectedPlan) {
-                        PlanType.ANNUAL -> stringResource(R.string.subscribe_annual_btn)
-                        PlanType.MONTHLY -> stringResource(R.string.subscribe_monthly_btn)
-                    }
+                    Spacer(modifier = Modifier.height(32.dp))
 
                     Button(
                         enabled = isBillingReady,
                         onClick = {
-                            val planId = when (selectedPlan) {
-                                PlanType.MONTHLY -> "mensual"
-                                PlanType.ANNUAL -> "anual"
-                            }
-
-                            activity?.let {
-                                onSubscribe(it, planId)
-                            }
+                            activity?.let { onSubscribe(it, selectedPlan.id) }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(54.dp),
+                            .height(56.dp),
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = ZeniaPremiumPurple
-                        ),
-                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
+                        colors = ButtonDefaults.buttonColors(containerColor = ZeniaPremiumPurple),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
                     ) {
                         Text(
-                            text = buttonText,
+                            text = if (selectedPlan == PlanType.ANNUAL) stringResource(R.string.subscribe_annual_btn) else stringResource(R.string.subscribe_monthly_btn),
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    TextButton(onClick = onRestorePurchases) {
+                        Text(
+                            text = stringResource(R.string.action_restore_purchases),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = ZeniaPremiumPurple,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
 
                     Text(
                         text = stringResource(R.string.cancel_anytime),
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.bodySmall,
                         color = ZeniaSlateGrey,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = 24.dp)
                     )
                 }
-
-                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
 }
 
 @Composable
-fun PlanCard(
+fun ModernPlanRow(
     title: String,
     price: String,
     period: String,
-    subtitle: String,
     badgeText: String?,
     isSelected: Boolean,
-    onSelect: () -> Unit,
-    modifier: Modifier = Modifier
+    onSelect: () -> Unit
 ) {
     val borderColor by animateColorAsState(
-        targetValue = if (isSelected) ZeniaPremiumPurple else Color.LightGray.copy(alpha = 0.5f), label = "border"
+        targetValue = if (isSelected) ZeniaPremiumPurple else MaterialTheme.colorScheme.outlineVariant,
+        label = "border"
     )
-    val borderWidth by animateDpAsState(
-        targetValue = if (isSelected) 2.dp else 1.dp, label = "width"
+    val containerColor by animateColorAsState(
+        targetValue = if (isSelected) ZeniaPremiumPurple.copy(alpha = 0.05f) else MaterialTheme.colorScheme.surface,
+        label = "container"
     )
-    val containerColor = if (isSelected) ZeniaPremiumPurple.copy(alpha = 0.05f) else Color.White
 
-    val interactionSource = remember { MutableInteractionSource() }
-
-    Box(modifier = modifier) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onSelect() }
+    ) {
         Card(
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = containerColor),
-            border = BorderStroke(borderWidth, borderColor),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 10.dp)
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null
-                ) { onSelect() }
+            border = BorderStroke(if (isSelected) 2.dp else 1.dp, borderColor),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Column(
+            Row(
                 modifier = Modifier
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp, vertical = 20.dp)
                     .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = null,
-                    tint = if (isSelected) ZeniaPremiumPurple else Color.LightGray,
-                    modifier = Modifier.size(24.dp)
+                RadioButton(
+                    selected = isSelected,
+                    onClick = null,
+                    colors = RadioButtonDefaults.colors(selectedColor = ZeniaPremiumPurple)
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = ZeniaDark
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    buildAnnotatedString {
-                        withStyle(style = SpanStyle(fontSize = 24.sp, fontWeight = FontWeight.Black, color = ZeniaDark)) {
-                            append(price)
-                        }
-                        withStyle(style = SpanStyle(fontSize = 12.sp, color = ZeniaSlateGrey)) {
-                            append(period)
-                        }
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = ZeniaSlateGrey,
-                    textAlign = TextAlign.Center,
-                    minLines = 2
-                )
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = price,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = period,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = ZeniaSlateGrey
+                    )
+                }
             }
         }
 
         if (badgeText != null) {
             Surface(
-                color = ZeniaTeal,
-                shape = RoundedCornerShape(50),
-                modifier = Modifier.align(Alignment.TopCenter)
+                color = ZeniaPremiumPurple,
+                shape = RoundedCornerShape(bottomStart = 12.dp, topEnd = 16.dp),
+                modifier = Modifier.align(Alignment.TopEnd)
             ) {
                 Text(
-                    text = badgeText,
+                    text = badgeText.uppercase(),
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                    maxLines = 1,
+                    softWrap = false,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                     fontSize = 10.sp
                 )
             }
@@ -370,14 +333,15 @@ fun PremiumBenefitItem(text: String) {
             imageVector = Icons.Default.CheckCircle,
             contentDescription = null,
             tint = ZeniaPremiumPurple,
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier.size(24.dp)
         )
-        Spacer(modifier = Modifier.width(14.dp))
+        Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge,
             fontFamily = RobotoFlex,
-            color = ZeniaSlateGrey
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium
         )
     }
 }
@@ -386,8 +350,8 @@ fun PremiumBenefitItem(text: String) {
 fun ActiveSubscriptionCard(onManageClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, ZeniaPremiumPurple.copy(alpha = 0.5f)),
+        colors = CardDefaults.cardColors(containerColor = ZeniaPremiumBackground.copy(alpha = 0.3f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -398,9 +362,9 @@ fun ActiveSubscriptionCard(onManageClick: () -> Unit) {
                 imageVector = Icons.Default.Verified,
                 contentDescription = null,
                 tint = ZeniaPremiumPurple,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(40.dp)
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = stringResource(R.string.subs_active_title),
                 style = MaterialTheme.typography.titleLarge,
@@ -413,13 +377,16 @@ fun ActiveSubscriptionCard(onManageClick: () -> Unit) {
                 textAlign = TextAlign.Center,
                 color = ZeniaSlateGrey
             )
-            Spacer(modifier = Modifier.height(20.dp))
-            OutlinedButton(
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(
                 onClick = onManageClick,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = ZeniaPremiumPurple)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = ZeniaPremiumPurple),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Text(stringResource(R.string.subs_manage_btn))
+                Text(stringResource(R.string.subs_manage_btn), fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -436,7 +403,7 @@ private fun PremiumTopBar(
             Surface(
                 onClick = onNavigateBack,
                 shape = CircleShape,
-                color = Color.White.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
                 modifier = Modifier.padding(start = 16.dp)
             ) {
                 Box(
@@ -446,14 +413,18 @@ private fun PremiumTopBar(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = stringResource(R.string.nav_back_desc),
-                        tint = ZeniaPremiumPurple,
-                        modifier = Modifier.size(20.dp)
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
         },
-        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = Color.Transparent
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Transparent,
+            scrolledContainerColor = Color.Unspecified,
+            navigationIconContentColor = Color.Unspecified,
+            titleContentColor = Color.Unspecified,
+            actionIconContentColor = Color.Unspecified
         )
     )
 }
