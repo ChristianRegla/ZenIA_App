@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -50,6 +51,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -68,15 +70,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.RobotoFlex
+import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaSlateGrey
 import com.zenia.app.ui.theme.ZeniaTeal
+import com.zenia.app.util.DevicePreviews
 import com.zenia.app.util.ProfanityFilter
 import kotlinx.coroutines.delay
 
@@ -113,6 +117,7 @@ fun SettingsScreen(
     onSignOut: () -> Unit
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
+    val dimensions = ZenIATheme.dimensions
 
     Scaffold(
         topBar = {
@@ -135,9 +140,9 @@ fun SettingsScreen(
                     .fillMaxHeight()
                     .widthIn(max = 600.dp)
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
+                    .padding(dimensions.paddingMedium),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(dimensions.paddingMedium)
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -150,7 +155,6 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // --- BOTÓN PREMIUM ---
                 Button(
                     onClick = onNavigateToPremium,
                     colors = if (isPremium) ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFD946EF)) else ButtonDefaults.buttonColors(
@@ -159,8 +163,9 @@ fun SettingsScreen(
                     shape = RoundedCornerShape(50),
                     border = if (isPremium) BorderStroke(1.dp, Color(0xFFD946EF)) else null,
                     modifier = Modifier
-                        .fillMaxWidth(0.8f)
-                        .height(48.dp)
+                        .widthIn(max = dimensions.buttonMaxWidth)
+                        .fillMaxWidth()
+                        .heightIn(min = dimensions.buttonHeight)
                 ) {
                     if (isPremium) {
                         Icon(
@@ -174,6 +179,8 @@ fun SettingsScreen(
                         text = if (isPremium) stringResource(R.string.settings_btn_premium_now) else stringResource(R.string.settings_btn_premium),
                         fontFamily = RobotoFlex,
                         fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
@@ -267,7 +274,6 @@ fun ProfileHeader(
             .padding(16.dp)
     ) {
         Box(contentAlignment = Alignment.BottomEnd) {
-            // Avatar
             Box(
                 modifier = Modifier
                     .size(100.dp)
@@ -325,7 +331,9 @@ fun ProfileHeader(
                 fontFamily = RobotoFlex,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
-                color = ZeniaTeal
+                color = ZeniaTeal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
 
@@ -334,7 +342,9 @@ fun ProfileHeader(
                 text = email,
                 fontFamily = RobotoFlex,
                 fontSize = 14.sp,
-                color = ZeniaSlateGrey
+                color = ZeniaSlateGrey,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -349,10 +359,8 @@ fun EditProfileDialog(
 ) {
     var nickname by remember { mutableStateOf(currentNickname) }
     var selectedAvatarIdx by remember { mutableIntStateOf(currentAvatarIndex) }
-
     var isError by remember { mutableStateOf(false) }
     val maxChar = 20
-
     val listState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
@@ -365,7 +373,7 @@ fun EditProfileDialog(
         Card(
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            modifier = Modifier.widthIn(max = 400.dp)
+            modifier = Modifier.widthIn(max = 450.dp)
         ) {
             Column(
                 modifier = Modifier
@@ -377,7 +385,9 @@ fun EditProfileDialog(
                     text = stringResource(R.string.profile_edit_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 24.dp)
+                    modifier = Modifier.padding(horizontal = 24.dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -549,7 +559,9 @@ private fun SettingsItem(
             fontSize = 16.sp,
             color = textColor,
             fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Start,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
         )
 
@@ -571,16 +583,13 @@ private fun SettingsDivider() {
     )
 }
 
-@Preview(name = "Phone", showBackground = true, device = "spec:width=411dp,height=891dp,dpi=420")
+@DevicePreviews
 @Composable
 fun SettingsPhonePreview() {
-    SettingsScreen(
-        name = null,
-        email = "john.doe@example.com",
-        avatarIndex = -1,
-        isPremium = false,
-        onUpdateProfile = { _, _ -> },
-        {}, {}, {}, {}, {}, {}, {}, {},
-        onSignOut = {}
-    )
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Expanded) {
+        SettingsScreen(
+            name = "Slappy", email = "christian.regla@example.com", avatarIndex = 2, isPremium = true,
+            onUpdateProfile = { _, _ -> }, {}, {}, {}, {}, {}, {}, {}, {}, {}
+        )
+    }
 }

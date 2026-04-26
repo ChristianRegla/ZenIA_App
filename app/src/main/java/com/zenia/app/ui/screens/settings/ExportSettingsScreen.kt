@@ -23,6 +23,7 @@ import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Mood
 import androidx.compose.material.icons.rounded.Watch
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,14 +35,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.zenia.app.R
 import com.zenia.app.pdf.DateRange
 import com.zenia.app.pdf.PdfExportConfig
 import com.zenia.app.ui.components.ZeniaTopBar
+import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaPremiumPurple
 import com.zenia.app.ui.theme.ZeniaSlateGrey
 import com.zenia.app.ui.theme.ZeniaTeal
+import com.zenia.app.util.DevicePreviews
 import java.time.LocalDate
 
 @Composable
@@ -52,6 +56,7 @@ fun ExportSettingsScreen(
     onGeneratePdf: (PdfExportConfig) -> Unit,
     onNavigateBack: () -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
     var selectedRangeType by remember { mutableStateOf("month") }
 
     var includeMood by remember { mutableStateOf(true) }
@@ -82,8 +87,11 @@ fun ExportSettingsScreen(
                     .widthIn(max = 600.dp)
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                    .padding(
+                        horizontal = dimensions.paddingLarge,
+                        vertical = dimensions.paddingExtraLarge
+                    ),
+                verticalArrangement = Arrangement.spacedBy(dimensions.paddingExtraLarge)
             ) {
 
                 AnimatedVisibility(
@@ -96,7 +104,9 @@ fun ExportSettingsScreen(
                     )
                 }
 
-                Column(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     SectionTitle(stringResource(R.string.export_period))
                     Spacer(modifier = Modifier.height(12.dp))
                     ModernDateRangeSelector(
@@ -105,7 +115,9 @@ fun ExportSettingsScreen(
                     )
                 }
 
-                Column(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     SectionTitle(stringResource(R.string.export_include_pdf))
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -156,39 +168,47 @@ fun ExportSettingsScreen(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                Button(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
-                    onClick = {
-                        val today = LocalDate.now()
-                        val range = when (selectedRangeType) {
-                            "day" -> DateRange.SingleDay(today)
-                            "week" -> DateRange.Period(today.minusWeeks(1), today)
-                            else -> DateRange.Period(today.minusMonths(1), today)
-                        }
-
-                        val config = PdfExportConfig(
-                            includeMood = includeMood,
-                            includeActivities = includeActivities,
-                            includeNotes = includeNotes,
-                            includeSmartwatchData = if (isPremium) includeSmartwatch else false,
-                            includeLogo = if (isPremium) includeLogo else false,
-                            dateRange = range
-                        )
-
-                        onGeneratePdf(config)
-                    }
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = stringResource(R.string.export_generate_pdf),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
+                    Button(
+                        modifier = Modifier
+                            .widthIn(max = dimensions.buttonMaxWidth)
+                            .fillMaxWidth()
+                            .heightIn(min = dimensions.buttonHeight),
+                        shape = RoundedCornerShape(dimensions.cornerRadiusNormal),
+                        colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
+                        onClick = {
+                            val today = LocalDate.now()
+                            val range = when (selectedRangeType) {
+                                "day" -> DateRange.SingleDay(today)
+                                "week" -> DateRange.Period(today.minusWeeks(1), today)
+                                else -> DateRange.Period(today.minusMonths(1), today)
+                            }
+
+                            val config = PdfExportConfig(
+                                includeMood = includeMood,
+                                includeActivities = includeActivities,
+                                includeNotes = includeNotes,
+                                includeSmartwatchData = if (isPremium) includeSmartwatch else false,
+                                includeLogo = if (isPremium) includeLogo else false,
+                                dateRange = range
+                            )
+
+                            onGeneratePdf(config)
+                        }
+                    ) {
+                        Text(
+                            text = stringResource(R.string.export_generate_pdf),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -204,6 +224,8 @@ private fun SectionTitle(text: String) {
         style = MaterialTheme.typography.labelMedium,
         color = ZeniaSlateGrey,
         fontWeight = FontWeight.Bold,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier = Modifier.padding(start = 4.dp)
     )
 }
@@ -232,13 +254,17 @@ private fun TutorialBanner(onDismiss: () -> Unit) {
                     text = stringResource(R.string.export_tutorial_title),
                     style = MaterialTheme.typography.titleMedium,
                     color = Color.Black,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = stringResource(R.string.export_tutorial_desc),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = ZeniaSlateGrey
+                    color = ZeniaSlateGrey,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
             IconButton(
@@ -293,7 +319,9 @@ private fun ModernDateRangeSelector(
                 .background(ZeniaTeal)
         )
 
-        Row(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.fillMaxSize()
+        ) {
             options.forEach { (key, label) ->
                 val isSelected = key == selectedRange
                 val textColor by animateColorAsState(
@@ -319,7 +347,9 @@ private fun ModernDateRangeSelector(
                         text = label,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = textColor
+                        color = textColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -336,7 +366,9 @@ private fun ExportToggleRow(
     isPremiumLock: Boolean = false,
     isLast: Boolean = false
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -360,6 +392,8 @@ private fun ExportToggleRow(
                 style = MaterialTheme.typography.bodyLarge,
                 color = if (isPremiumLock) ZeniaSlateGrey.copy(alpha = 0.5f) else Color.Black,
                 fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
             )
 
@@ -392,5 +426,19 @@ private fun ExportToggleRow(
                 color = MaterialTheme.colorScheme.surfaceVariant
             )
         }
+    }
+}
+
+@DevicePreviews
+@Composable
+fun ExportSettingsScreenPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Expanded) {
+        ExportSettingsScreen(
+            showTutorial = true,
+            isPremium = false,
+            onTutorialDismiss = {},
+            onGeneratePdf = {},
+            onNavigateBack = {}
+        )
     }
 }

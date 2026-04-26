@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,14 +37,17 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.RobotoFlex
+import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaSlateGrey
 import com.zenia.app.ui.theme.ZeniaTeal
+import com.zenia.app.util.DevicePreviews
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,6 +72,7 @@ fun MoreSettingsScreen(
 ) {
     var showTimePicker by remember { mutableStateOf(false) }
     var showCreditsDialog by remember { mutableStateOf(false) }
+    val dimensions = ZenIATheme.dimensions
 
     Scaffold(
         topBar = {
@@ -87,12 +92,12 @@ fun MoreSettingsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .widthIn(max = 600.dp)
+                    .widthIn(max = 650.dp)
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 24.dp),
+                    .padding(horizontal = dimensions.paddingLarge, vertical = dimensions.paddingExtraLarge),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                verticalArrangement = Arrangement.spacedBy(dimensions.paddingExtraLarge)
             ) {
 
                 SettingsSection(title = stringResource(R.string.biometric_title)) {
@@ -125,7 +130,9 @@ fun MoreSettingsScreen(
                                 text = stringResource(R.string.account_language_label),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = Color.Black,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                         ModernLanguageSelector(
@@ -166,7 +173,9 @@ fun MoreSettingsScreen(
                                 Text(
                                     text = stringResource(R.string.settings_reminder_time),
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    modifier = Modifier.weight(1f, fill = false)
                                 )
                                 val timeStr = String.format(java.util.Locale.US, "%02d:%02d", streakHour, streakMinute)
                                 Text(
@@ -201,14 +210,12 @@ fun MoreSettingsScreen(
                         title = stringResource(R.string.settings_time_capsule),
                         subtitle = stringResource(R.string.settings_export_pdf),
                         onClick = onNavigateToExport,
-                        isLast = false
                     )
                     SettingsActionItem(
                         icon = Icons.Default.History,
                         title = stringResource(R.string.settings_changelog),
                         subtitle = stringResource(R.string.settings_changelog_desc),
                         onClick = onChangelogClick,
-                        isLast = false
                     )
                     SettingsActionItem(
                         iconRes = R.drawable.ic_paint_brush,
@@ -350,9 +357,7 @@ fun SettingsSection(
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column {
-                content()
-            }
+            Column { content() }
         }
     }
 }
@@ -570,5 +575,18 @@ fun ModernLanguageSelector(
                 }
             }
         }
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun MoreSettingsPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Expanded) {
+        MoreSettingsScreen(
+            isBiometricEnabled = true, currentLanguage = "es", onToggleBiometric = {}, onToggleWeakBiometric = {},
+            onLanguageChange = {}, onNavigateBack = {}, onNavigateToExport = {}, isNotificationsEnabled = true,
+            isStreakEnabled = true, streakHour = 8, streakMinute = 30, isAdviceEnabled = false,
+            onToggleNotifications = {}, onToggleStreak = {}, onTimeChange = {_,_->}, onToggleAdvice = {}, onChangelogClick = {}
+        )
     }
 }

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,8 +40,10 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.RobotoFlex
+import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaTeal
 import com.zenia.app.ui.theme.ZeniaWhite
+import com.zenia.app.util.DevicePreviews
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +55,7 @@ fun RecursosScreen(
     onToggleFavorite: (String, Boolean) -> Unit,
     onRetry: () -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
     var selectedRecurso by remember { mutableStateOf<RecursoUiModel?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -61,7 +65,12 @@ fun RecursosScreen(
         },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter
+        ) {
             when (uiState) {
                 is RecursosUiState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -70,7 +79,8 @@ fun RecursosScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(24.dp),
+                            .widthIn(max = 500.dp)
+                            .padding(dimensions.paddingExtraLarge),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -82,7 +92,7 @@ fun RecursosScreen(
                             modifier = Modifier.size(250.dp)
                         )
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(dimensions.paddingExtraLarge))
 
                         Text(
                             text = stringResource(R.string.error_connection_title),
@@ -91,7 +101,7 @@ fun RecursosScreen(
                             color = MaterialTheme.colorScheme.onSurface
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(dimensions.paddingSmall))
 
                         Text(
                             text = stringResource(R.string.error_connection_message),
@@ -100,13 +110,14 @@ fun RecursosScreen(
                             textAlign = TextAlign.Center
                         )
 
-                        Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(dimensions.paddingExtraLarge))
 
                         Button(
                             onClick = onRetry,
                             modifier = Modifier
-                                .fillMaxWidth(0.7f)
-                                .height(50.dp),
+                                .widthIn(max = dimensions.buttonMaxWidth)
+                                .fillMaxWidth()
+                                .heightIn(min = dimensions.buttonHeight),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal)
                         ) {
@@ -121,27 +132,33 @@ fun RecursosScreen(
                 is RecursosUiState.Success -> {
                     val recursos = uiState.recursos
 
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minSize = 340.dp),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 20.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(top = 16.dp, bottom = 24.dp)
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.TopCenter
                     ) {
-                        items(recursos) { recurso ->
-                            RecursoCard(
-                                recurso = recurso,
-                                isLocked = recurso.isPremium && !isUserPremium,
-                                onClick = {
-                                    if (recurso.isPremium && !isUserPremium) {
-                                        onNavigateToPremium()
-                                    } else {
-                                        selectedRecurso = recurso
+                        LazyVerticalGrid(
+                            columns = GridCells.Adaptive(minSize = 340.dp),
+                            modifier = Modifier
+                                .widthIn(max = 1200.dp)
+                                .fillMaxSize()
+                                .padding(horizontal = dimensions.paddingMedium),
+                            verticalArrangement = Arrangement.spacedBy(dimensions.paddingMedium),
+                            horizontalArrangement = Arrangement.spacedBy(dimensions.paddingMedium),
+                            contentPadding = PaddingValues(top = dimensions.paddingMedium, bottom = dimensions.paddingExtraLarge)
+                        ) {
+                            items(recursos) { recurso ->
+                                RecursoCard(
+                                    recurso = recurso,
+                                    isLocked = recurso.isPremium && !isUserPremium,
+                                    onClick = {
+                                        if (recurso.isPremium && !isUserPremium) {
+                                            onNavigateToPremium()
+                                        } else {
+                                            selectedRecurso = recurso
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
                 }
@@ -156,114 +173,138 @@ fun RecursosScreen(
             dragHandle = { BottomSheetDefaults.DragHandle() }
         ) {
             val recurso = selectedRecurso!!
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 8.dp)
-                    .padding(bottom = 32.dp)
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
+                Column(
                     modifier = Modifier
+                        .widthIn(max = 600.dp)
                         .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(16.dp))
+                        .padding(horizontal = dimensions.paddingLarge)
+                        .padding(bottom = dimensions.paddingExtraLarge)
                 ) {
-                    Image(
-                        painter = painterResource(id = recurso.imageRes),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-
                     Box(
                         modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(12.dp)
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.9f))
-                            .clickable {
-                                onToggleFavorite(recurso.id, recurso.isFavorite)
-                                selectedRecurso = recurso.copy(isFavorite = !recurso.isFavorite)
-                            },
-                        contentAlignment = Alignment.Center
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .clip(RoundedCornerShape(dimensions.cornerRadiusNormal))
                     ) {
-                        Icon(
-                            imageVector = if (recurso.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = stringResource(R.string.favorite),
-                            tint = if (recurso.isFavorite) Color(0xFFE91E63) else Color.Gray,
-                            modifier = Modifier.size(24.dp)
+                        Image(
+                            painter = painterResource(id = recurso.imageRes),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
                         )
-                    }
-                }
 
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Text(
-                    text = recurso.category.uppercase(),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = ZeniaTeal,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = recurso.title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = recurso.description,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = MaterialTheme.typography.bodyLarge.lineHeight
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                if (recurso.progress > 0) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(dimensions.paddingSmall)
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(alpha = 0.9f))
+                                .clickable {
+                                    onToggleFavorite(recurso.id, recurso.isFavorite)
+                                    selectedRecurso = recurso.copy(isFavorite = !recurso.isFavorite)
+                                },
+                            contentAlignment = Alignment.Center
                         ) {
-                            Text(stringResource(R.string.progress), style = MaterialTheme.typography.labelMedium)
-                            Text("${recurso.progress}%", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                            Icon(
+                                imageVector = if (recurso.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = stringResource(R.string.favorite),
+                                tint = if (recurso.isFavorite) Color(0xFFE91E63) else Color.Gray,
+                                modifier = Modifier.size(dimensions.iconMedium)
+                            )
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LinearProgressIndicator(
-                            progress = { recurso.progress / 100f },
-                            modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
-                            color = ZeniaTeal,
+                    }
+
+                    Spacer(modifier = Modifier.height(dimensions.paddingLarge))
+
+                    Text(
+                        text = recurso.category.uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = ZeniaTeal,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(modifier = Modifier.height(dimensions.paddingSmall))
+
+                    Text(
+                        text = recurso.title,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(modifier = Modifier.height(dimensions.paddingSmall))
+
+                    Text(
+                        text = recurso.description,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = MaterialTheme.typography.bodyLarge.lineHeight,
+                        maxLines = 5,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(modifier = Modifier.height(dimensions.paddingExtraLarge))
+
+                    if (recurso.progress > 0) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    stringResource(R.string.progress),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    maxLines = 1
+                                )
+                                Text(
+                                    text = "${recurso.progress}%",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            LinearProgressIndicator(
+                                progress = { recurso.progress / 100f },
+                                modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                                color = ZeniaTeal,
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(dimensions.paddingExtraLarge))
+                    }
+
+                    Button(
+                        onClick = {
+                            selectedRecurso = null
+                            onNavigateToDetail(recurso.id)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = dimensions.buttonHeight),
+                        shape = RoundedCornerShape(dimensions.cornerRadiusNormal),
+                        colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal)
+                    ) {
+                        Icon(Icons.Default.PlayArrow, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (recurso.progress > 0)
+                                stringResource(R.string.continue_resource)
+                            else
+                                stringResource(R.string.start),
+                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-
-                Button(
-                    onClick = {
-                        selectedRecurso = null
-                        onNavigateToDetail(recurso.id)
-                    },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal)
-                ) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (recurso.progress > 0)
-                            stringResource(R.string.continue_resource)
-                        else
-                            stringResource(R.string.start),
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                        fontWeight = FontWeight.Bold
-                    )
                 }
             }
         }
@@ -276,13 +317,14 @@ fun RecursoCard(
     isLocked: Boolean,
     onClick: () -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
     val containerColor = if (isLocked) Color.Gray.copy(alpha = 0.1f) else ZeniaWhite
     val contentAlpha = if (isLocked) 0.6f else 1f
     val textColor = if (isLocked) Color.Gray else Color.Black
 
     Card(
         onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(dimensions.cornerRadiusNormal),
         colors = CardDefaults.cardColors(containerColor = containerColor),
         elevation = CardDefaults.cardElevation(defaultElevation = if (isLocked) 0.dp else 2.dp),
         modifier = Modifier
@@ -314,7 +356,7 @@ fun RecursoCard(
                             imageVector = Icons.Default.Lock,
                             contentDescription = stringResource(R.string.locked),
                             tint = ZeniaWhite,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(dimensions.iconLarge)
                         )
                     }
                 }
@@ -323,7 +365,7 @@ fun RecursoCard(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(12.dp)
+                    .padding(dimensions.paddingSmall)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -333,9 +375,12 @@ fun RecursoCard(
                         text = recurso.category.uppercase(),
                         style = MaterialTheme.typography.labelSmall,
                         color = ZeniaTeal,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
-                    Spacer(modifier = Modifier.weight(1f))
+                    Spacer(modifier = Modifier.width(8.dp))
                     if (recurso.isPremium) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_crown),
@@ -370,5 +415,53 @@ fun RecursoCard(
                 )
             }
         }
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun RecursosScreenPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Expanded) {
+        RecursosScreen(
+            uiState = RecursosUiState.Success(
+                recursos = listOf(
+                    RecursoUiModel(
+                        id = "1",
+                        title = "Meditación para Dormir",
+                        description = "Un viaje guiado hacia el sueño profundo.",
+                        category = "Relajación",
+                        imageRes = R.drawable.placeholder_resource_1,
+                        isPremium = false,
+                        isFavorite = true,
+                        progress = 0
+                    ),
+                    RecursoUiModel(
+                        id = "2",
+                        title = "Respiración 4-7-8 Avanzada",
+                        description = "Técnica clínica para reducir la ansiedad en minutos.",
+                        category = "Ejercicios",
+                        imageRes = R.drawable.placeholder_resource_1,
+                        isPremium = true,
+                        isFavorite = false,
+                        progress = 45
+                    ),
+                    RecursoUiModel(
+                        id = "3",
+                        title = "Manejo del Estrés Laboral",
+                        description = "Audio guiado para desconectar de la oficina.",
+                        category = "Psicología",
+                        imageRes = R.drawable.placeholder_resource_1,
+                        isPremium = true,
+                        isFavorite = false,
+                        progress = 0
+                    )
+                )
+            ),
+            isUserPremium = false,
+            onNavigateToDetail = {},
+            onNavigateToPremium = {},
+            onToggleFavorite = { _, _ -> },
+            onRetry = {}
+        )
     }
 }

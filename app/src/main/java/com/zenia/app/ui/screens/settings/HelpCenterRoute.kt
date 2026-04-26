@@ -11,7 +11,7 @@ fun HelpCenterRoute(
     onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
-    val supportEmail = "contacto@zenia-official.me"
+    val supportEmail = "contacto.zenia.oficial@gmail.com"
     val emailSubject = context.getString(R.string.help_email_subject)
 
     val onContactSupportClick = {

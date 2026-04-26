@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,7 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -37,12 +38,13 @@ import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaTeal
 import com.zenia.app.ui.theme.ZeniaWhite
+import com.zenia.app.util.DevicePreviews
 
 data class RelaxExercise(
     val id: Int,
-    @StringRes val titleRes: Int,
-    @StringRes val durationRes: Int,
-    @DrawableRes val imageRes: Int,
+    @param:StringRes val titleRes: Int,
+    @param:StringRes val durationRes: Int,
+    @param:DrawableRes val imageRes: Int,
     val isPremium: Boolean
 )
 
@@ -61,6 +63,7 @@ fun RelaxScreen(
     onNavigateToPremium: () -> Unit,
     isUserPremium: Boolean = false
 ) {
+    val dimensions = ZenIATheme.dimensions
     var showUnderConstruction by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -69,124 +72,139 @@ fun RelaxScreen(
         },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter
         ) {
-            LazyRow(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                contentPadding = PaddingValues(horizontal = 20.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .fillMaxHeight()
+                    .widthIn(max = 1200.dp)
             ) {
-                item {
-                    FilterChip(
-                        selected = true,
-                        onClick = { /* TODO */ },
-                        label = { Text(stringResource(R.string.relax_filter_all)) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = ZeniaTeal,
-                            selectedLabelColor = ZeniaWhite
-                        ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            enabled = true,
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = dimensions.paddingMedium),
+                    contentPadding = PaddingValues(horizontal = dimensions.paddingLarge),
+                    horizontalArrangement = Arrangement.spacedBy(dimensions.paddingSmall)
+                ) {
+                    item {
+                        FilterChip(
                             selected = true,
-                            borderColor = Color.Transparent
+                            onClick = { /* TODO */ },
+                            label = { Text(stringResource(R.string.relax_filter_all), maxLines = 1) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = ZeniaTeal,
+                                selectedLabelColor = ZeniaWhite
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = true,
+                                borderColor = Color.Transparent
+                            )
                         )
-                    )
+                    }
+                    item { FilterChip(selected = false, onClick = {}, label = { Text(stringResource(R.string.relax_filter_breathing), maxLines = 1) }) }
+                    item { FilterChip(selected = false, onClick = {}, label = { Text(stringResource(R.string.relax_filter_meditation), maxLines = 1) }) }
+                    item { FilterChip(selected = false, onClick = {}, label = { Text(stringResource(R.string.relax_filter_sounds), maxLines = 1) }) }
                 }
-                item { FilterChip(selected = false, onClick = {}, label = { Text(stringResource(R.string.relax_filter_breathing)) }) }
-                item { FilterChip(selected = false, onClick = {}, label = { Text(stringResource(R.string.relax_filter_meditation)) }) }
-                item { FilterChip(selected = false, onClick = {}, label = { Text(stringResource(R.string.relax_filter_sounds)) }) }
-            }
 
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 350.dp),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(bottom = 24.dp)
-            ) {
-                items(mockExercises) { exercise ->
-                    RelaxExerciseCard(
-                        exercise = exercise,
-                        isLocked = exercise.isPremium && !isUserPremium,
-                        onClick = {
-                            if (exercise.isPremium && !isUserPremium) {
-                                onNavigateToPremium()
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 350.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = dimensions.paddingLarge),
+                    verticalArrangement = Arrangement.spacedBy(dimensions.paddingMedium),
+                    horizontalArrangement = Arrangement.spacedBy(dimensions.paddingMedium),
+                    contentPadding = PaddingValues(bottom = dimensions.paddingExtraLarge)
+                ) {
+                    items(mockExercises) { exercise ->
+                        RelaxExerciseCard(
+                            exercise = exercise,
+                            isLocked = exercise.isPremium && !isUserPremium,
+                            onClick = {
+                                if (exercise.isPremium && !isUserPremium) {
+                                    onNavigateToPremium()
+                                }
+                                else if (exercise.id !in listOf(1, 2, 3, 4)) {
+                                    showUnderConstruction = true
+                                }
+                                else {
+                                    onNavigateToPlayer(exercise.id)
+                                }
                             }
-                            else if (exercise.id !in listOf(1, 2, 3, 4)) {
-                                showUnderConstruction = true
-                            }
-                            else {
-                                onNavigateToPlayer(exercise.id)
-                            }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
     }
+
     if (showUnderConstruction) {
         ModalBottomSheet(
             onDismissRequest = { showUnderConstruction = false },
             containerColor = MaterialTheme.colorScheme.surface
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.on_build))
-                val progress by animateLottieCompositionAsState(
-                    composition,
-                    iterations = LottieConstants.IterateForever
-                )
-                LottieAnimation(
-                    composition = composition,
-                    progress = { progress },
-                    modifier = Modifier.size(180.dp)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = stringResource(R.string.coming_soon_title),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = RobotoFlex,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = stringResource(R.string.coming_soon_desc),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Button(
-                    onClick = { showUnderConstruction = false },
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Column(
                     modifier = Modifier
+                        .widthIn(max = 500.dp)
                         .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(12.dp)
+                        .padding(horizontal = dimensions.paddingExtraLarge)
+                        .padding(bottom = dimensions.paddingExtraLarge),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        stringResource(R.string.understood),
-                        fontFamily = RobotoFlex,
-                        fontWeight = FontWeight.Bold
+                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.on_build))
+                    val progress by animateLottieCompositionAsState(
+                        composition,
+                        iterations = LottieConstants.IterateForever
                     )
+                    LottieAnimation(
+                        composition = composition,
+                        progress = { progress },
+                        modifier = Modifier.size(180.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = stringResource(R.string.coming_soon_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = RobotoFlex,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = stringResource(R.string.coming_soon_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(dimensions.paddingExtraLarge))
+
+                    Button(
+                        onClick = { showUnderConstruction = false },
+                        modifier = Modifier
+                            .widthIn(max = dimensions.buttonMaxWidth)
+                            .fillMaxWidth()
+                            .heightIn(min = dimensions.buttonHeight),
+                        shape = RoundedCornerShape(dimensions.cornerRadiusNormal)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.understood),
+                            fontFamily = RobotoFlex,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
         }
@@ -199,13 +217,14 @@ fun RelaxExerciseCard(
     isLocked: Boolean,
     onClick: () -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
     val containerColor = if (isLocked) Color.Gray.copy(alpha = 0.1f) else ZeniaWhite
     val contentAlpha = if (isLocked) 0.6f else 1f
     val textColor = if (isLocked) Color.Gray else Color.Black
 
     Card(
         onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(dimensions.cornerRadiusNormal),
         colors = CardDefaults.cardColors(containerColor = containerColor),
         elevation = CardDefaults.cardElevation(defaultElevation = if (isLocked) 0.dp else 2.dp),
         modifier = Modifier
@@ -240,7 +259,7 @@ fun RelaxExerciseCard(
                             imageVector = Icons.Default.Lock,
                             contentDescription = stringResource(R.string.relax_locked_content),
                             tint = ZeniaWhite,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(dimensions.iconLarge)
                         )
                     }
                 }
@@ -249,7 +268,7 @@ fun RelaxExerciseCard(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(16.dp),
+                    .padding(dimensions.paddingMedium),
                 verticalArrangement = Arrangement.Center
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -260,7 +279,8 @@ fun RelaxExerciseCard(
                         color = textColor,
                         fontFamily = RobotoFlex,
                         maxLines = 1,
-                        modifier = Modifier.weight(1f)
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
                     if (exercise.isPremium) {
                         Spacer(modifier = Modifier.width(8.dp))
@@ -285,7 +305,9 @@ fun RelaxExerciseCard(
                         text = stringResource(exercise.durationRes),
                         style = MaterialTheme.typography.bodySmall,
                         color = textColor,
-                        fontFamily = RobotoFlex
+                        fontFamily = RobotoFlex,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -293,12 +315,27 @@ fun RelaxExerciseCard(
     }
 }
 
-@Preview
+
+@DevicePreviews
 @Composable
-fun RelaxScreenPreview() {
-    RelaxScreen(
-        onNavigateToPlayer = {},
-        onNavigateToPremium = {},
-        isUserPremium = false
-    )
+private fun RelaxScreenPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Compact) {
+        RelaxScreen(
+            onNavigateToPlayer = {},
+            onNavigateToPremium = {},
+            isUserPremium = false
+        )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun RelaxScreenTabletPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Expanded) {
+        RelaxScreen(
+            onNavigateToPlayer = {},
+            onNavigateToPremium = {},
+            isUserPremium = true
+        )
+    }
 }

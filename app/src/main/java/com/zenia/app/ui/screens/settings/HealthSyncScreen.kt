@@ -7,12 +7,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,6 +39,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,11 +49,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.zenia.app.R
 import com.zenia.app.data.HealthConnectNextStep
 import com.zenia.app.data.HealthSummary
 import com.zenia.app.ui.components.ZeniaTopBar
+import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaDeepTeal
 import com.zenia.app.ui.theme.ZeniaDream
 import com.zenia.app.ui.theme.ZeniaExercise
@@ -57,6 +63,7 @@ import com.zenia.app.ui.theme.ZeniaInputBackground
 import com.zenia.app.ui.theme.ZeniaLightGrey
 import com.zenia.app.ui.theme.ZeniaSlateGrey
 import com.zenia.app.ui.theme.ZeniaTeal
+import com.zenia.app.util.DevicePreviews
 
 @Composable
 fun HealthSyncScreen(
@@ -71,180 +78,210 @@ fun HealthSyncScreen(
 ) {
     val connected = nextStep == HealthConnectNextStep.Ready
     val scrollState = rememberScrollState()
+    val dimensions = ZenIATheme.dimensions
 
     Scaffold(
         topBar = { ZeniaTopBar(title = stringResource(R.string.health_title), onNavigateBack = onNavigateBack) },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(scrollState)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.Start
+        Box(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            contentAlignment = Alignment.TopCenter
         ) {
-            Spacer(modifier = Modifier.height(10.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .widthIn(max = 650.dp)
+                    .fillMaxWidth()
+                    .verticalScroll(scrollState)
+                    .padding(dimensions.paddingLarge),
+                horizontalAlignment = Alignment.Start
+            ) {
+                Spacer(modifier = Modifier.height(10.dp))
 
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                ConnectionStatusCard(isConnected = connected)
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            when {
-                nextStep == HealthConnectNextStep.NotSupported -> {
-                    Text(
-                        text = stringResource(R.string.health_not_supported),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = ZeniaSlateGrey
-                    )
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    ConnectionStatusCard(isConnected = connected)
                 }
 
-                nextStep == HealthConnectNextStep.InstallOrUpdate -> {
-                    Text(
-                        text = stringResource(R.string.health_install_update),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = ZeniaSlateGrey
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    InfoRow(text = stringResource(R.string.health_android_note))
-                    InfoRow(text = stringResource(R.string.health_return_after_install))
-                }
+                Spacer(modifier = Modifier.height(32.dp))
 
-                isLoading -> {
-                    CircularProgressIndicator()
-                }
+                when {
+                    nextStep == HealthConnectNextStep.NotSupported -> {
+                        Text(
+                            text = stringResource(R.string.health_not_supported),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = ZeniaSlateGrey
+                        )
+                    }
 
-                connected && healthSummary != null -> {
-                    Text(
-                        text = stringResource(
-                            R.string.health_heart_rate_full,
-                            healthSummary.heartRateAvg ?: "--"
+                    nextStep == HealthConnectNextStep.InstallOrUpdate -> {
+                        Text(
+                            text = stringResource(R.string.health_install_update),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = ZeniaSlateGrey
                         )
-                    )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        InfoRow(text = stringResource(R.string.health_android_note))
+                        InfoRow(text = stringResource(R.string.health_return_after_install))
+                    }
 
-                    Text(
-                        text = stringResource(
-                            R.string.health_sleep_full,
-                            "%.1f".format(healthSummary.sleepHours)
-                        )
-                    )
+                    isLoading -> {
+                        CircularProgressIndicator()
+                    }
 
-                    Text(
-                        text = stringResource(
-                            R.string.health_steps_full,
-                            healthSummary.steps
+                    connected && healthSummary != null -> {
+                        Text(
+                            text = stringResource(
+                                R.string.health_heart_rate_full,
+                                healthSummary.heartRateAvg ?: "--"
+                            )
                         )
-                    )
 
-                    Text(
-                        text = stringResource(
-                            R.string.health_stress_full,
-                            healthSummary.stressLevel
+                        Text(
+                            text = stringResource(
+                                R.string.health_sleep_full,
+                                "%.1f".format(healthSummary.sleepHours)
+                            )
                         )
-                    )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = stringResource(
+                                R.string.health_steps_full,
+                                healthSummary.steps
+                            )
+                        )
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        MetricItem(
-                            icon = Icons.Default.Favorite,
-                            label = stringResource(R.string.health_metric_heart),
-                            color = Color(0xFFFF5252)
+                        Text(
+                            text = stringResource(
+                                R.string.health_stress_full,
+                                healthSummary.stressLevel
+                            )
                         )
-                        MetricItem(
-                            icon = Icons.Default.Bedtime,
-                            label = stringResource(R.string.health_metric_sleep),
-                            color = ZeniaDream
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            MetricItem(
+                                icon = Icons.Default.Favorite,
+                                label = stringResource(R.string.health_metric_heart),
+                                color = Color(0xFFFF5252)
+                            )
+                            MetricItem(
+                                icon = Icons.Default.Bedtime,
+                                label = stringResource(R.string.health_metric_sleep),
+                                color = ZeniaDream
+                            )
+                            MetricItem(
+                                icon = Icons.AutoMirrored.Filled.DirectionsRun,
+                                label = stringResource(R.string.health_metric_steps),
+                                color = ZeniaExercise
+                            )
+                        }
+                    }
+
+                    else -> {
+                        Text(
+                            text = stringResource(R.string.health_why_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = ZeniaSlateGrey,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 12.dp),
+                            textAlign = TextAlign.Start
                         )
-                        MetricItem(
-                            icon = Icons.AutoMirrored.Filled.DirectionsRun,
-                            label = stringResource(R.string.health_metric_steps),
-                            color = ZeniaExercise
-                        )
+                        InfoRow(text = stringResource(R.string.health_why_1))
+                        InfoRow(text = stringResource(R.string.health_why_2))
+                        InfoRow(text = stringResource(R.string.health_why_3))
                     }
                 }
 
-                else -> {
-                    Text(
-                        text = stringResource(R.string.health_why_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = ZeniaSlateGrey,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 12.dp),
-                        textAlign = TextAlign.Start
-                    )
-                    InfoRow(text = stringResource(R.string.health_why_1))
-                    InfoRow(text = stringResource(R.string.health_why_2))
-                    InfoRow(text = stringResource(R.string.health_why_3))
-                }
-            }
+                Spacer(modifier = Modifier.weight(1f))
 
-            Spacer(modifier = Modifier.weight(1f))
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Column(modifier = Modifier.widthIn(max = dimensions.buttonMaxWidth)) {
+                        if (!isPremium) {
+                            Button(
+                                onClick = onNavigateToPremium,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = dimensions.buttonHeight),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFFD946EF),
+                                    contentColor = Color.White
+                                ),
+                                elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
+                            ) {
+                                Icon(imageVector = Icons.Default.Star, contentDescription = null)
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = stringResource(R.string.health_unlock),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        } else {
+                            val (buttonEnabled, buttonText, buttonColor, buttonIcon) = when (nextStep) {
+                                HealthConnectNextStep.NotSupported ->
+                                    Quad(false, stringResource(R.string.health_not_available), ZeniaLightGrey, Icons.Default.BrokenImage)
 
-            if (!isPremium) {
-                Button(
-                    onClick = onNavigateToPremium,
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFD946EF),
-                        contentColor = Color.White
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
-                ) {
-                    Icon(imageVector = Icons.Default.Star, contentDescription = null)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(text = stringResource(R.string.health_unlock), style = MaterialTheme.typography.titleMedium)
-                }
-            } else {
-                val (buttonEnabled, buttonText, buttonColor, buttonIcon) = when (nextStep) {
-                    HealthConnectNextStep.NotSupported ->
-                        Quad(false, stringResource(R.string.health_not_available), ZeniaLightGrey, Icons.Default.BrokenImage)
+                                HealthConnectNextStep.InstallOrUpdate ->
+                                    Quad(true, stringResource(R.string.health_install_button), ZeniaTeal, Icons.Default.Watch)
 
-                    HealthConnectNextStep.InstallOrUpdate ->
-                        Quad(true, stringResource(R.string.health_install_button), ZeniaTeal, Icons.Default.Watch)
+                                HealthConnectNextStep.RequestPermissions ->
+                                    Quad(true, stringResource(R.string.health_connect), ZeniaTeal, Icons.Default.Watch)
 
-                    HealthConnectNextStep.RequestPermissions ->
-                        Quad(true, stringResource(R.string.health_connect), ZeniaTeal, Icons.Default.Watch)
+                                HealthConnectNextStep.Ready ->
+                                    Quad(true, stringResource(R.string.health_refresh), ZeniaSlateGrey, Icons.Default.CheckCircle)
+                            }
 
-                    HealthConnectNextStep.Ready ->
-                        Quad(true, stringResource(R.string.health_refresh), ZeniaSlateGrey, Icons.Default.CheckCircle)
-                }
+                            Button(
+                                onClick = onConnectClick,
+                                enabled = buttonEnabled,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = dimensions.buttonHeight),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = buttonColor, contentColor = Color.White),
+                                elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
+                            ) {
+                                Icon(imageVector = buttonIcon, contentDescription = null)
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = buttonText,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    maxLines = 1, overflow =
+                                        TextOverflow.Ellipsis
+                                )
+                            }
 
-                Button(
-                    onClick = onConnectClick,
-                    enabled = buttonEnabled,
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = buttonColor, contentColor = Color.White),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
-                ) {
-                    Icon(imageVector = buttonIcon, contentDescription = null)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(text = buttonText, style = MaterialTheme.typography.titleMedium)
-                }
-
-                if (connected) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    OutlinedButton(
-                        onClick = onManagePermissionClick,
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        shape = RoundedCornerShape(16.dp),
-                    ) {
-                        Icon(imageVector = Icons.Default.SettingsBackupRestore, contentDescription = null)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(stringResource(R.string.health_manage_permissions))
+                            if (connected) {
+                                Spacer(modifier = Modifier.height(12.dp))
+                                OutlinedButton(
+                                    onClick = onManagePermissionClick,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(min = dimensions.buttonHeight),
+                                    shape = RoundedCornerShape(16.dp),
+                                ) {
+                                    Icon(imageVector = Icons.Default.SettingsBackupRestore, contentDescription = null)
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        text = stringResource(R.string.health_manage_permissions),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
+                Spacer(modifier = Modifier.height(dimensions.paddingExtraLarge))
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -376,5 +413,13 @@ fun InfoRow(text: String) {
             color = ZeniaSlateGrey,
             textAlign = TextAlign.Start
         )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun HealthSyncScreenPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Expanded) {
+        HealthSyncScreen(isPremium = true, nextStep = HealthConnectNextStep.Ready, healthSummary = null, isLoading = false, {}, {}, {}, {})
     }
 }

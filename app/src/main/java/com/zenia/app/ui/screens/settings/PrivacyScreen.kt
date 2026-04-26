@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,12 +22,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.Nunito
+import com.zenia.app.ui.theme.ZenIATheme
+import com.zenia.app.util.DevicePreviews
 
 @Composable
 fun PrivacyScreen(
@@ -35,6 +38,8 @@ fun PrivacyScreen(
     onTermsClick: () -> Unit,
     onPrivacyClick: () -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
+
     Scaffold(
         topBar = {
             ZeniaTopBar(
@@ -57,7 +62,7 @@ fun PrivacyScreen(
                     .fillMaxWidth()
                     .fillMaxHeight()
                     .verticalScroll(rememberScrollState())
-                    .padding(24.dp),
+                    .padding(dimensions.paddingExtraLarge),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(modifier = Modifier.height(24.dp))
@@ -87,7 +92,9 @@ fun PrivacyScreen(
                     fontWeight = FontWeight.Bold,
                     fontSize = 22.sp,
                     color = MaterialTheme.colorScheme.onBackground,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -98,12 +105,13 @@ fun PrivacyScreen(
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
-                    lineHeight = 22.sp
+                    lineHeight = 22.sp,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Botones
                 LinkButton(
                     text = stringResource(R.string.privacy_link_about),
                     icon = Icons.Default.Info,
@@ -146,23 +154,28 @@ fun LinkButton(
     icon: ImageVector,
     onClick: () -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
+
     OutlinedButton(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp),
+            .heightIn(min = dimensions.buttonHeight),
         shape = MaterialTheme.shapes.medium,
         colors = ButtonDefaults.outlinedButtonColors(
             contentColor = MaterialTheme.colorScheme.onSurface
         ),
-        contentPadding = PaddingValues(horizontal = 16.dp)
+        contentPadding = PaddingValues(horizontal = dimensions.paddingLarge)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
@@ -173,7 +186,9 @@ fun LinkButton(
                     text = text,
                     fontFamily = Nunito,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp
+                    fontSize = 16.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
             Icon(
@@ -186,8 +201,15 @@ fun LinkButton(
     }
 }
 
-@Preview(name = "Tablet", widthDp = 800, heightDp = 600)
+@DevicePreviews
 @Composable
 fun PrivacyResponsivePreview() {
-    PrivacyScreen({}, {}, {}, {})
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Expanded) {
+        PrivacyScreen(
+            onNavigateBack = {},
+            onAboutClick = {},
+            onTermsClick = {},
+            onPrivacyClick = {}
+        )
+    }
 }

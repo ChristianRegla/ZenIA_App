@@ -1,14 +1,17 @@
 package com.zenia.app.ui.screens.recursos
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -22,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,13 +34,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.zenia.app.R
+import com.zenia.app.model.Recurso // Tu modelo real
 import com.zenia.app.ui.components.ZeniaTopBar
+import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaTeal
 import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.m3.markdownColor
 import com.mikepenz.markdown.m3.markdownTypography
+import com.zenia.app.util.DevicePreviews
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,6 +54,8 @@ fun RecursoDetailScreen(
     onNavigateBack: () -> Unit,
     onMarkAsCompleted: () -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
+
     Scaffold(
         topBar = {
             val title = if (uiState is RecursoDetailUiState.Success) uiState.recurso.tipo else "Recurso"
@@ -58,18 +69,32 @@ fun RecursoDetailScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter
         ) {
             when (uiState) {
                 is RecursoDetailUiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = ZeniaTeal
+                    )
                 }
                 is RecursoDetailUiState.Error -> {
-                    Text(
-                        text = uiState.message,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .widthIn(max = 500.dp)
+                            .padding(dimensions.paddingExtraLarge),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = uiState.message,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
                 is RecursoDetailUiState.Success -> {
                     val recurso = uiState.recurso
@@ -78,12 +103,13 @@ fun RecursoDetailScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
+                            .widthIn(max = 750.dp)
                             .verticalScroll(scrollState)
                     ) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(220.dp)
+                                .height(250.dp)
                         ) {
                             Image(
                                 painter = painterResource(id = R.drawable.placeholder_resource_1),
@@ -96,13 +122,18 @@ fun RecursoDetailScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(24.dp)
+                                .padding(
+                                    horizontal = dimensions.paddingExtraLarge,
+                                    vertical = dimensions.paddingLarge
+                                )
                         ) {
                             Text(
                                 text = recurso.titulo,
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.onBackground
+                                color = MaterialTheme.colorScheme.onBackground,
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis
                             )
 
                             if (recurso.duracionEstimada != null) {
@@ -110,11 +141,13 @@ fun RecursoDetailScreen(
                                 Text(
                                     text = "Tiempo estimado: ${recurso.duracionEstimada}",
                                     style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
 
-                            Spacer(modifier = Modifier.height(24.dp))
+                            Spacer(modifier = Modifier.height(dimensions.paddingExtraLarge))
 
                             val customTypography = markdownTypography(
                                 text = MaterialTheme.typography.bodyLarge.copy(
@@ -146,23 +179,64 @@ fun RecursoDetailScreen(
 
                             Spacer(modifier = Modifier.height(48.dp))
 
-                            Button(
-                                onClick = onMarkAsCompleted,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(56.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal)
-                            ) {
-                                Icon(Icons.Default.CheckCircle, contentDescription = null)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(text = stringResource(R.string.resource_detail_mark_completed), fontWeight = FontWeight.Bold)
+                            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                Button(
+                                    onClick = onMarkAsCompleted,
+                                    modifier = Modifier
+                                        .widthIn(max = dimensions.buttonMaxWidth)
+                                        .fillMaxWidth()
+                                        .heightIn(min = dimensions.buttonHeight),
+                                    shape = RoundedCornerShape(dimensions.cornerRadiusNormal),
+                                    colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal)
+                                ) {
+                                    Icon(Icons.Default.CheckCircle, contentDescription = null)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = stringResource(R.string.resource_detail_mark_completed),
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
                             }
+
                             Spacer(modifier = Modifier.height(32.dp))
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun RecursoDetailScreenPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Expanded) {
+        RecursoDetailScreen(
+            uiState = RecursoDetailUiState.Success(
+                recurso = Recurso(
+                    id = "1",
+                    tipo = "Artículo de Psicología",
+                    titulo = "Cómo superar la ansiedad nocturna en 5 pasos",
+                    duracionEstimada = "5 min de lectura",
+                    contenido = """
+                        # La ansiedad no tiene que ganar
+                        
+                        A veces, cuando cae la noche, nuestra mente decide encenderse. Este es un problema muy común.
+                        
+                        ## Paso 1: Reconoce el sentimiento
+                        No intentes pelear con tu mente. Acepta que estás sintiendo ansiedad.
+                        
+                        > "La paz viene de la aceptación, no de la resistencia."
+                        
+                        ## Paso 2: Respiración 4-7-8
+                        Aplica la técnica de respirar profundo. Inhala en 4 segundos, sostén por 7 y exhala en 8.
+                    """.trimIndent()
+                )
+            ),
+            onNavigateBack = {},
+            onMarkAsCompleted = {}
+        )
     }
 }
