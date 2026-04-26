@@ -49,6 +49,7 @@ fun ZeniaBottomBar(
     ) {
         Surface(
             modifier = Modifier
+                .widthIn(max = 500.dp)
                 .fillMaxWidth()
                 .height(72.dp)
                 .shadow(
@@ -60,8 +61,9 @@ fun ZeniaBottomBar(
             shape = RoundedCornerShape(24.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 items.forEach { item ->
@@ -70,6 +72,7 @@ fun ZeniaBottomBar(
                     ZeniaNavItem(
                         item = item,
                         isSelected = selected,
+                        modifier = Modifier.weight(1f),
                         onClick = {
                             if (!selected) {
                                 navController.navigate(item.route) {
@@ -92,12 +95,13 @@ fun ZeniaBottomBar(
 private fun ZeniaNavItem(
     item: BottomNavItem,
     isSelected: Boolean,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
 
     val scale by animateFloatAsState(
-        targetValue = if (isSelected) 1.15f else 1.0f,
+        targetValue = if (isSelected) 1.2f else 1.0f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessLow
@@ -109,7 +113,7 @@ private fun ZeniaNavItem(
         targetValue = if (isSelected)
             Color.White
         else
-            Color.White.copy(alpha = 0.5f),
+            Color.White.copy(alpha = 0.6f),
         label = "contentColor"
     )
 
@@ -123,41 +127,48 @@ private fun ZeniaNavItem(
 
     val title = stringResource(id = item.titleRes)
 
-    Column(
-        modifier = Modifier
+    Box(
+        modifier = modifier
+            .fillMaxHeight()
+            .padding(horizontal = 2.dp, vertical = 6.dp)
             .clip(RoundedCornerShape(16.dp))
+            .background(backgroundColor)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ) {
                 haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                 onClick()
-            }
-            .background(backgroundColor)
-            .padding(vertical = 8.dp, horizontal = 12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            },
+        contentAlignment = Alignment.Center
     ) {
-        Icon(
-            imageVector = ImageVector.vectorResource(id = item.iconRes),
-            contentDescription = title,
-            tint = contentColor,
-            modifier = Modifier
-                .size(24.dp)
-                .scale(scale)
-        )
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = ImageVector.vectorResource(id = item.iconRes),
+                contentDescription = title,
+                tint = contentColor,
+                modifier = Modifier
+                    .size(24.dp)
+                    .scale(scale)
+            )
 
-        Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-        Text(
-            text = title,
-            color = contentColor,
-            fontSize = if (isSelected) 11.sp else 10.sp,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            fontFamily = Nunito,
-            textAlign = TextAlign.Center
-        )
+            Text(
+                text = title,
+                color = contentColor,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Clip,
+                fontFamily = Nunito,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }

@@ -65,9 +65,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
@@ -260,7 +258,6 @@ fun HomeScreen(
                     )
                 }
 
-                // 4. COMUNIDAD
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -375,17 +372,20 @@ private fun TodayEntryCard(
             containerColor = containerColor
         ),
         modifier = Modifier
+            .widthIn(max = 600.dp)
             .fillMaxWidth()
-            .heightIn(100.dp)
+            .heightIn(min = 100.dp)
     ) {
         Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = dimensions.paddingMedium, vertical = dimensions.paddingSmall),
+                .fillMaxWidth()
+                .padding(horizontal = dimensions.paddingLarge, vertical = dimensions.paddingMedium),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
                     text = if (hasEntry) stringResource(R.string.home_streak_active) else stringResource(R.string.home_log_day),
                     style = MaterialTheme.typography.titleMedium,
@@ -403,39 +403,43 @@ private fun TodayEntryCard(
                 )
             }
 
-            if (streak > 0) {
-                IconButton(
-                    onClick = { onShareStreak(streak) },
-                    modifier = Modifier.padding(end = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Share,
-                        contentDescription = stringResource(R.string.streak_share_content_desc),
-                        tint = titleTextColor.copy(alpha = 0.8f),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(iconBackgroundColor),
-                contentAlignment = Alignment.Center
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                if (hasEntry || streak > 0) {
-                    LottieAnimation(
-                        composition = composition,
-                        progress = { progress },
-                        modifier = Modifier.size(40.dp)
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        tint = Color.White
-                    )
+                if (streak > 0) {
+                    IconButton(
+                        onClick = { onShareStreak(streak) },
+                        modifier = Modifier.padding(end = dimensions.paddingSmall)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = stringResource(R.string.streak_share_content_desc),
+                            tint = titleTextColor.copy(alpha = 0.8f),
+                            modifier = Modifier.size(dimensions.iconMedium)
+                        )
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(iconBackgroundColor),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (hasEntry || streak > 0) {
+                        LottieAnimation(
+                            composition = composition,
+                            progress = { progress },
+                            modifier = Modifier.size(40.dp)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                    }
                 }
             }
         }
@@ -443,7 +447,7 @@ private fun TodayEntryCard(
 }
 
 @Composable
-private fun EmotionChartCard(chartProducer: com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer) {
+private fun EmotionChartCard(chartProducer: ChartEntryModelProducer) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),

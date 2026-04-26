@@ -257,8 +257,6 @@ private fun ExpandableInfoCard() {
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
                 )
 
                 Box(
