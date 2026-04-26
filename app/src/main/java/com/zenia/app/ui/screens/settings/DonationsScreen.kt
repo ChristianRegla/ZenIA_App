@@ -246,7 +246,7 @@ fun DonationCard(
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
                     fontFamily = RobotoFlex,
-                    maxLines = 1,
+                    maxLines = 3,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(

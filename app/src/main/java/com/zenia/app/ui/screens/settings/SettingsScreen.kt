@@ -236,6 +236,7 @@ fun SettingsScreen(
                         iconRes = R.drawable.ic_logout,
                         text = stringResource(R.string.settings_item_logout),
                         textColor = Color.Red.copy(alpha = 0.8f),
+                        tint = Color.Red.copy(alpha = 0.8f),
                         showArrow = false,
                         onClick = onSignOut
                     )
@@ -530,6 +531,7 @@ private fun SettingsItem(
     iconRes: Int,
     text: String,
     textColor: Color = Color.Black,
+    tint: Color = Color.Black,
     showArrow: Boolean = true,
     onClick: () -> Unit
 ) {
@@ -549,7 +551,7 @@ private fun SettingsItem(
         Icon(
             painter = painterResource(id = iconRes),
             contentDescription = null,
-            tint = Color.Black,
+            tint = tint,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))

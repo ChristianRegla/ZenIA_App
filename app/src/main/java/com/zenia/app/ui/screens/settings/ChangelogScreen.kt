@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -32,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -41,14 +43,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zenia.app.R
 import com.zenia.app.ui.components.ZeniaTopBar
+import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaLightGrey
 import com.zenia.app.ui.theme.ZeniaTeal
+import com.zenia.app.util.DevicePreviews
 import kotlinx.coroutines.launch
 
 enum class ChangeType(@param:StringRes val labelRes: Int, val icon: ImageVector, val color: Color) {
@@ -72,6 +79,8 @@ data class ChangelogRelease(
 fun ChangelogScreen(
     onNavigateBack: () -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
+
     val releaseHistory = listOf(
         ChangelogRelease(
             version = "v1.4.0",
@@ -118,27 +127,34 @@ fun ChangelogScreen(
         },
         containerColor = ZeniaLightGrey
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter
         ) {
-            items(releaseHistory) { release ->
-                ReleaseCard(release = release)
-            }
+            LazyColumn(
+                modifier = Modifier
+                    .widthIn(max = 800.dp)
+                    .fillMaxSize(),
+                contentPadding = PaddingValues(dimensions.paddingLarge),
+                verticalArrangement = Arrangement.spacedBy(dimensions.paddingMedium)
+            ) {
+                items(releaseHistory) { release ->
+                    ReleaseCard(release = release)
+                }
 
-            item {
-                Text(
-                    text = stringResource(R.string.changelog_footer),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp, bottom = 32.dp),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                item {
+                    Text(
+                        text = stringResource(R.string.changelog_footer),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = dimensions.paddingMedium, bottom = dimensions.paddingExtraLarge),
+                        textAlign = TextAlign.Center,
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
         }
     }
@@ -146,8 +162,12 @@ fun ChangelogScreen(
 
 @Composable
 fun ReleaseCard(release: ChangelogRelease) {
-    val alpha = remember { Animatable(0f) }
-    val translateY = remember { Animatable(100f) }
+    val dimensions = ZenIATheme.dimensions
+
+    val isPreview = LocalInspectionMode.current
+
+    val alpha = remember { Animatable(if (isPreview) 1f else 0f) }
+    val translateY = remember { Animatable(if (isPreview) 0f else 100f) }
 
     LaunchedEffect(release.version) {
         launch {
@@ -172,11 +192,11 @@ fun ReleaseCard(release: ChangelogRelease) {
                 this.translationY = translateY.value
             },
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(dimensions.cornerRadiusNormal),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(dimensions.paddingLarge)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -187,22 +207,27 @@ fun ReleaseCard(release: ChangelogRelease) {
                     text = release.version,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = ZeniaTeal
+                    color = ZeniaTeal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
                 )
                 Text(
                     text = stringResource(release.dateRes),
                     style = MaterialTheme.typography.labelMedium,
-                    color = Color.Gray
+                    color = Color.Gray,
+                    maxLines = 1,
+                    softWrap = false
                 )
             }
 
             HorizontalDivider(
-                modifier = Modifier.padding(vertical = 12.dp),
+                modifier = Modifier.padding(vertical = dimensions.paddingMedium),
                 thickness = DividerDefaults.Thickness,
                 color = ZeniaLightGrey
             )
 
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(dimensions.paddingMedium)) {
                 release.changes.forEach { change ->
                     ChangeItemRow(change = change)
                 }
@@ -213,6 +238,8 @@ fun ReleaseCard(release: ChangelogRelease) {
 
 @Composable
 fun ChangeItemRow(change: ChangeItem) {
+    val dimensions = ZenIATheme.dimensions
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.Top
@@ -233,22 +260,34 @@ fun ChangeItemRow(change: ChangeItem) {
             )
         }
 
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(dimensions.paddingMedium))
 
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = stringResource(change.type.labelRes),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Gray,
-                modifier = Modifier.padding(bottom = 2.dp)
+                modifier = Modifier.padding(bottom = 2.dp),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = stringResource(change.textRes),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
-                lineHeight = 20.sp
+                lineHeight = 20.sp,
             )
         }
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun ChangelogScreenPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Expanded) {
+        ChangelogScreen(
+            onNavigateBack = {}
+        )
     }
 }
