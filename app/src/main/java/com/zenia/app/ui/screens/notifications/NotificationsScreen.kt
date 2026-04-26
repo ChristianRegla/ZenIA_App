@@ -18,7 +18,7 @@ import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.*
-import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -42,6 +42,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.zenia.app.R
 import com.zenia.app.model.ZeniaNotification
 import com.zenia.app.ui.components.ZeniaTopBar
+import com.zenia.app.ui.theme.ZenIATheme
+import com.zenia.app.util.DevicePreviews
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -76,6 +78,7 @@ fun NotificationsScreen(
     }
 
     val actualSwitchState = isNotificationsEnabled && isSystemEnabled
+    val dimensions = ZenIATheme.dimensions
 
     Scaffold(
         topBar = {
@@ -93,7 +96,6 @@ fun NotificationsScreen(
                 .padding(paddingValues),
             contentAlignment = Alignment.TopCenter
         ) {
-
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -110,29 +112,25 @@ fun NotificationsScreen(
                 BoxWithConstraints(
                     modifier = Modifier.fillMaxSize()
                 ) {
-
                     val isTablet = maxWidth >= 700.dp
 
                     if (notifications.isEmpty()) {
-
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(24.dp),
+                                .padding(dimensions.paddingLarge),
                             contentAlignment = Alignment.Center
                         ) {
                             EmptyStateNotifications()
                         }
-
                     } else {
-
                         if (isTablet) {
                             LazyVerticalGrid(
                                 columns = GridCells.Fixed(2),
                                 modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(horizontal = 32.dp, vertical = 20.dp),
-                                horizontalArrangement = Arrangement.spacedBy(20.dp),
-                                verticalArrangement = Arrangement.spacedBy(20.dp)
+                                contentPadding = PaddingValues(horizontal = dimensions.paddingExtraLarge, vertical = dimensions.paddingMedium),
+                                horizontalArrangement = Arrangement.spacedBy(dimensions.paddingMedium),
+                                verticalArrangement = Arrangement.spacedBy(dimensions.paddingMedium)
                             ) {
                                 items(items = notifications, key = { it.id }) { notification ->
                                     NotificationItem(
@@ -148,8 +146,8 @@ fun NotificationsScreen(
                         } else {
                             LazyColumn(
                                 modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                                contentPadding = PaddingValues(horizontal = dimensions.paddingLarge, vertical = dimensions.paddingMedium),
+                                verticalArrangement = Arrangement.spacedBy(dimensions.paddingSmall)
                             ) {
                                 items(items = notifications, key = { it.id }) { notification ->
                                     NotificationItem(
@@ -173,6 +171,7 @@ fun NotificationsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationItem(notification: ZeniaNotification, onClick: () -> Unit, onDelete: () -> Unit) {
+    val dimensions = ZenIATheme.dimensions
 
     val dismissState = rememberSwipeToDismissBoxState(
         initialValue = SwipeToDismissBoxValue.Settled,
@@ -194,29 +193,64 @@ fun NotificationItem(notification: ZeniaNotification, onClick: () -> Unit, onDel
         state = dismissState,
         backgroundContent = {
             val color by animateColorAsState(if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) MaterialTheme.colorScheme.errorContainer else Color.Transparent, label = "color")
-            Box(Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)).background(color).padding(horizontal = 24.dp), contentAlignment = Alignment.CenterEnd) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(dimensions.cornerRadiusNormal))
+                    .background(color)
+                    .padding(horizontal = dimensions.paddingLarge),
+                contentAlignment = Alignment.CenterEnd
+            ) {
                 Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer)
             }
         },
         enableDismissFromStartToEnd = false
     ) {
         Card(
-            modifier = Modifier.fillMaxWidth().clickable { onClick() },
-            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onClick() },
+            shape = RoundedCornerShape(dimensions.cornerRadiusNormal),
             colors = CardDefaults.cardColors(containerColor = if (notification.isRead) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceBright),
             elevation = CardDefaults.cardElevation(defaultElevation = if (notification.isRead) 0.dp else 3.dp)
         ) {
-            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 18.dp), verticalAlignment = Alignment.Top) {
-                Box(modifier = Modifier.size(42.dp).clip(CircleShape).background(if (notification.isRead) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = dimensions.paddingLarge, vertical = dimensions.paddingMedium),
+                verticalAlignment = Alignment.Top
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .background(if (notification.isRead) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(imageVector = if (notification.isRead) Icons.Outlined.CheckCircle else Icons.Outlined.Info, contentDescription = null)
                 }
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(dimensions.paddingMedium))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = notification.title, style = MaterialTheme.typography.titleSmall, fontWeight = if (notification.isRead) FontWeight.Normal else FontWeight.Bold)
+                    Text(
+                        text = notification.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = if (notification.isRead) FontWeight.Normal else FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     Spacer(modifier = Modifier.height(6.dp))
-                    Text(text = notification.body, style = MaterialTheme.typography.bodyMedium, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        text = notification.body,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     Spacer(modifier = Modifier.height(10.dp))
-                    Text(text = formattedDate, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+                    Text(
+                        text = formattedDate,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
                 }
             }
         }
@@ -225,20 +259,42 @@ fun NotificationItem(notification: ZeniaNotification, onClick: () -> Unit, onDel
 
 @Composable
 private fun NotificationControlHeader(isEnabled: Boolean, onToggle: (Boolean) -> Unit) {
+    val dimensions = ZenIATheme.dimensions
+
     BoxWithConstraints {
         val isTablet = maxWidth >= 700.dp
         Row(
-            modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(horizontal = if (isTablet) 32.dp else 24.dp, vertical = if (isTablet) 20.dp else 12.dp),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(
+                    horizontal = if (isTablet) dimensions.paddingExtraLarge else dimensions.paddingLarge,
+                    vertical = dimensions.paddingMedium
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(imageVector = if (isEnabled) Icons.Default.Notifications else Icons.Default.NotificationsOff, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.width(16.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                Icon(
+                    imageVector = if (isEnabled) Icons.Default.Notifications else Icons.Default.NotificationsOff,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(dimensions.iconMedium)
+                )
+                Spacer(modifier = Modifier.width(dimensions.paddingMedium))
                 Column {
-                    Text(text = stringResource(R.string.notifications_receive), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = stringResource(R.string.notifications_receive),
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     Text(
                         text = if (isEnabled) stringResource(R.string.notifications_enabled_status) else stringResource(R.string.notifications_disabled_status),
-                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -249,9 +305,84 @@ private fun NotificationControlHeader(isEnabled: Boolean, onToggle: (Boolean) ->
 
 @Composable
 fun EmptyStateNotifications() {
-    Column(modifier = Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(imageVector = Icons.Default.NotificationsOff, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.outline)
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = stringResource(R.string.notifications_empty_state), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    val dimensions = ZenIATheme.dimensions
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(dimensions.paddingLarge),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = Icons.Default.NotificationsOff,
+            contentDescription = null,
+            modifier = Modifier.size(64.dp),
+            tint = MaterialTheme.colorScheme.outline
+        )
+        Spacer(modifier = Modifier.height(dimensions.paddingMedium))
+        Text(
+            text = stringResource(R.string.notifications_empty_state),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun NotificationsScreenPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Compact) {
+        NotificationsScreen(
+            notifications = listOf(
+                ZeniaNotification(
+                    id = "1",
+                    title = "¡Nueva racha desbloqueada!",
+                    body = "Has logrado 5 días consecutivos de registro. ¡Sigue así, lo estás haciendo genial!",
+                    timestamp = System.currentTimeMillis() - 3600000,
+                    isRead = false,
+                    route = null
+                ),
+                ZeniaNotification(
+                    id = "2",
+                    title = "Alguien respondió tu comentario",
+                    body = "Un usuario ha dejado una respuesta en tu última publicación en la comunidad.",
+                    timestamp = System.currentTimeMillis() - 86400000,
+                    isRead = true,
+                    route = null
+                ),
+                ZeniaNotification(
+                    id = "3",
+                    title = "Recordatorio de diario",
+                    body = "Aún no has registrado tu estado de ánimo hoy. ¡Tómate un momento para ti!",
+                    timestamp = System.currentTimeMillis() - 172800000,
+                    isRead = true,
+                    route = null
+                )
+            ),
+            isNotificationsEnabled = true,
+            onToggleNotifications = {},
+            onNavigateBack = {},
+            onDeleteNotification = {},
+            onMarkAsRead = {},
+            onNotificationClick = {}
+        )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun NotificationsEmptyPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Compact) {
+        NotificationsScreen(
+            notifications = emptyList(),
+            isNotificationsEnabled = false,
+            onToggleNotifications = {},
+            onNavigateBack = {},
+            onDeleteNotification = {},
+            onMarkAsRead = {},
+            onNotificationClick = {}
+        )
     }
 }

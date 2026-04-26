@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,18 +37,22 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import com.airbnb.lottie.compose.*
 import com.zenia.app.R
+import com.zenia.app.ui.theme.ZenIATheme
+import com.zenia.app.ui.theme.ZeniaFeelings
+import com.zenia.app.util.DevicePreviews
 import com.zenia.app.util.LightStatusIconsEffect
 import kotlin.math.absoluteValue
 
 data class OnboardingPage(
-    @StringRes val titleRes: Int,
-    @StringRes val descriptionRes: Int,
+    @param:StringRes val titleRes: Int,
+    @param:StringRes val descriptionRes: Int,
     val iconRes: Int? = null,
     val lottieRes: Int? = null,
     val color: Color
@@ -104,7 +109,7 @@ fun OnboardingScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
-                contentPadding = PaddingValues(horizontal = 32.dp)
+                contentPadding = PaddingValues(horizontal = ZenIATheme.dimensions.paddingExtraLarge)
             ) { pageIndex ->
                 OnboardingPageAnimated(
                     pageIndex = pageIndex,
@@ -199,7 +204,7 @@ private fun OnboardingTopBar(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = ZenIATheme.dimensions.paddingMedium, vertical = ZenIATheme.dimensions.paddingSmall),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -277,11 +282,17 @@ private fun OnboardingBottomBar(
     hintTextColor: Color,
     onFinish: () -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(bottom = 24.dp, start = 24.dp, end = 24.dp),
+            .padding(
+                bottom = dimensions.paddingLarge,
+                start = dimensions.paddingLarge,
+                end = dimensions.paddingLarge
+            ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
@@ -307,12 +318,12 @@ private fun OnboardingBottomBar(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(dimensions.paddingLarge))
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(dimensions.buttonHeight),
             contentAlignment = Alignment.Center
         ) {
             androidx.compose.animation.AnimatedVisibility(
@@ -332,21 +343,24 @@ private fun OnboardingBottomBar(
                 enter = scaleIn() + fadeIn(),
                 exit = scaleOut() + fadeOut()
             ) {
-                val isTablet = LocalConfiguration.current.screenWidthDp > 600
                 Button(
                     onClick = onFinish,
-                    modifier = Modifier.fillMaxWidth(if (isTablet) 0.5f else 1f),
+                    modifier = Modifier
+                        .widthIn(max = dimensions.buttonMaxWidth)
+                        .fillMaxWidth()
+                        .height(dimensions.buttonHeight),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = pages.last().color
                     ),
-                    shape = RoundedCornerShape(16.dp),
-                    contentPadding = PaddingValues(vertical = 16.dp)
+                    shape = RoundedCornerShape(dimensions.cornerRadiusNormal)
                 ) {
                     Text(
                         text = stringResource(R.string.onboarding_start),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -434,14 +448,18 @@ fun OnboardingPageContent(
                     text = stringResource(page.titleRes),
                     style = MaterialTheme.typography.displaySmall,
                     color = titleColor,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = stringResource(page.descriptionRes),
                     style = MaterialTheme.typography.titleMedium,
                     color = descriptionColor,
-                    lineHeight = 28.sp
+                    lineHeight = 28.sp,
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -589,4 +607,24 @@ fun LanguageDropdownItem(
             }
         }
     )
+}
+
+@DevicePreviews
+@Composable
+private fun OnboardingScreenPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Compact) {
+        OnboardingScreen(
+            currentLanguage = "es",
+            pages = listOf(
+                OnboardingPage(
+                    titleRes = R.string.onboarding_title_welcome,
+                    descriptionRes = R.string.onboarding_desc_welcome,
+                    iconRes = R.drawable.logo_zenia,
+                    color = ZeniaFeelings
+                )
+            ),
+            onLanguageChange = {},
+            onFinish = {}
+        )
+    }
 }

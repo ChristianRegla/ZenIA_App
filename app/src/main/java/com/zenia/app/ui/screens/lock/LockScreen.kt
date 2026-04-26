@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,32 +31,33 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.zenia.app.R
 import com.zenia.app.ui.theme.ZenIATheme
+import com.zenia.app.util.DevicePreviews
 
 @Composable
 fun LockScreen(
     onUnlockClick: () -> Unit,
     onSignOut: () -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.surfaceVariant
     ) {
-
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ) {
-
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .widthIn(max = 600.dp)
+                    .widthIn(max = 500.dp)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp, vertical = 32.dp),
+                    .padding(horizontal = dimensions.paddingLarge, vertical = dimensions.paddingExtraLarge),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
@@ -77,32 +80,33 @@ fun LockScreen(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_fingerprint),
-                            contentDescription = stringResource(
-                                R.string.lock_content_description_fingerprint
-                            ),
+                            contentDescription = stringResource(R.string.lock_content_description_fingerprint),
                             modifier = Modifier.size(56.dp),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(dimensions.paddingExtraLarge))
 
                     Text(
                         text = stringResource(R.string.lock_title),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(dimensions.paddingSmall))
 
                     Text(
                         text = stringResource(R.string.lock_subtitle),
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.fillMaxWidth(0.9f)
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
 
                     Spacer(modifier = Modifier.height(48.dp))
@@ -110,7 +114,9 @@ fun LockScreen(
                     Button(
                         onClick = onUnlockClick,
                         modifier = Modifier
-                            .fillMaxWidth(0.8f),
+                            .widthIn(max = dimensions.buttonMaxWidth)
+                            .fillMaxWidth()
+                            .heightIn(min = dimensions.buttonHeight),
                         shape = MaterialTheme.shapes.medium
                     ) {
                         Icon(
@@ -119,38 +125,65 @@ fun LockScreen(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = stringResource(R.string.lock_btn_unlock))
+                        Text(
+                            text = stringResource(R.string.lock_btn_unlock),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                 }
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(dimensions.paddingLarge))
 
                     Text(
                         text = stringResource(R.string.lock_footer_trouble),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.outline,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
 
-                    TextButton(onClick = onSignOut) {
+                    TextButton(
+                        onClick = onSignOut,
+                        modifier = Modifier.heightIn(min = dimensions.buttonHeight)
+                    ) {
                         Text(
                             text = stringResource(R.string.lock_btn_sign_out),
-                            color = MaterialTheme.colorScheme.error
+                            color = MaterialTheme.colorScheme.error,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(dimensions.paddingMedium))
                 }
             }
         }
     }
 }
 
-@Preview(showBackground = true)
+@DevicePreviews
 @Composable
-fun LockScreenPreview() {
-    LockScreen(onUnlockClick = {}, onSignOut = {})
+private fun LockScreenPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Compact) {
+        LockScreen(
+            onUnlockClick = {},
+            onSignOut = {}
+        )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun LockScreenTabletPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Expanded) {
+        LockScreen(
+            onUnlockClick = {},
+            onSignOut = {}
+        )
+    }
 }
