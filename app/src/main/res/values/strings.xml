@@ -772,6 +772,12 @@
     <string name="changelog_1_1_5_improvement">Sincronización con Health Connect mejorada para leer pasos y ritmo cardíaco.</string>
     <string name="changelog_1_1_5_fix">Solución a un error donde las entradas del diario a veces no guardaban las categorías creadas por el usuario.</string>
 
+    <string name="changelog_1_4_2_date">26 Abril 2026</string>
+    <string name="changelog_1_4_2_feature_1">Soporte completo para Tablets y pantallas grandes con interfaces adaptativas.</string>
+    <string name="changelog_1_4_2_improvement_1">Estandarización visual unificada usando un nuevo sistema de diseño (Design Tokens).</string>
+    <string name="changelog_1_4_2_fix_1">Se corrigió el \"salto\" visual en la barra de navegación inferior al cambiar de pestaña.</string>
+    <string name="changelog_1_4_2_fix_2">Se solucionaron problemas de desbordamiento de texto y alineación en tarjetas de inicio, planes premium y ajustes.</string>
+
     <string name="changelog_1_4_0_date">22 Abril 2026</string>
     <string name="changelog_1_4_0_feature_1">¡Gamificación de rachas! Celebra tus hitos de bienestar y comparte tus logros en formato Story para redes sociales.</string>
     <string name="changelog_1_4_0_improvement_1">Rediseño completo de la exportación a PDF. Ahora tus registros se ven como un reporte premium con tarjetas redondeadas y logo en alta resolución.</string>

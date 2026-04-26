@@ -785,6 +785,12 @@
     <string name="changelog_1_4_0_improvement_1">Complete redesign of PDF export. Your logs now look like a premium report with rounded cards and high-res logo support.</string>
     <string name="changelog_1_4_0_improvement_2">Fluidity optimization in avatar selection, SOS screen redesign with expandable cards, and new visual states for offline mode.</string>
 
+    <string name="changelog_1_4_2_date">April 26, 2026</string>
+    <string name="changelog_1_4_2_feature_1">Full support for Tablets and large screens with adaptive interfaces.</string>
+    <string name="changelog_1_4_2_improvement_1">Unified visual standardization using a new Design Token system.</string>
+    <string name="changelog_1_4_2_fix_1">Fixed the visual \"jumping\" glitch in the bottom navigation bar when switching tabs.</string>
+    <string name="changelog_1_4_2_fix_2">Resolved text overflow and alignment issues across home cards, premium plans, and settings.</string>
+
     <string name="action_restore_purchases">Restore Purchases</string>
 
     <string name="home_greeting_morning">Good morning, %1$s</string>
