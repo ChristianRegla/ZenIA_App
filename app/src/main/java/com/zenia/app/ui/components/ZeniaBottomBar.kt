@@ -89,7 +89,7 @@ fun ZeniaBottomBar(
 }
 
 @Composable
-fun ZeniaNavItem(
+private fun ZeniaNavItem(
     item: BottomNavItem,
     isSelected: Boolean,
     onClick: () -> Unit

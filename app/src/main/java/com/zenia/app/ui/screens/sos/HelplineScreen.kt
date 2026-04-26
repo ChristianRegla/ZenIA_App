@@ -16,9 +16,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,6 +45,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -58,6 +61,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -74,14 +78,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zenia.app.R
 import com.zenia.app.model.EmergencyContact
 import com.zenia.app.ui.components.ZeniaTopBar
 import com.zenia.app.ui.theme.RobotoFlex
+import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaTeal
+import com.zenia.app.util.DevicePreviews
 import kotlinx.coroutines.delay
 
 private val ColorLifeline = Color(0xFFE91E63)
@@ -97,7 +103,7 @@ fun HelplineScreen(
     onNavigateToExercises: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
-
+    val dimensions = ZenIATheme.dimensions
     val visible = remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -122,24 +128,25 @@ fun HelplineScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .widthIn(max = 600.dp)
-                    .fillMaxSize()
-                    .padding(horizontal = 24.dp)
+                    .widthIn(max = 650.dp)
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .padding(horizontal = dimensions.paddingLarge)
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(dimensions.paddingLarge))
 
                 ExpandableInfoCard()
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(dimensions.paddingExtraLarge))
 
                 AnimatedVisibility(
                     visible = visible.value,
                     enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
                 ) {
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(dimensions.paddingMedium),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         SosButton(
@@ -175,15 +182,17 @@ fun HelplineScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(dimensions.paddingExtraLarge))
 
                 Text(
                     text = stringResource(R.string.sos_disclaimer),
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = dimensions.paddingMedium)
                 )
+
+                Spacer(modifier = Modifier.height(dimensions.paddingLarge))
             }
         }
     }
@@ -191,6 +200,7 @@ fun HelplineScreen(
 
 @Composable
 private fun ExpandableInfoCard() {
+    val dimensions = ZenIATheme.dimensions
     var expanded by remember { mutableStateOf(false) }
 
     val rotation by animateFloatAsState(
@@ -204,7 +214,7 @@ private fun ExpandableInfoCard() {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(dimensions.cornerRadiusNormal))
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -219,7 +229,7 @@ private fun ExpandableInfoCard() {
         elevation = CardDefaults.cardElevation(defaultElevation = if (expanded) 6.dp else 2.dp),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(modifier = Modifier.padding(dimensions.paddingLarge)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -235,18 +245,20 @@ private fun ExpandableInfoCard() {
                         imageVector = Icons.Default.Info,
                         contentDescription = null,
                         tint = ZeniaTeal,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(dimensions.iconMedium)
                     )
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(dimensions.paddingMedium))
 
                 Text(
                     text = stringResource(R.string.sos_header),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Box(
@@ -266,14 +278,14 @@ private fun ExpandableInfoCard() {
             }
 
             if (expanded) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(dimensions.paddingMedium))
 
                 HorizontalDivider(
                     thickness = 1.dp,
                     color = MaterialTheme.colorScheme.surfaceVariant
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(dimensions.paddingMedium))
 
                 Text(
                     text = stringResource(R.string.sos_body_html),
@@ -301,20 +313,21 @@ private fun SosButton(
     val subTextColor = if (isPrimary) Color.White.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurfaceVariant
     val iconBgColor = if (isPrimary) Color.White.copy(alpha = 0.25f) else accentColor.copy(alpha = 0.15f)
     val iconTintColor = if (isPrimary) Color.White else accentColor
+    val dimensions = ZenIATheme.dimensions
 
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(dimensions.cornerRadiusNormal),
         color = containerColor,
         shadowElevation = if (isPrimary) 8.dp else 4.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .height(85.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .heightIn(min = 85.dp)
+            .clip(RoundedCornerShape(dimensions.cornerRadiusNormal))
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 20.dp)
+            modifier = Modifier.padding(horizontal = dimensions.paddingLarge, vertical = dimensions.paddingSmall)
         ) {
             Box(
                 modifier = Modifier
@@ -331,7 +344,7 @@ private fun SosButton(
                 )
             }
 
-            Spacer(modifier = Modifier.width(20.dp))
+            Spacer(modifier = Modifier.width(dimensions.paddingLarge))
 
             Column(
                 modifier = Modifier.weight(1f)
@@ -340,7 +353,9 @@ private fun SosButton(
                     text = text,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = textColor
+                    color = textColor,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 if (subText != null) {
@@ -348,7 +363,9 @@ private fun SosButton(
                     Text(
                         text = subText,
                         style = MaterialTheme.typography.bodySmall,
-                        color = subTextColor
+                        color = subTextColor,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -365,6 +382,7 @@ fun EmergencyContactsSheet(
     onAddContact: (String, String) -> Unit,
     onDeleteContact: (EmergencyContact) -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showAddDialog by remember { mutableStateOf(false) }
 
@@ -373,70 +391,94 @@ fun EmergencyContactsSheet(
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = stringResource(R.string.contacts_title),
-                fontFamily = RobotoFlex,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Column(
+                modifier = Modifier
+                    .widthIn(max = 600.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = dimensions.paddingLarge)
+                    .padding(bottom = dimensions.paddingExtraLarge),
+                verticalArrangement = Arrangement.spacedBy(dimensions.paddingMedium)
+            ) {
+                Text(
+                    text = stringResource(R.string.contacts_title),
+                    fontFamily = RobotoFlex,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
 
-            Text(
-                text = stringResource(R.string.contacts_desc),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+                Text(
+                    text = stringResource(R.string.contacts_desc),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
 
-            if (contacts.isEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.GroupAdd,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = stringResource(R.string.contacts_empty),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    items(contacts) { contact ->
-                        ContactCard(
-                            contact = contact,
-                            onCall = { onCallContact(contact.phone) },
-                            onDelete = { onDeleteContact(contact) }
+                if (contacts.isEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = dimensions.paddingExtraLarge),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.GroupAdd,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                        )
+                        Spacer(modifier = Modifier.height(dimensions.paddingMedium))
+                        Text(
+                            text = stringResource(R.string.contacts_empty),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            fontWeight = FontWeight.Medium,
+                            textAlign = TextAlign.Center
                         )
                     }
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(dimensions.paddingSmall)
+                    ) {
+                        items(contacts) { contact ->
+                            ContactCard(
+                                contact = contact,
+                                onCall = { onCallContact(contact.phone) },
+                                onDelete = { onDeleteContact(contact) }
+                            )
+                        }
+                    }
                 }
-            }
 
-            if (contacts.size < 3) {
-                OutlinedButton(
-                    onClick = { showAddDialog = true },
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = ZeniaTeal),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, ZeniaTeal)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.contacts_add, contacts.size), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold)
+                if (contacts.size < 3) {
+                    OutlinedButton(
+                        onClick = { showAddDialog = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = dimensions.buttonHeight),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = ZeniaTeal),
+                        border = BorderStroke(1.dp, ZeniaTeal)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.contacts_add, contacts.size),
+                            fontFamily = RobotoFlex,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
         }
@@ -459,15 +501,18 @@ fun ContactCard(
     onCall: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val dimensions = ZenIATheme.dimensions
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(dimensions.cornerRadiusNormal),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
     ) {
         Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(dimensions.paddingMedium)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -477,21 +522,49 @@ fun ContactCard(
                     .background(ColorFriend.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Person, contentDescription = null, tint = ColorFriend)
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = ColorFriend
+                )
             }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(contact.name, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                Text(contact.phone, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(modifier = Modifier.width(dimensions.paddingMedium))
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = contact.name,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = contact.phone,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
-            IconButton(onClick = { showDeleteConfirm = true }) {
-                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error)
+            IconButton(
+                onClick = { showDeleteConfirm = true }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = stringResource(R.string.delete),
+                    tint = MaterialTheme.colorScheme.error
+                )
             }
             IconButton(
                 onClick = onCall,
                 modifier = Modifier.background(ColorFriend, CircleShape)
             ) {
-                Icon(Icons.Default.Call, contentDescription = stringResource(R.string.call), tint = Color.White)
+                Icon(
+                    imageVector = Icons.Default.Call,
+                    contentDescription = stringResource(R.string.call),
+                    tint = Color.White
+                )
             }
         }
     }
@@ -499,22 +572,38 @@ fun ContactCard(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text(stringResource(R.string.delete_contact_title), fontWeight = FontWeight.Bold) },
-            text = { Text(stringResource(R.string.delete_contact_message, contact.name)) },
+            title = {
+                Text(
+                    text = stringResource(R.string.delete_contact_title),
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.delete_contact_message, contact.name)
+                )
+            },
             confirmButton = {
                 Button(
                     onClick = {
                         onDelete()
                         showDeleteConfirm = false
                     },
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text(stringResource(R.string.delete), color = Color.White)
+                    Text(
+                        text = stringResource(R.string.delete),
+                        color = Color.White
+                    )
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text(stringResource(R.string.cancel))
+                TextButton(
+                    onClick = { showDeleteConfirm = false }
+                ) {
+                    Text(
+                        text = stringResource(R.string.cancel)
+                    )
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface
@@ -532,13 +621,30 @@ fun AddContactDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.new_contact), fontFamily = RobotoFlex, fontWeight = FontWeight.Bold) },
+        modifier = Modifier.widthIn(max = 400.dp),
+        title = {
+            Text(
+                text = stringResource(R.string.new_contact),
+                fontFamily = RobotoFlex,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text(stringResource(R.string.name)) },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.name),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -546,7 +652,13 @@ fun AddContactDialog(
                 OutlinedTextField(
                     value = phone,
                     onValueChange = { phone = it },
-                    label = { Text(stringResource(R.string.phone)) },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.phone),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
@@ -559,24 +671,53 @@ fun AddContactDialog(
                 onClick = { onConfirm(name, phone) },
                 enabled = name.isNotBlank() && phone.isNotBlank()
             ) {
-                Text(stringResource(R.string.save))
+                Text(
+                    text = stringResource(R.string.save)
+                )
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+            TextButton(
+                onClick = onDismiss
+            ) {
+                Text(
+                    text = stringResource(R.string.cancel)
+                )
+            }
         },
         containerColor = MaterialTheme.colorScheme.surface
     )
 }
 
-@Preview(showBackground = true, name = "SOS Screen Light", locale = "es")
+@DevicePreviews
 @Composable
-fun SosScreenPreview() {
-    HelplineScreen(
-        onCallLifeline = {},
-        onNavigateToChat = {},
-        onNavigateToContacts = {},
-        onNavigateToExercises = {},
-        onNavigateBack = {}
-    )
+private fun SosScreenPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Compact) {
+        HelplineScreen(
+            onCallLifeline = {},
+            onNavigateToChat = {},
+            onNavigateToContacts = {},
+            onNavigateToExercises = {},
+            onNavigateBack = {}
+        )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun EmergencyContactsSheetPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Expanded) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f))) {
+            EmergencyContactsSheet(
+                contacts = listOf(
+                    EmergencyContact(id = "1", name = "Mamá", phone = "555-1234"),
+                    EmergencyContact(id = "2", name = "Dr. López", phone = "555-9876")
+                ),
+                onDismiss = {},
+                onCallContact = {},
+                onAddContact = { _, _ -> },
+                onDeleteContact = {}
+            )
+        }
+    }
 }
