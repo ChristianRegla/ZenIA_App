@@ -198,13 +198,18 @@ class SettingsViewModel @Inject constructor(
                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "application/pdf"
                             putExtra(Intent.EXTRA_STREAM, pdfUri)
+
+                            clipData = android.content.ClipData.newRawUri("", pdfUri)
+
                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         }
 
-                        context.startActivity(
-                            Intent.createChooser(shareIntent, "Tu reporte de ZenIA")
-                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        )
+                        val chooserIntent = Intent.createChooser(shareIntent, "Tu reporte de ZenIA").apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+
+                        context.startActivity(chooserIntent)
                     } else {
                         Toast.makeText(context, "Error al generar PDF", Toast.LENGTH_LONG).show()
                     }
