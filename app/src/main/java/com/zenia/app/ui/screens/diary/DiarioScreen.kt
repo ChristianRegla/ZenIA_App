@@ -25,12 +25,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.zenia.app.R
@@ -75,7 +77,7 @@ fun DiarioScreen(
                 modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.TopCenter
             ) {
-                Box(modifier = Modifier.widthIn(max = 450.dp).fillMaxWidth()) {
+                Box(modifier = Modifier.widthIn(max = 600.dp).fillMaxWidth()) {
                     AnimatedContent(
                         targetState = isEntryView,
                         label = "TopBarAnimation",
@@ -99,13 +101,20 @@ fun DiarioScreen(
 
                             }
                         } else {
-                            Box(modifier = Modifier.statusBarsPadding()) {
-                                CalendarTopBar(
-                                    selectedYear = uiState.selectedYear,
-                                    onYearClick = { showYearDialog = true },
-                                    onPrevYear = { onYearChange(-1) },
-                                    onNextYear = { onYearChange(1) }
-                                )
+                            Box(
+                                modifier = Modifier
+                                    .statusBarsPadding()
+                                    .fillMaxWidth(),
+                                contentAlignment = Alignment.TopCenter
+                            ) {
+                                Box(modifier = Modifier.widthIn(max = 600.dp)) {
+                                    CalendarTopBar(
+                                        selectedYear = uiState.selectedYear,
+                                        onYearClick = { showYearDialog = true },
+                                        onPrevYear = { onYearChange(-1) },
+                                        onNextYear = { onYearChange(1) }
+                                    )
+                                }
                             }
                         }
                     }
@@ -347,5 +356,106 @@ fun rememberMonthsForYear(
                 MonthState(yearMonth, days)
             }
         }
+    }
+}
+
+@Preview(showBackground = true, name = "1. Vista de Calendario (Compact - Teléfono)", widthDp = 400)
+@Composable
+private fun DiarioScreenCalendarCompactPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Compact) {
+        DiarioScreen(
+            uiState = DiarioUiState(
+                selectedYear = LocalDate.now().year,
+                isLoading = false,
+                selectedDate = null
+            ),
+            entries = emptyList(),
+            onDateSelected = {},
+            onBackToCalendar = {},
+            onYearChange = {},
+            onJumpToToday = {},
+            onScrollConsumed = {},
+            onToggleFavorite = {},
+            entryContent = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "2. Vista de Calendario (Expanded - Tablet/Web)", widthDp = 800)
+@Composable
+private fun DiarioScreenCalendarExpandedPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Expanded) {
+        DiarioScreen(
+            uiState = DiarioUiState(
+                selectedYear = LocalDate.now().year,
+                isLoading = false,
+                selectedDate = null
+            ),
+            entries = emptyList(),
+            onDateSelected = {},
+            onBackToCalendar = {},
+            onYearChange = {},
+            onJumpToToday = {},
+            onScrollConsumed = {},
+            onToggleFavorite = {},
+            entryContent = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "3. Pantalla de Carga (Skeleton)", widthDp = 400)
+@Composable
+private fun DiarioScreenLoadingPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Compact) {
+        DiarioScreen(
+            uiState = DiarioUiState(
+                selectedYear = LocalDate.now().year,
+                isLoading = true,
+                selectedDate = null
+            ),
+            entries = emptyList(),
+            onDateSelected = {},
+            onBackToCalendar = {},
+            onYearChange = {},
+            onJumpToToday = {},
+            onScrollConsumed = {},
+            onToggleFavorite = {},
+            entryContent = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "4. Vista de Entrada (Fecha Seleccionada)", widthDp = 400)
+@Composable
+private fun DiarioScreenEntryPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Compact) {
+        DiarioScreen(
+            uiState = DiarioUiState(
+                selectedYear = LocalDate.now().year,
+                isLoading = false,
+                selectedDate = LocalDate.now()
+            ),
+            entries = emptyList(),
+            onDateSelected = {},
+            onBackToCalendar = {},
+            onYearChange = {},
+            onJumpToToday = {},
+            onScrollConsumed = {},
+            onToggleFavorite = {},
+            entryContent = { date ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Simulación del contenido de la entrada\npara el $date",
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        )
     }
 }
