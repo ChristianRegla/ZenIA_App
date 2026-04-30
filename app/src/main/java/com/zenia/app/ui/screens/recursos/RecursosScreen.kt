@@ -50,14 +50,17 @@ import com.zenia.app.util.DevicePreviews
 fun RecursosScreen(
     uiState: RecursosUiState,
     isUserPremium: Boolean,
+    isAdLoading: Boolean,
     onNavigateToDetail: (String) -> Unit,
     onNavigateToPremium: () -> Unit,
     onToggleFavorite: (String, Boolean) -> Unit,
-    onRetry: () -> Unit
+    onRetry: () -> Unit,
+    onShowRewardedAd: (String) -> Unit
 ) {
     val dimensions = ZenIATheme.dimensions
     var selectedRecurso by remember { mutableStateOf<RecursoUiModel?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var recursoToUnlock by remember { mutableStateOf<RecursoUiModel?>(null) }
 
     Scaffold(
         topBar = {
@@ -149,10 +152,11 @@ fun RecursosScreen(
                             items(recursos) { recurso ->
                                 RecursoCard(
                                     recurso = recurso,
-                                    isLocked = recurso.isPremium && !isUserPremium,
+                                    isLocked = recurso.isPremium && !isUserPremium && !recurso.isUnlockedTemporarily,
                                     onClick = {
-                                        if (recurso.isPremium && !isUserPremium) {
-                                            onNavigateToPremium()
+                                        val isActuallyLocked = recurso.isPremium && !isUserPremium && !recurso.isUnlockedTemporarily
+                                        if (isActuallyLocked) {
+                                            recursoToUnlock = recurso
                                         } else {
                                             selectedRecurso = recurso
                                         }
@@ -309,6 +313,58 @@ fun RecursosScreen(
             }
         }
     }
+    if (recursoToUnlock != null) {
+        AlertDialog(
+            onDismissRequest = { recursoToUnlock = null },
+            title = {
+                Text(
+                    text = stringResource(R.string.premium_resource_dialog_title),
+                    fontFamily = RobotoFlex,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(stringResource(R.string.premium_resource_dialog_text))
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val idToUnlock = recursoToUnlock?.id
+                        recursoToUnlock = null
+                        if (idToUnlock != null) {
+                            onShowRewardedAd(idToUnlock)
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal)
+                ) {
+                    Text(stringResource(R.string.premium_resource_dialog_btn_ad), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = {
+                        recursoToUnlock = null
+                        onNavigateToPremium()
+                    }
+                ) {
+                    Text(stringResource(R.string.premium_resource_dialog_btn_premium))
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    }
+
+    if (isAdLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f))
+                .clickable(enabled = false) {},
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = ZeniaTeal)
+        }
+    }
 }
 
 @Composable
@@ -458,10 +514,12 @@ private fun RecursosScreenPreview() {
                 )
             ),
             isUserPremium = false,
+            isAdLoading = false,
             onNavigateToDetail = {},
             onNavigateToPremium = {},
             onToggleFavorite = { _, _ -> },
-            onRetry = {}
+            onRetry = {},
+            onShowRewardedAd = {}
         )
     }
 }

@@ -173,4 +173,6 @@ dependencies {
 
     implementation(libs.mlkit.language.id)
     implementation(libs.mlkit.translate)
+
+    implementation(libs.play.services.ads)
 }

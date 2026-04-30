@@ -62,6 +62,8 @@ playUpdate = "2.1.0"
 mlkitLanguageId = "17.0.6"
 mlkitTranslate = "17.0.3"
 
+admob = "23.3.0"
+
 
 [libraries]
 # --- AndroidX Core & Testing ---
@@ -154,6 +156,8 @@ mlkit-language-id = { group = "com.google.mlkit", name = "language-id", version.
 mlkit-translate = { group = "com.google.mlkit", name = "translate", version.ref = "mlkitTranslate" }
 
 androidx-compose-material3-window-size = { group = "androidx.compose.material3", name = "material3-window-size-class" }
+
+play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "admob" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

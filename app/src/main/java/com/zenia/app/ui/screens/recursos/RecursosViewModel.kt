@@ -22,7 +22,8 @@ data class RecursoUiModel(
     val imageRes: Int,
     val isPremium: Boolean,
     val isFavorite: Boolean,
-    val progress: Int
+    val progress: Int,
+    val isUnlockedTemporarily: Boolean = false
 )
 
 sealed interface RecursosUiState {
@@ -42,6 +43,11 @@ class RecursosViewModel @Inject constructor(
     val uiState: StateFlow<RecursosUiState> = _uiState.asStateFlow()
 
     val isPremium = sessionManager.isPremium
+
+    private val _isAdLoading = MutableStateFlow(false)
+    val isAdLoading: StateFlow<Boolean> = _isAdLoading.asStateFlow()
+
+    private val unlockedResources = mutableSetOf<String>()
 
     init {
         cargarRecursos()
@@ -77,7 +83,8 @@ class RecursosViewModel @Inject constructor(
                             imageRes = R.drawable.placeholder_resource_1,
                             isPremium = recurso.esPremium,
                             isFavorite = interaccion?.isFavorite ?: false,
-                            progress = interaccion?.progress ?: 0
+                            progress = interaccion?.progress ?: 0,
+                            isUnlockedTemporarily = unlockedResources.contains(recurso.id)
                         )
                     }
                     _uiState.value = RecursosUiState.Success(uiModels)
@@ -89,5 +96,14 @@ class RecursosViewModel @Inject constructor(
         viewModelScope.launch {
             recursosRepository.toggleFavorite(recursoId, currentStatus)
         }
+    }
+
+    fun setAdLoadingState(isLoading: Boolean) {
+        _isAdLoading.value = isLoading
+    }
+
+    fun unlockResourceTemporarily(recursoId: String) {
+        unlockedResources.add(recursoId)
+        cargarRecursos()
     }
 }

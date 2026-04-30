@@ -888,4 +888,9 @@
     <string name="story_streak_days">%1$d Días</string>
     <string name="story_streak_footer">Priorizando mi salud mental, un día a la vez.</string>
     <string name="story_streak_footer_desc">DÍAS</string>
+
+    <string name="premium_resource_dialog_title">Recurso Premium</string>
+    <string name="premium_resource_dialog_text">Este recurso es exclusivo para usuarios de ZenIA Premium. Puedes desbloquearlo temporalmente viendo un breve anuncio o suscribirte para tener acceso ilimitado a todo.</string>
+    <string name="premium_resource_dialog_btn_ad">Ver Anuncio</string>
+    <string name="premium_resource_dialog_btn_premium">Ser Premium</string>
 </resources>
