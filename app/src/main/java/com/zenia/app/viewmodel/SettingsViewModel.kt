@@ -11,6 +11,7 @@ import com.zenia.app.data.CommunityRepository
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.UserPreferencesRepository
 import com.zenia.app.data.session.UserSessionManager
+import com.zenia.app.pdf.HtmlPdfGenerator
 import com.zenia.app.pdf.PdfExportConfig
 import com.zenia.app.pdf.PdfGenerator
 import com.zenia.app.worker.NotificationScheduler
@@ -167,7 +168,6 @@ class SettingsViewModel @Inject constructor(
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-
                 val allEntries = diaryRepository.getAllEntriesOnce()
                 val user = sessionManager.user
                     .firstOrNull()
@@ -175,7 +175,7 @@ class SettingsViewModel @Inject constructor(
 
                 val smartwatchData =
                     if (isUserPremium.value && config.includeSmartwatchData) {
-                        null
+                        null // TODO: Aquí conectarás tus datos reales de Health Connect
                     } else null
 
                 val finalConfig =
@@ -185,34 +185,14 @@ class SettingsViewModel @Inject constructor(
                         includeLogo = true
                     )
 
-                val pdfUri = PdfGenerator.generateDiaryPdf(
-                    context = context,
-                    entries = allEntries,
-                    smartwatchData = smartwatchData,
-                    userName = user,
-                    config = finalConfig
-                )
-
                 withContext(Dispatchers.Main) {
-                    if (pdfUri != null) {
-                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "application/pdf"
-                            putExtra(Intent.EXTRA_STREAM, pdfUri)
-
-                            clipData = android.content.ClipData.newRawUri("", pdfUri)
-
-                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        }
-
-                        val chooserIntent = Intent.createChooser(shareIntent, "Tu reporte de ZenIA").apply {
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        }
-
-                        context.startActivity(chooserIntent)
-                    } else {
-                        Toast.makeText(context, "Error al generar PDF", Toast.LENGTH_LONG).show()
-                    }
+                    HtmlPdfGenerator.generateDiaryPdfAsync(
+                        context = context,
+                        entries = allEntries,
+                        smartwatchData = smartwatchData,
+                        userName = user,
+                        config = finalConfig
+                    )
                 }
 
             } catch (e: Exception) {
@@ -221,9 +201,5 @@ class SettingsViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    fun signOut() {
-        authRepository.signOut()
     }
 }
