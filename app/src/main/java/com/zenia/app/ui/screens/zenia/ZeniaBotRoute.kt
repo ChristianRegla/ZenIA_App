@@ -1,8 +1,9 @@
 package com.zenia.app.ui.screens.zenia
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import android.speech.tts.TextToSpeech
+import java.util.Locale
 import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
@@ -20,7 +21,38 @@ fun ZeniaBotRoute(
     val shareHealthData by viewModel.shareHealthData.collectAsState()
 
     val nickname by viewModel.nickname.collectAsState()
-    val todayDiaryEntry by viewModel.todayDiaryEntry.collectAsState()
+
+    val selectedDiaryDate by viewModel.selectedDiaryDate.collectAsState()
+    val selectedDiaryEntry by viewModel.selectedDiaryEntry.collectAsState()
+
+    var showDiaryPicker by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+
+    DisposableEffect(context) {
+        val textToSpeech = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.language = Locale.Builder().setLanguage("es").setRegion("MX").build()
+            }
+        }
+        tts = textToSpeech
+
+        onDispose {
+            textToSpeech.stop()
+            textToSpeech.shutdown()
+        }
+    }
+
+    val onSpeakMessage: (String) -> Unit = { textToRead ->
+        tts?.let {
+            if (it.isSpeaking) {
+                it.stop()
+            } else {
+                it.speak(textToRead, TextToSpeech.QUEUE_FLUSH, null, null)
+            }
+        }
+    }
 
     ZeniaBotScreen(
         uiState = uiState,
@@ -28,7 +60,10 @@ fun ZeniaBotRoute(
         emergencyType = emergencyType,
         emergencyDisplay = emergencyDisplay,
         nickname = nickname,
-        todayDiaryEntry = todayDiaryEntry,
+        selectedDiaryDate = selectedDiaryDate,
+        selectedDiaryEntry = selectedDiaryEntry,
+        onClearSelectedEntry = { viewModel.limpiarEntradaSeleccionada() },
+        onOpenDiaryPicker = { showDiaryPicker = true },
         onSendMessage = { viewModel.enviarMensaje(it) },
         onClearChat = { viewModel.eliminarHistorial() },
         onDeleteSelected = { ids ->
@@ -39,6 +74,17 @@ fun ZeniaBotRoute(
         onNavigateBack = onNavigateBack,
         isPremium = isPremium,
         shareHealthData = shareHealthData,
-        onToggleShareHealthData = { viewModel.toggleHealthDataSharing(it) }
+        onToggleShareHealthData = { viewModel.toggleHealthDataSharing(it) },
+        onSpeakMessage = onSpeakMessage
     )
+
+    if (showDiaryPicker) {
+        DiaryPickerBottomSheet(
+            onDismiss = { showDiaryPicker = false },
+            onDateSelected = { date ->
+                viewModel.seleccionarFechaDiario(date.toString())
+                showDiaryPicker = false
+            }
+        )
+    }
 }

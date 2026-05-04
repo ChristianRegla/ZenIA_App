@@ -77,24 +77,25 @@ class ZeniaChatViewModel @Inject constructor(
     val isPremium = sessionManager.isPremium
 
     val nickname: StateFlow<String> = sessionManager.nickname
-    private val _todayDiaryEntry = MutableStateFlow<String?>(null)
-    val todayDiaryEntry = _todayDiaryEntry.asStateFlow()
 
-    init {
-        cargarEntradaDeHoy()
-    }
+    private val _selectedDiaryDate = MutableStateFlow<String?>(null)
+    val selectedDiaryDate = _selectedDiaryDate.asStateFlow()
+
+    private val _selectedDiaryEntry = MutableStateFlow<String?>(null)
+    val selectedDiaryEntry = _selectedDiaryEntry.asStateFlow()
 
     val shareHealthData = userPreferences.shareHealthDataWithNia.stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5000), false
     )
 
-    private fun cargarEntradaDeHoy() {
+    fun seleccionarFechaDiario(fechaIso: String) {
         viewModelScope.launch {
             try {
-                val todayString = LocalDate.now().toString()
-                val entry = diaryRepository.getDiaryEntryByDate(todayString)
+                val entry = diaryRepository.getDiaryEntryByDate(fechaIso)
 
                 if (entry != null) {
+                    _selectedDiaryDate.value = fechaIso
+
                     val moodString = when (entry.estadoAnimo) {
                         "1" -> "Mal"
                         "2" -> "Regular"
@@ -103,7 +104,6 @@ class ZeniaChatViewModel @Inject constructor(
                         else -> "No especificado"
                     }
 
-                    // 2. Traducimos la calidad del sueño (asumiendo que sigue una lógica similar)
                     val sleepString = when (entry.calidadSueno) {
                         "1" -> "Mala"
                         "2" -> "Regular"
@@ -125,14 +125,20 @@ class ZeniaChatViewModel @Inject constructor(
                         }
                     }.toString()
 
-                    _todayDiaryEntry.value = resumenDiario
+                    _selectedDiaryEntry.value = resumenDiario
                 } else {
-                    _todayDiaryEntry.value = null
+                    _selectedDiaryDate.value = null
+                    _selectedDiaryEntry.value = null
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
+    }
+
+    fun limpiarEntradaSeleccionada() {
+        _selectedDiaryDate.value = null
+        _selectedDiaryEntry.value = null
     }
 
     fun toggleHealthDataSharing(share: Boolean) {

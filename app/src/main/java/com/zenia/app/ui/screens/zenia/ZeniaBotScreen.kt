@@ -1,47 +1,12 @@
 package com.zenia.app.ui.screens.zenia
 
 import android.content.ClipData
-import android.content.Intent
-import android.speech.tts.TextToSpeech
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -50,79 +15,35 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.LocalHospital
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
-import com.mikepenz.markdown.m3.Markdown
-import com.mikepenz.markdown.m3.markdownColor
-import com.mikepenz.markdown.m3.markdownTypography
+import com.google.firebase.Timestamp
 import com.zenia.app.R
 import com.zenia.app.model.MensajeChatbot
 import com.zenia.app.ui.theme.RobotoFlex
 import com.zenia.app.ui.theme.ZenIATheme
-import com.zenia.app.ui.theme.ZenIATheme.dimensions
 import com.zenia.app.ui.theme.ZeniaIceBlue
 import com.zenia.app.ui.theme.ZeniaLightGrey
 import com.zenia.app.ui.theme.ZeniaSoftBlue
 import com.zenia.app.ui.theme.ZeniaTeal
-import kotlinx.coroutines.delay
+import com.zenia.app.util.DevicePreviews
 import kotlinx.coroutines.launch
-import java.util.Calendar
-import java.util.Locale
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -134,14 +55,18 @@ fun ZeniaBotScreen(
     isPremium: Boolean,
     shareHealthData: Boolean,
     nickname: String,
-    todayDiaryEntry: String?,
+    selectedDiaryDate: String?,
+    selectedDiaryEntry: String?,
     onToggleShareHealthData: (Boolean) -> Unit,
     onSendMessage: (String) -> Unit,
     onClearChat: () -> Unit,
     onDeleteSelected: (Set<String>) -> Unit,
     onDismissBanner: () -> Unit,
     onRestoreBanner: () -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onClearSelectedEntry: () -> Unit,
+    onOpenDiaryPicker: () -> Unit,
+    onSpeakMessage: (String) -> Unit
 ) {
     var textState by rememberSaveable { mutableStateOf("") }
     val listState = rememberLazyListState()
@@ -157,42 +82,9 @@ fun ZeniaBotScreen(
 
     val mensajes = (uiState as? ChatUiState.Success)?.mensajes?.reversed() ?: emptyList()
 
-    val context = LocalContext.current
-    var tts by remember { mutableStateOf<TextToSpeech?>(null) }
-
-    DisposableEffect(context) {
-        val textToSpeech = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                tts?.language = Locale.Builder().setLanguage("es").setRegion("MX").build()
-            }
-        }
-        tts = textToSpeech
-
-        onDispose {
-            textToSpeech.stop()
-            textToSpeech.shutdown()
-        }
-    }
-
-    val onSpeakMessage: (String) -> Unit = { textToRead ->
-        tts?.let {
-            if (it.isSpeaking) {
-                it.stop()
-            } else {
-                it.speak(textToRead, TextToSpeech.QUEUE_FLUSH, null, null)
-            }
-        }
-    }
-
     val animatedTopBarColor by animateColorAsState(
-        targetValue = if (selectionMode)
-            MaterialTheme.colorScheme.primary
-        else
-            ZeniaTeal,
-        animationSpec = tween(
-            durationMillis = 350,
-            easing = FastOutSlowInEasing
-        ),
+        targetValue = if (selectionMode) MaterialTheme.colorScheme.primary else ZeniaTeal,
+        animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing),
         label = "topBarColor"
     )
 
@@ -210,17 +102,17 @@ fun ZeniaBotScreen(
                             color = Color.White
                         )
                     } else {
-                        Text(stringResource(R.string.nav_bot), color = Color.White)
+                        Text(
+                            text = stringResource(R.string.nav_bot),
+                            color = Color.White
+                        )
                     }
                 },
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            if (selectionMode) {
-                                selectedMessages = emptySet()
-                            } else {
-                                onNavigateBack()
-                            }
+                            if (selectionMode) selectedMessages = emptySet()
+                            else onNavigateBack()
                         }
                     ) {
                         Icon(
@@ -236,22 +128,17 @@ fun ZeniaBotScreen(
                             IconButton(
                                 onClick = {
                                     val msgId = selectedMessages.first()
-                                    val textToCopy = mensajes.find { it.id == msgId }?.texto
-                                    if (textToCopy != null) {
+                                    mensajes.find { it.id == msgId }?.texto?.let {
                                         coroutineScope.launch {
-                                            clipboard.setClipEntry(
-                                                ClipEntry(
-                                                    ClipData.newPlainText("Mensaje", textToCopy)
-                                                )
-                                            )
+                                            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("Mensaje", it)))
                                         }
                                     }
                                     selectedMessages = emptySet()
                                 }
                             ) {
                                 Icon(
-                                    Icons.Default.ContentCopy,
-                                    contentDescription = stringResource(R.string.copy),
+                                    imageVector = Icons.Default.ContentCopy,
+                                    contentDescription = "Copiar",
                                     tint = Color.White
                                 )
                             }
@@ -263,8 +150,8 @@ fun ZeniaBotScreen(
                             }
                         ) {
                             Icon(
-                                Icons.Default.Delete,
-                                contentDescription = stringResource(R.string.delete),
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Eliminar",
                                 tint = Color.White
                             )
                         }
@@ -273,35 +160,32 @@ fun ZeniaBotScreen(
                             IconButton(onClick = onRestoreBanner) {
                                 Icon(
                                     imageVector = Icons.Default.Info,
-                                    contentDescription = "Opciones de ayuda",
+                                    contentDescription = "Ayuda",
                                     tint = Color(0xFFFFB4AB)
                                 )
                             }
                         }
                         IconButton(onClick = { showHealthSyncDialog = true }) {
                             Icon(
-                                painter = painterResource(id = R.drawable.ic_watch_outlined),
-                                contentDescription = "Conexión de salud",
+                                painter = painterResource(R.drawable.ic_watch_outlined),
+                                contentDescription = "Salud",
                                 tint = Color.White,
-                                modifier = Modifier.size(dimensions.paddingExtraLarge)
+                                modifier = Modifier.size(ZenIATheme.dimensions.paddingExtraLarge)
                             )
                         }
                         IconButton(onClick = { showDeleteDialog = true }) {
                             Icon(
-                                Icons.Default.Delete,
-                                contentDescription = stringResource(R.string.delete_chat),
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Borrar chat",
                                 tint = Color.White
                             )
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = animatedTopBarColor
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = animatedTopBarColor)
             )
         }
     ) { paddingValues ->
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -315,20 +199,17 @@ fun ZeniaBotScreen(
                     .fillMaxHeight()
                     .widthIn(max = 800.dp)
             ) {
-
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth()
                 ) {
-
                     when (uiState) {
                         is ChatUiState.Loading -> {
                             CircularProgressIndicator(
                                 modifier = Modifier.align(Alignment.Center)
                             )
                         }
-
                         is ChatUiState.Error -> {
                             Text(
                                 text = uiState.mensaje,
@@ -336,13 +217,10 @@ fun ZeniaBotScreen(
                                 color = MaterialTheme.colorScheme.error
                             )
                         }
-
                         is ChatUiState.Success -> {
-
                             val isAtBottom by remember {
                                 derivedStateOf {
-                                    listState.firstVisibleItemIndex == 0 &&
-                                            listState.firstVisibleItemScrollOffset == 0
+                                    listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
                                 }
                             }
 
@@ -355,26 +233,21 @@ fun ZeniaBotScreen(
                             if (mensajes.isEmpty() && !isTyping) {
                                 EmptyChatSuggestions(
                                     nickname = nickname,
-                                    todayDiaryEntry = todayDiaryEntry,
-                                    onSendMessage = {
-                                        onSendMessage(it)
-                                        textState = ""
-                                    }
-                                )
+                                    selectedDiaryDate = selectedDiaryDate,
+                                    selectedDiaryEntry = selectedDiaryEntry
+                                ) {
+                                    onSendMessage(it)
+                                    textState = ""
+                                    onClearSelectedEntry()
+                                }
                             } else {
                                 LazyColumn(
                                     state = listState,
                                     reverseLayout = true,
-                                    contentPadding = PaddingValues(
-                                        start = dimensions.paddingLarge,
-                                        end = dimensions.paddingLarge,
-                                        top = dimensions.paddingLarge,
-                                        bottom = 20.dp
-                                    ),
-                                    verticalArrangement = Arrangement.spacedBy(dimensions.paddingMedium),
+                                    contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 20.dp),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp),
                                     modifier = Modifier.fillMaxSize()
                                 ) {
-
                                     if (isTyping) {
                                         item { TypingBubble() }
                                     }
@@ -383,32 +256,26 @@ fun ZeniaBotScreen(
                                         items = mensajes,
                                         key = { _, msg -> msg.id }
                                     ) { index, mensaje ->
-
                                         val isSelected = selectedMessages.contains(mensaje.id)
+                                        val prevMsg = if (index < mensajes.lastIndex) mensajes[index + 1] else null
+                                        val showDateHeader = prevMsg == null || !isSameDay(mensaje.fecha, prevMsg.fecha)
 
-                                        val previousMsgChronologically = if (index < mensajes.lastIndex) mensajes[index + 1] else null
-                                        val showDateHeader = previousMsgChronologically == null ||
-                                                !isSameDay(mensaje.fecha, previousMsgChronologically.fecha)
-
-                                        Column(modifier = Modifier.animateItem()) {
+                                        Column(
+                                            modifier = Modifier.animateItem()
+                                        ) {
                                             if (showDateHeader) {
-                                                DateHeader(mensaje.fecha)
+                                                DateHeader(timestamp = mensaje.fecha)
                                             }
-
                                             ChatBubble(
                                                 mensaje = mensaje,
                                                 isSelected = isSelected,
                                                 onLongPress = {
                                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                    selectedMessages = selectedMessages + mensaje.id
+                                                    selectedMessages += mensaje.id
                                                 },
                                                 onClick = {
                                                     if (selectionMode) {
-                                                        selectedMessages = if (isSelected) {
-                                                            selectedMessages - mensaje.id
-                                                        } else {
-                                                            selectedMessages + mensaje.id
-                                                        }
+                                                        selectedMessages = if (isSelected) selectedMessages - mensaje.id else selectedMessages + mensaje.id
                                                     }
                                                 },
                                                 onSpeak = if (mensaje.emisor != "usuario") {
@@ -424,7 +291,7 @@ fun ZeniaBotScreen(
                                 visible = !isAtBottom && mensajes.isNotEmpty(),
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd)
-                                    .padding(start = dimensions.paddingLarge, bottom = dimensions.paddingLarge)
+                                    .padding(16.dp)
                             ) {
                                 SmallFloatingActionButton(
                                     onClick = {
@@ -432,10 +299,12 @@ fun ZeniaBotScreen(
                                             listState.animateScrollToItem(0)
                                         }
                                     },
-                                    containerColor = ZeniaSoftBlue,
-                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                    containerColor = ZeniaSoftBlue
                                 ) {
-                                    Icon(Icons.Default.ArrowDownward, null)
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowDownward,
+                                        contentDescription = null
+                                    )
                                 }
                             }
                         }
@@ -446,67 +315,141 @@ fun ZeniaBotScreen(
                     shadowElevation = 8.dp,
                     color = MaterialTheme.colorScheme.surface
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(dimensions.paddingMedium),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TextField(
-                            value = textState,
-                            onValueChange = { textState = it },
-                            placeholder = {
-                                Text(stringResource(R.string.chat_placeholder))
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(end = dimensions.paddingSmall),
-                            shape = RoundedCornerShape(32.dp),
-                            maxLines = 3,
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
-                            )
-                        )
-
-                        IconButton(
-                            enabled = textState.isNotBlank() && !isTyping,
-                            onClick = {
-                                onSendMessage(textState)
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                textState = ""
-                                coroutineScope.launch {
-                                    listState.animateScrollToItem(0)
-                                }
-                            },
-                            modifier = Modifier
-                                .size(48.dp)
-                                .background(
-                                    if (textState.isNotBlank() && !isTyping)
-                                        MaterialTheme.colorScheme.primary
-                                    else
-                                        MaterialTheme.colorScheme.outline,
-                                    CircleShape
-                                )
+                    Column {
+                        AnimatedVisibility(
+                            visible = selectedDiaryDate != null,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
                         ) {
-                            if (isTyping) {
-                                CircularProgressIndicator(
-                                    strokeWidth = 2.dp,
-                                    modifier = Modifier.size(20.dp),
-                                    color = Color.White
-                                )
-                            } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Surface(
+                                    color = ZeniaIceBlue,
+                                    shape = RoundedCornerShape(8.dp),
+                                    border = BorderStroke(1.dp, ZeniaTeal.copy(alpha = 0.3f))
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp, 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.ic_journal),
+                                            contentDescription = null,
+                                            tint = ZeniaTeal,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = "Entrada adjunta: $selectedDiaryDate",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = ZeniaTeal,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Spacer(modifier = Modifier.weight(1f))
+                                        IconButton(
+                                            onClick = onClearSelectedEntry,
+                                            modifier = Modifier.size(20.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Close,
+                                                contentDescription = "Quitar",
+                                                tint = ZeniaTeal
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(
+                                onClick = onOpenDiaryPicker,
+                                shape = CircleShape,
+                            colors = IconButtonDefaults.iconButtonColors(containerColor = ZeniaTeal),
+                                modifier = Modifier.padding(end = 4.dp)
+                            ) {
                                 Icon(
-                                    Icons.AutoMirrored.Filled.Send,
-                                    contentDescription = null,
-                                    tint = Color.White
+                                    painter = painterResource(R.drawable.ic_simbolo_mas),
+                                    contentDescription = "Adjuntar",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(24.dp)
+
                                 )
+                            }
+
+                            TextField(
+                                value = textState,
+                                onValueChange = { textState = it },
+                                placeholder = {
+                                    Text(
+                                        text = stringResource(R.string.chat_placeholder),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(end = 8.dp),
+                                shape = RoundedCornerShape(32.dp),
+                                maxLines = 3,
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent,
+                                    disabledIndicatorColor = Color.Transparent
+                                )
+                            )
+
+                            IconButton(
+                                enabled = textState.isNotBlank() && !isTyping,
+                                onClick = {
+                                    val msg = if (selectedDiaryEntry != null) {
+                                        "$textState. (Contexto: \"$selectedDiaryEntry\")"
+                                    } else {
+                                        textState
+                                    }
+                                    onSendMessage(msg)
+                                    onClearSelectedEntry()
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    textState = ""
+                                    coroutineScope.launch { listState.animateScrollToItem(0) }
+                                },
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .background(
+                                        color = if (textState.isNotBlank() && !isTyping) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.outline,
+                                        shape = CircleShape
+                                    )
+                            ) {
+                                if (isTyping) {
+                                    CircularProgressIndicator(
+                                        strokeWidth = 2.dp,
+                                        modifier = Modifier.size(20.dp),
+                                        color = Color.White
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.Send,
+                                        contentDescription = null,
+                                        tint = Color.White
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
-            // ... (Banner de emergencia se queda igual)
+
             AnimatedVisibility(
                 visible = emergencyDisplay == EmergencyDisplayState.BANNER && emergencyType != null,
                 enter = slideInVertically(
@@ -520,7 +463,7 @@ fun ZeniaBotScreen(
                 modifier = Modifier.align(Alignment.TopCenter)
             ) {
                 if (emergencyType != null) {
-                    Box(modifier = Modifier.padding(dimensions.paddingLarge)) {
+                    Box(modifier = Modifier.padding(16.dp)) {
                         EmergencyTopBanner(
                             triggerType = emergencyType,
                             onDismiss = onDismissBanner
@@ -534,8 +477,12 @@ fun ZeniaBotScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text(stringResource(R.string.delete_chat_title)) },
-            text = { Text(stringResource(R.string.delete_chat_message)) },
+            title = {
+                Text(stringResource(R.string.delete_chat_title))
+            },
+            text = {
+                Text(stringResource(R.string.delete_chat_message))
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -543,7 +490,10 @@ fun ZeniaBotScreen(
                         showDeleteDialog = false
                     }
                 ) {
-                    Text(stringResource(R.string.delete_action), color = MaterialTheme.colorScheme.error)
+                    Text(
+                        text = stringResource(R.string.delete_action),
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             },
             dismissButton = {
@@ -563,14 +513,14 @@ fun ZeniaBotScreen(
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        painterResource(id = R.drawable.ic_watch),
+                        painter = painterResource(R.drawable.ic_watch),
                         contentDescription = null,
                         tint = ZeniaTeal,
                         modifier = Modifier.size(28.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        stringResource(R.string.health_sync_title),
+                        text = stringResource(R.string.health_sync_title),
                         fontFamily = RobotoFlex,
                         fontWeight = FontWeight.Bold
                     )
@@ -584,7 +534,6 @@ fun ZeniaBotScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(24.dp))
-
                     Surface(
                         color = Color(0xFFE5E5E5),
                         shape = RoundedCornerShape(12.dp)
@@ -598,13 +547,13 @@ fun ZeniaBotScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    stringResource(R.string.share_with_nia),
+                                    text = stringResource(R.string.share_with_nia),
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 if (!isPremium) {
                                     Text(
-                                        stringResource(R.string.premium_exclusive),
+                                        text = stringResource(R.string.premium_exclusive),
                                         color = Color(0xFFD69D00),
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
@@ -623,7 +572,7 @@ fun ZeniaBotScreen(
             confirmButton = {
                 TextButton(onClick = { showHealthSyncDialog = false }) {
                     Text(
-                        stringResource(R.string.close),
+                        text = stringResource(R.string.close),
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -633,386 +582,79 @@ fun ZeniaBotScreen(
     }
 }
 
+@DevicePreviews
 @Composable
-fun EmergencyTopBanner(
-    triggerType: String,
-    onDismiss: () -> Unit
-) {
-    val context = LocalContext.current
-    val isPhysical = triggerType == "physical_risk"
-    val backgroundColor = ZeniaLightGrey
-    val contentColor = Color.Black
-
-    val icon = if (isPhysical) Icons.Default.LocalHospital else Icons.Default.Favorite
-    val title = if (isPhysical) "Posible emergencia médica" else "No estás solo"
-    val message = if (isPhysical) "Nia ha notado síntomas que podrían requerir atención inmediata." else "Si necesitas apoyo inmediato, hay alguien listo para escucharte."
-    val buttonText = if (isPhysical) "Llamar al 911" else "Línea de la Vida"
-
-    var borderWidth by remember { mutableStateOf(0.dp) }
-
-    val animatedBorderWidth by animateDpAsState(
-        targetValue = borderWidth,
-        animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing),
-        label = "borderWidthAnim"
-    )
-
-    LaunchedEffect(Unit) {
-        borderWidth = 3.dp
-        delay(600)
-        borderWidth = 0.5.dp
+private fun ZeniaBotScreenEmptyPreview() {
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Compact) {
+        ZeniaBotScreen(
+            uiState = ChatUiState.Success(emptyList()),
+            isTyping = false,
+            emergencyType = null,
+            emergencyDisplay = EmergencyDisplayState.NONE,
+            isPremium = true,
+            shareHealthData = false,
+            nickname = "Slappy",
+            selectedDiaryDate = null,
+            selectedDiaryEntry = null,
+            onToggleShareHealthData = {},
+            onSendMessage = {},
+            onClearChat = {},
+            onDeleteSelected = {},
+            onDismissBanner = {},
+            onRestoreBanner = {},
+            onNavigateBack = {},
+            onClearSelectedEntry = {},
+            onOpenDiaryPicker = {},
+            onSpeakMessage = {}
+        )
     }
+}
 
-    val baseBorderColor = if (isPhysical) MaterialTheme.colorScheme.error else ZeniaTeal
-    val borderColor = baseBorderColor.copy(alpha = if (animatedBorderWidth > 1.dp) 0.8f else 0.3f)
-
-    var offsetY by remember { mutableFloatStateOf(0f) }
-    val scope = rememberCoroutineScope()
-
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = backgroundColor,
-            contentColor = contentColor
+@DevicePreviews
+@Composable
+private fun ZeniaBotScreenWithMessagesPreview() {
+    val fakeMessages = listOf(
+        MensajeChatbot(
+            id = "1",
+            emisor = "usuario",
+            texto = "¡Hola Nia! Analiza mi día por favor.",
+            fecha = Timestamp.now()
         ),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        border = BorderStroke(animatedBorderWidth, borderColor),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp)
-            .offset { IntOffset(0, offsetY.roundToInt()) }
-            .draggable(
-                orientation = Orientation.Vertical,
-                state = rememberDraggableState { delta ->
-                    if (delta < 0 || offsetY < 0) {
-                        offsetY += delta
-                    }
-                },
-                onDragStopped = { velocity ->
-                    if (offsetY < -150f || velocity < -500f) {
-                        scope.launch {
-                            animate(initialValue = offsetY, targetValue = -500f) { value, _ ->
-                                offsetY = value
-                            }
-                            onDismiss()
-                        }
-                    } else {
-                        scope.launch {
-                            animate(initialValue = offsetY, targetValue = 0f) { value, _ ->
-                                offsetY = value
-                            }
-                        }
-                    }
-                }
-            )
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(imageVector = icon, contentDescription = null, tint = contentColor)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = title, style = MaterialTheme.typography.titleMedium, color = contentColor)
-                }
-                IconButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Minimizar", tint = contentColor)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = message, style = MaterialTheme.typography.bodyMedium, color = contentColor)
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = {
-                    val phoneNumber = if (isPhysical) "911" else "8009112000"
-                    val intent = Intent(Intent.ACTION_DIAL, "tel:$phoneNumber".toUri())
-                    context.startActivity(intent)
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isPhysical) MaterialTheme.colorScheme.error else ZeniaTeal,
-                    contentColor = Color.White
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(text = buttonText)
-            }
-        }
-    }
-}
-
-@Composable
-private fun ChatBubble(
-    mensaje: MensajeChatbot,
-    isSelected: Boolean,
-    onLongPress: () -> Unit,
-    onClick: () -> Unit,
-    onSpeak: (() -> Unit)? = null
-) {
-    val isUser = mensaje.emisor == "usuario"
-    val configuration = LocalConfiguration.current
-    val maxBubbleWidth = configuration.screenWidthDp.dp * 0.85f
-
-    val textColor = Color.Black
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                if (isSelected)
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                else
-                    Color.Transparent
-            )
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongPress
-            ),
-        contentAlignment =
-            if (isUser) Alignment.CenterEnd else Alignment.CenterStart
-    ) {
-
-        Surface(
-            modifier = Modifier
-                .widthIn(max = maxBubbleWidth)
-                .padding(horizontal = 8.dp),
-            shape = RoundedCornerShape(
-                topStart = 20.dp,
-                topEnd = 20.dp,
-                bottomStart = if (isUser) 20.dp else 4.dp,
-                bottomEnd = if (isUser) 4.dp else 20.dp
-            ),
-            color =
-                if (isUser)
-                    MaterialTheme.colorScheme.secondary
-                else
-                    ZeniaIceBlue
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                val customTypography = markdownTypography(
-                    text = MaterialTheme.typography.bodyMedium.copy(
-                        fontSize = 15.sp,
-                        color = textColor
-                    ),
-                    h1 = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = textColor),
-                    h2 = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, color = textColor),
-                    h3 = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, color = textColor)
-                )
-
-                val customColors = markdownColor(
-                    text = textColor,
-                    dividerColor = textColor.copy(alpha = 0.2f)
-                )
-
-                val contenidoLimpio = mensaje.texto.replace("\\n", "\n")
-
-                Markdown(
-                    content = contenidoLimpio,
-                    modifier = Modifier.wrapContentWidth(),
-                    typography = customTypography,
-                    colors = customColors
-                )
-
-                if (!isUser && onSpeak != null) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        IconButton(
-                            onClick = onSpeak,
-                            modifier = Modifier.size(24.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                                contentDescription = "Leer en voz alta",
-                                tint = ZeniaTeal.copy(alpha = 0.7f)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TypingBubble() {
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.CenterStart
-    ) {
-        Surface(
-            shape = RoundedCornerShape(
-                topStart = 16.dp, topEnd = 16.dp,
-                bottomStart = 2.dp, bottomEnd = 16.dp
-            ),
-            color = ZeniaIceBlue,
-            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                TypingDot(delayMillis = 0)
-                TypingDot(delayMillis = 150)
-                TypingDot(delayMillis = 300)
-            }
-        }
-    }
-}
-
-@Composable
-private fun TypingDot(delayMillis: Int) {
-    val transition = rememberInfiniteTransition(label = "typing")
-
-    val offsetY by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = -10f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 600, delayMillis = delayMillis, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
+        MensajeChatbot(
+            id = "2",
+            emisor = "ia",
+            texto = "¡Hola Slappy! Claro que sí, veo que anotaste que hoy te sentías muy productivo y fuiste a hacer ejercicio. ¡Eso es genial! Mantenerte activo ayuda mucho a tu bienestar.",
+            fecha = Timestamp.now()
         ),
-        label = "offset"
-    )
+        MensajeChatbot(
+            id = "3",
+            emisor = "usuario",
+            texto = "Sí, también terminé ese proyecto que me estresaba.",
+            fecha = Timestamp.now()
+        )
+    ).reversed()
 
-    Box(
-        modifier = Modifier
-            .size(8.dp)
-            .graphicsLayer { translationY = offsetY }
-            .background(MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f), CircleShape)
-    )
-}
-
-@Composable
-private fun EmptyChatSuggestions(
-    nickname: String,
-    todayDiaryEntry: String?,
-    onSendMessage: (String) -> Unit
-) {
-    val dimensions = ZenIATheme.dimensions
-
-    var isVisible by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        isVisible = true
+    ZenIATheme(windowSizeClass = WindowWidthSizeClass.Compact) {
+        ZeniaBotScreen(
+            uiState = ChatUiState.Success(fakeMessages),
+            isTyping = true,
+            emergencyType = null,
+            emergencyDisplay = EmergencyDisplayState.NONE,
+            isPremium = false,
+            shareHealthData = false,
+            nickname = "Slappy",
+            selectedDiaryDate = "2026-05-04",
+            selectedDiaryEntry = "Hoy me siento excelente...",
+            onToggleShareHealthData = {},
+            onSendMessage = {},
+            onClearChat = {},
+            onDeleteSelected = {},
+            onDismissBanner = {},
+            onRestoreBanner = {},
+            onNavigateBack = {},
+            onClearSelectedEntry = {},
+            onOpenDiaryPicker = {},
+            onSpeakMessage = {}
+        )
     }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(dimensions.paddingExtraLarge),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        AnimatedVisibility(
-            visible = isVisible,
-            enter = fadeIn(animationSpec = tween(800)) + slideInVertically(
-                initialOffsetY = { 80 },
-                animationSpec = tween(800, easing = FastOutSlowInEasing)
-            )
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "¡Hola, $nickname!",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = ZeniaTeal
-                )
-                Spacer(modifier = Modifier.height(dimensions.paddingSmall))
-                Text(
-                    text = "¿De qué te gustaría hablar hoy?",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-
-                val sugerencias = listOf(
-                    "Ayúdame a relajarme \uD83E\uDDD8\u200D♂\uFE0F",
-                    "Necesito desahogarme \uD83D\uDDE3\uFE0F",
-                    "Analiza mi día \uD83D\uDCCA",
-                    "Dame un consejo para dormir \uD83D\uDCA4"
-                )
-
-                sugerencias.forEach { sug ->
-                    Card(
-                        onClick = {
-                            if (sug.contains("Analiza mi día") && !todayDiaryEntry.isNullOrBlank()) {
-                                onSendMessage("$sug. Te comparto lo que escribí en mi diario hoy para que lo tomes en cuenta: \"$todayDiaryEntry\".")
-                            } else {
-                                onSendMessage(sug)
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        colors = CardDefaults.cardColors(containerColor = ZeniaIceBlue),
-                        shape = RoundedCornerShape(16.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Text(
-                            text = sug,
-                            modifier = Modifier.padding(dimensions.paddingLarge),
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.Black
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DateHeader(timestamp: com.google.firebase.Timestamp) {
-    val dimensions = ZenIATheme.dimensions
-    val date = timestamp.toDate()
-    val cal = Calendar.getInstance()
-    val today = cal.clone() as Calendar
-    cal.time = date
-
-    val locale = remember { Locale.Builder().setLanguage("es").setRegion("MX").build() }
-
-    val headerText = when {
-        cal.get(Calendar.YEAR) == today.get(Calendar.YEAR) && cal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) -> "Hoy"
-        cal.get(Calendar.YEAR) == today.get(Calendar.YEAR) && cal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) - 1 -> "Ayer"
-        else -> java.text.SimpleDateFormat("d 'de' MMMM", locale).format(date)
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = dimensions.paddingLarge),
-        contentAlignment = Alignment.Center
-    ) {
-        Surface(
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text(
-                text = headerText,
-                modifier = Modifier.padding(horizontal = dimensions.paddingMedium, vertical = 4.dp),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-private fun isSameDay(t1: com.google.firebase.Timestamp, t2: com.google.firebase.Timestamp): Boolean {
-    val cal1 = Calendar.getInstance().apply { time = t1.toDate() }
-    val cal2 = Calendar.getInstance().apply { time = t2.toDate() }
-    return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
-            cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
 }
