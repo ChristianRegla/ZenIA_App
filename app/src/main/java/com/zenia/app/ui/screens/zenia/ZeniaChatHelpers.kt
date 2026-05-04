@@ -5,24 +5,23 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.zenia.app.ui.screens.diary.CalendarPagerView
+import com.zenia.app.ui.screens.diary.CalendarSkeleton
+import com.zenia.app.ui.screens.diary.CalendarTopBar
+import com.zenia.app.ui.screens.diary.DiarioUiState
+import com.zenia.app.ui.screens.diary.YearPickerDialog
 import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaIceBlue
 import com.zenia.app.ui.theme.ZeniaTeal
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 
 data class ChatSuggestion(
     val icon: String,
@@ -38,9 +37,7 @@ fun EmptyChatSuggestions(
     onSendMessage: (String) -> Unit
 ) {
     val dimensions = ZenIATheme.dimensions
-
     val isPreview = LocalInspectionMode.current
-
     var isVisible by remember { mutableStateOf(isPreview) }
 
     LaunchedEffect(Unit) {
@@ -90,6 +87,7 @@ fun EmptyChatSuggestions(
                 Spacer(
                     modifier = Modifier.height(32.dp)
                 )
+
                 val sugerencias = listOf(
                     ChatSuggestion(
                         icon = "🔮",
@@ -161,75 +159,79 @@ fun EmptyChatSuggestions(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiaryPickerBottomSheet(
+    diarioUiState: DiarioUiState,
     onDismiss: () -> Unit,
-    onDateSelected: (LocalDate) -> Unit
+    onDateSelected: (LocalDate) -> Unit,
+    onYearChange: (Int) -> Unit,
+    onJumpToToday: () -> Unit,
+    onScrollConsumed: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = Instant.now().toEpochMilli()
-    )
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    var showYearDialog by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 32.dp),
+                .fillMaxHeight(0.85f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Selecciona una fecha",
+                text = "Selecciona una entrada",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(16.dp)
             )
 
-            DatePicker(
-                state = datePickerState,
-                colors = DatePickerDefaults.colors(
-                    titleContentColor = ZeniaTeal,
-                    headlineContentColor = ZeniaTeal,
-                    weekdayContentColor = Color.Black,
-                    dayContentColor = Color.Black,
-                    selectedDayContainerColor = ZeniaTeal,
-                    todayDateBorderColor = ZeniaTeal,
-                    todayContentColor = ZeniaTeal
-                )
+            CalendarTopBar(
+                selectedYear = diarioUiState.selectedYear,
+                onYearClick = { showYearDialog = true },
+                onPrevYear = { onYearChange(-1) },
+                onNextYear = { onYearChange(1) }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = {
-                    datePickerState.selectedDateMillis?.let { millis ->
-                        onDateSelected(
-                            Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDate()
+            Box(
+                modifier = Modifier.weight(1f)
+            ) {
+                Crossfade(
+                    targetState = diarioUiState.isLoading,
+                    animationSpec = tween(durationMillis = 500),
+                    label = "LoadingTransition"
+                ) { isLoading ->
+                    if (isLoading) {
+                        CalendarSkeleton()
+                    } else {
+                        CalendarPagerView(
+                            uiState = diarioUiState,
+                            onDateClick = onDateSelected,
+                            onYearPageChanged = onYearChange,
+                            onJumpToToday = onJumpToToday,
+                            onScrollConsumed = onScrollConsumed
                         )
                     }
-                },
-                enabled = datePickerState.selectedDateMillis != null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = ZeniaTeal)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = null
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Adjuntar esta fecha",
-                    fontWeight = FontWeight.Bold
-                )
+                }
             }
         }
+    }
+
+    if (showYearDialog) {
+        YearPickerDialog(
+            currentYear = diarioUiState.selectedYear,
+            onYearSelected = { newYear ->
+                val diff = newYear - diarioUiState.selectedYear
+                if (diff != 0) {
+                    onYearChange(diff)
+                }
+                showYearDialog = false
+            },
+            onDismiss = {
+                showYearDialog = false
+            }
+        )
     }
 }

@@ -113,11 +113,15 @@ class ZeniaChatViewModel @Inject constructor(
                     }
 
                     val resumenDiario = StringBuilder().apply {
-                        append("Hoy me siento: $moodString. ")
+                        append("El día $fechaIso me sentí: $moodString. ")
                         append("Mi calidad de sueño fue: $sleepString. ")
 
+                        if (entry.isFavorite) {
+                            append("Considero que este fue un día muy bueno y lo marqué como favorito. ")
+                        }
+
                         if (entry.actividades.isNotEmpty()) {
-                            append("Mis actividades principales hoy fueron: ${entry.actividades.joinToString(", ")}. ")
+                            append("Mis actividades principales fueron: ${entry.actividades.joinToString(", ")}. ")
                         }
 
                         if (entry.notas.isNotBlank()) {
