@@ -17,7 +17,7 @@ fun PremiumRoute(
 
     val prices by viewModel.prices.collectAsState()
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isBillingReady) {
         viewModel.loadPrices()
     }
 

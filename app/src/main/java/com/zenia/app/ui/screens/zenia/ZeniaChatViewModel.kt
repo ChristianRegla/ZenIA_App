@@ -3,6 +3,7 @@ package com.zenia.app.ui.screens.zenia
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenia.app.data.ChatRepository
+import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.HealthConnectRepository
 import com.zenia.app.data.NiaApiRepository
 import com.zenia.app.data.UserPreferencesRepository
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 sealed interface ChatUiState {
@@ -45,8 +47,9 @@ class ZeniaChatViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
     private val niaRepository: NiaApiRepository,
     private val healthConnectRepository: HealthConnectRepository,
-    private val sessionManager: UserSessionManager,
     private val userPreferences: UserPreferencesRepository,
+    private val diaryRepository: DiaryRepository,
+    sessionManager: UserSessionManager,
     @ApplicationScope private val externalScope: CoroutineScope
 ) : ViewModel() {
 
@@ -73,9 +76,64 @@ class ZeniaChatViewModel @Inject constructor(
 
     val isPremium = sessionManager.isPremium
 
+    val nickname: StateFlow<String> = sessionManager.nickname
+    private val _todayDiaryEntry = MutableStateFlow<String?>(null)
+    val todayDiaryEntry = _todayDiaryEntry.asStateFlow()
+
+    init {
+        cargarEntradaDeHoy()
+    }
+
     val shareHealthData = userPreferences.shareHealthDataWithNia.stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5000), false
     )
+
+    private fun cargarEntradaDeHoy() {
+        viewModelScope.launch {
+            try {
+                val todayString = LocalDate.now().toString()
+                val entry = diaryRepository.getDiaryEntryByDate(todayString)
+
+                if (entry != null) {
+                    val moodString = when (entry.estadoAnimo) {
+                        "1" -> "Mal"
+                        "2" -> "Regular"
+                        "3" -> "Bien"
+                        "4" -> "Excelente"
+                        else -> "No especificado"
+                    }
+
+                    // 2. Traducimos la calidad del sueño (asumiendo que sigue una lógica similar)
+                    val sleepString = when (entry.calidadSueno) {
+                        "1" -> "Mala"
+                        "2" -> "Regular"
+                        "3" -> "Buena"
+                        "4" -> "Excelente"
+                        else -> "No especificada"
+                    }
+
+                    val resumenDiario = StringBuilder().apply {
+                        append("Hoy me siento: $moodString. ")
+                        append("Mi calidad de sueño fue: $sleepString. ")
+
+                        if (entry.actividades.isNotEmpty()) {
+                            append("Mis actividades principales hoy fueron: ${entry.actividades.joinToString(", ")}. ")
+                        }
+
+                        if (entry.notas.isNotBlank()) {
+                            append("Además, escribí esto en mi diario: \"${entry.notas}\"")
+                        }
+                    }.toString()
+
+                    _todayDiaryEntry.value = resumenDiario
+                } else {
+                    _todayDiaryEntry.value = null
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     fun toggleHealthDataSharing(share: Boolean) {
         viewModelScope.launch {
@@ -136,28 +194,27 @@ class ZeniaChatViewModel @Inject constructor(
 
     private fun obtenerRespuestaIA(historial: List<MensajeChatbot>) {
         externalScope.launch {
-            var healthDataString: String? = null
+            var contextString = "El usuario prefiere que lo llames ${nickname.value}."
 
             val userWantsToShare = shareHealthData.value
 
             if (isPremium.value && userWantsToShare) {
                 try {
                     val summary = healthConnectRepository.getHealthSummary()
-
                     val ritmo = summary.heartRateAvg?.let { "$it bpm" } ?: "Desconocido"
                     val sueno = String.format(java.util.Locale.US, "%.1f", summary.sleepHours)
 
-                    healthDataString = "Contexto biológico actual del usuario: " +
+                    contextString += "Contexto biológico actual: " +
                             "Pasos hoy: ${summary.steps}. " +
                             "Ritmo cardíaco: $ritmo. " +
                             "Horas de sueño anoche: $sueno hrs. " +
-                            "Nivel de estrés estimado (HRV): ${summary.stressLevel}."
+                            "Nivel de estrés (HRV): ${summary.stressLevel}."
                 } catch (e: Exception) {
                     android.util.Log.e("ZeniaChatVM", "Error leyendo Health Connect", e)
                 }
             }
 
-            val result = niaRepository.enviarMensaje(historial, healthDataString)
+            val result = niaRepository.enviarMensaje(historial, contextString)
 
             _isTyping.value = false
 

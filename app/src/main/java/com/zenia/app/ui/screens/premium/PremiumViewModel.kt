@@ -15,7 +15,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PremiumViewModel @Inject constructor(
     private val billingRepository: BillingRepository,
-    private val sessionManager: UserSessionManager
+    sessionManager: UserSessionManager
 ): ViewModel() {
     val isPremium: StateFlow<Boolean> = sessionManager.isPremium
 
@@ -25,6 +25,8 @@ class PremiumViewModel @Inject constructor(
     val prices = _prices.asStateFlow()
 
     fun loadPrices() {
+        if (!isBillingReady.value) return
+
         viewModelScope.launch {
             val result = billingRepository.getSubscriptionPrices()
             _prices.value = result

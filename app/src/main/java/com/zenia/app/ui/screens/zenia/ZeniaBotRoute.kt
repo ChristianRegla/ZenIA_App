@@ -19,11 +19,16 @@ fun ZeniaBotRoute(
     val isPremium by viewModel.isPremium.collectAsState()
     val shareHealthData by viewModel.shareHealthData.collectAsState()
 
+    val nickname by viewModel.nickname.collectAsState()
+    val todayDiaryEntry by viewModel.todayDiaryEntry.collectAsState()
+
     ZeniaBotScreen(
         uiState = uiState,
         isTyping = isTyping,
         emergencyType = emergencyType,
         emergencyDisplay = emergencyDisplay,
+        nickname = nickname,
+        todayDiaryEntry = todayDiaryEntry,
         onSendMessage = { viewModel.enviarMensaje(it) },
         onClearChat = { viewModel.eliminarHistorial() },
         onDeleteSelected = { ids ->
