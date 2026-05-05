@@ -117,7 +117,7 @@ class ZeniaChatViewModel @Inject constructor(
                         append("Mi calidad de sueño fue: $sleepString. ")
 
                         if (entry.isFavorite) {
-                            append("Considero que este fue un día muy bueno y lo marqué como favorito. ")
+                            append("Considero que este fue un día muy importante/bueno y lo marqué como día destacado/favorito. ")
                         }
 
                         if (entry.actividades.isNotEmpty()) {
@@ -204,7 +204,15 @@ class ZeniaChatViewModel @Inject constructor(
 
     private fun obtenerRespuestaIA(historial: List<MensajeChatbot>) {
         externalScope.launch {
-            var contextString = "El usuario prefiere que lo llames ${nickname.value}."
+
+            val fechaActual = LocalDate.now().toString()
+
+            var contextString = "El usuario prefiere que lo llames ${nickname.value}.\n\n" +
+                    "REGLAS CRÍTICAS DE TIEMPO Y CONTEXTO:\n" +
+                    "1. La fecha actual (HOY) es $fechaActual.\n" +
+                    "2. Si en el mensaje el usuario incluye un texto entre paréntesis como '(Contexto del YYYY-MM-DD: ...)', significa que te adjuntó una memoria de su diario.\n" +
+                    "3. Si el usuario usa palabras como 'este día', 'ese día', 'ayer', o 'cómo me fue', y existe un contexto adjunto en ese mensaje, se refiere ESTRICTAMENTE a la fecha del diario adjunto, NUNCA a hoy.\n" +
+                    "4. Analiza y responde sobre ese día en tiempo pasado. Ignora por completo que es hoy."
 
             val userWantsToShare = shareHealthData.value
 

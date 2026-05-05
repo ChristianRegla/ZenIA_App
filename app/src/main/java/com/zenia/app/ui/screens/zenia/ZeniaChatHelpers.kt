@@ -114,8 +114,8 @@ fun EmptyChatSuggestions(
                 sugerencias.forEach { sug ->
                     Surface(
                         onClick = {
-                            if (sug.actionText.contains("Analiza mi día") && !selectedDiaryEntry.isNullOrBlank()) {
-                                onSendMessage("${sug.actionText}. Te comparto lo que escribí en mi diario el $selectedDiaryDate para que lo tomes en cuenta: \"$selectedDiaryEntry\".")
+                            if (sug.actionText.contains("Analiza mi día") && !selectedDiaryEntry.isNullOrBlank() && !selectedDiaryDate.isNullOrBlank()) {
+                                onSendMessage("${sug.actionText}\n\n(Contexto del $selectedDiaryDate: $selectedDiaryEntry)")
                             } else {
                                 onSendMessage(sug.actionText)
                             }

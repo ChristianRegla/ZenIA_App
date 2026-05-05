@@ -17,12 +17,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.m3.markdownColor
 import com.mikepenz.markdown.m3.markdownTypography
+import com.zenia.app.R
 import com.zenia.app.model.MensajeChatbot
 import com.zenia.app.ui.theme.ZenIATheme
 import com.zenia.app.ui.theme.ZeniaIceBlue
@@ -42,6 +45,20 @@ fun ChatBubble(
     val configuration = LocalConfiguration.current
     val maxBubbleWidth = configuration.screenWidthDp.dp * 0.85f
     val textColor = Color.Black
+
+    val textoConSaltos = mensaje.texto.replace("\\n", "\n")
+
+    val contextRegex = "(?s)\n\n\\(Contexto del (.*?): (.*?)\\)$".toRegex()
+    val matchResult = contextRegex.find(textoConSaltos)
+
+    val fechaAdjunta = matchResult?.groupValues?.get(1)
+    val resumenAdjunto = matchResult?.groupValues?.get(2)
+
+    val textoVisible = if (matchResult != null) {
+        textoConSaltos.replace(contextRegex, "").trim()
+    } else {
+        textoConSaltos
+    }
 
     Box(
         modifier = Modifier
@@ -71,6 +88,60 @@ fun ChatBubble(
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
+                if (isUser && fechaAdjunta != null && resumenAdjunto != null) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.height(IntrinsicSize.Min)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .width(4.dp)
+                                    .background(ZeniaTeal)
+                            )
+
+                            Column(
+                                modifier = Modifier.padding(8.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_journal),
+                                        contentDescription = null,
+                                        tint = ZeniaTeal,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Diario del $fechaAdjunta",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = ZeniaTeal,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(2.dp))
+
+                                Text(
+                                    text = resumenAdjunto,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    lineHeight = 14.sp
+                                )
+                            }
+                        }
+                    }
+                }
+
                 val customTypography = markdownTypography(
                     text = MaterialTheme.typography.bodyMedium.copy(
                         fontSize = 15.sp,
@@ -95,10 +166,8 @@ fun ChatBubble(
                     dividerColor = textColor.copy(alpha = 0.2f)
                 )
 
-                val contenidoLimpio = mensaje.texto.replace("\\n", "\n")
-
                 Markdown(
-                    content = contenidoLimpio,
+                    content = textoVisible,
                     modifier = Modifier.wrapContentWidth(),
                     typography = customTypography,
                     colors = customColors

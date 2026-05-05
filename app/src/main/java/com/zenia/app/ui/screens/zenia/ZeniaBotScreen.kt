@@ -412,8 +412,8 @@ fun ZeniaBotScreen(
                             IconButton(
                                 enabled = textState.isNotBlank() && !isTyping,
                                 onClick = {
-                                    val msg = if (selectedDiaryEntry != null) {
-                                        "$textState. (Contexto: \"$selectedDiaryEntry\")"
+                                    val msg = if (selectedDiaryEntry != null && selectedDiaryDate != null) {
+                                        "$textState\n\n(Contexto del $selectedDiaryDate: $selectedDiaryEntry)"
                                     } else {
                                         textState
                                     }
