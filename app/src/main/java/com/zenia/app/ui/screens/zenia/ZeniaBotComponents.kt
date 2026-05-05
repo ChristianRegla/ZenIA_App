@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -73,121 +74,126 @@ fun ChatBubble(
             ),
         contentAlignment = if (isUser) Alignment.CenterEnd else Alignment.CenterStart
     ) {
-        Surface(
-            modifier = Modifier
-                .widthIn(max = maxBubbleWidth)
-                .padding(horizontal = 8.dp),
-            shape = RoundedCornerShape(
-                topStart = 20.dp,
-                topEnd = 20.dp,
-                bottomStart = if (isUser) 20.dp else 4.dp,
-                bottomEnd = if (isUser) 4.dp else 20.dp
-            ),
-            color = if (isUser) MaterialTheme.colorScheme.secondary else ZeniaIceBlue
+        Column(
+            horizontalAlignment = if (isUser) Alignment.End else Alignment.Start
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                if (isUser && fechaAdjunta != null && resumenAdjunto != null) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp)
+
+            if (isUser && fechaAdjunta != null && resumenAdjunto != null) {
+                Surface(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth(0.85f)
+                        .padding(bottom = 8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.height(IntrinsicSize.Min)
                     ) {
-                        Row(
-                            modifier = Modifier.height(IntrinsicSize.Min)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .width(4.dp)
+                                .background(ZeniaTeal)
+                        )
+
+                        Column(
+                            modifier = Modifier.padding(8.dp)
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .width(4.dp)
-                                    .background(ZeniaTeal)
-                            )
-
-                            Column(
-                                modifier = Modifier.padding(8.dp)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_journal),
-                                        contentDescription = null,
-                                        tint = ZeniaTeal,
-                                        modifier = Modifier.size(12.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(
-                                        text = "Diario del $fechaAdjunta",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = ZeniaTeal,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.height(2.dp))
-
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_journal),
+                                    contentDescription = null,
+                                    tint = ZeniaTeal,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = resumenAdjunto,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                    lineHeight = 14.sp
+                                    text = stringResource(R.string.diary_of_date, fechaAdjunta),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = ZeniaTeal,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
+
+                            Spacer(modifier = Modifier.height(2.dp))
+
+                            Text(
+                                text = resumenAdjunto,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                lineHeight = 14.sp
+                            )
                         }
                     }
                 }
+            }
 
-                val customTypography = markdownTypography(
-                    text = MaterialTheme.typography.bodyMedium.copy(
-                        fontSize = 15.sp,
-                        color = textColor
-                    ),
-                    h1 = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = textColor
-                    ),
-                    h2 = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = textColor
-                    ),
-                    h3 = MaterialTheme.typography.labelLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = textColor
+            Surface(
+                modifier = Modifier
+                    .widthIn(max = maxBubbleWidth)
+                    .padding(horizontal = 8.dp),
+                shape = RoundedCornerShape(
+                    topStart = 20.dp,
+                    topEnd = 20.dp,
+                    bottomStart = if (isUser) 20.dp else 4.dp,
+                    bottomEnd = if (isUser) 4.dp else 20.dp
+                ),
+                color = if (isUser) MaterialTheme.colorScheme.secondary else ZeniaIceBlue
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    val customTypography = markdownTypography(
+                        text = MaterialTheme.typography.bodyMedium.copy(
+                            fontSize = 15.sp,
+                            color = textColor
+                        ),
+                        h1 = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = textColor
+                        ),
+                        h2 = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = textColor
+                        ),
+                        h3 = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = textColor
+                        )
                     )
-                )
 
-                val customColors = markdownColor(
-                    text = textColor,
-                    dividerColor = textColor.copy(alpha = 0.2f)
-                )
+                    val customColors = markdownColor(
+                        text = textColor,
+                        dividerColor = textColor.copy(alpha = 0.2f)
+                    )
 
-                Markdown(
-                    content = textoVisible,
-                    modifier = Modifier.wrapContentWidth(),
-                    typography = customTypography,
-                    colors = customColors
-                )
+                    Markdown(
+                        content = textoVisible,
+                        modifier = Modifier.wrapContentWidth(),
+                        typography = customTypography,
+                        colors = customColors
+                    )
 
-                if (!isUser && onSpeak != null) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        IconButton(
-                            onClick = onSpeak,
-                            modifier = Modifier.size(24.dp)
+                    if (!isUser && onSpeak != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
                         ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                                contentDescription = "Leer en voz alta",
-                                tint = ZeniaTeal.copy(alpha = 0.7f)
-                            )
+                            IconButton(
+                                onClick = onSpeak,
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                                    contentDescription = stringResource(R.string.read_aloud),
+                                    tint = ZeniaTeal.copy(alpha = 0.7f)
+                                )
+                            }
                         }
                     }
                 }
@@ -260,12 +266,12 @@ fun DateHeader(timestamp: com.google.firebase.Timestamp) {
 
     val headerText = when {
         cal.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
-                cal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) -> "Hoy"
+                cal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) -> stringResource(R.string.today)
 
         cal.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
-                cal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) - 1 -> "Ayer"
+                cal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) - 1 -> stringResource(R.string.yesterday)
 
-        else -> java.text.SimpleDateFormat("d 'de' MMMM", locale).format(date)
+        else -> java.text.SimpleDateFormat(stringResource(R.string.date_format_month_day), locale).format(date)
     }
 
     Box(

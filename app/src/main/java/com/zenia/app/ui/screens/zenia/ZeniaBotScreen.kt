@@ -343,7 +343,7 @@ fun ZeniaBotScreen(
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
-                                            text = "Entrada adjunta: $selectedDiaryDate",
+                                            text = stringResource(R.string.attached_entry, selectedDiaryDate ?: ""),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = ZeniaTeal,
                                             fontWeight = FontWeight.Bold
@@ -373,8 +373,10 @@ fun ZeniaBotScreen(
                             IconButton(
                                 onClick = onOpenDiaryPicker,
                                 shape = CircleShape,
-                            colors = IconButtonDefaults.iconButtonColors(containerColor = ZeniaTeal),
-                                modifier = Modifier.padding(end = 4.dp)
+                            colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary),
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .padding(end = 4.dp)
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.ic_simbolo_mas),

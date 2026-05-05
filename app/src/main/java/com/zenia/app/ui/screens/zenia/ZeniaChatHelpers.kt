@@ -10,9 +10,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.zenia.app.R
 import com.zenia.app.ui.screens.diary.CalendarPagerView
 import com.zenia.app.ui.screens.diary.CalendarSkeleton
 import com.zenia.app.ui.screens.diary.CalendarTopBar
@@ -67,7 +69,7 @@ fun EmptyChatSuggestions(
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = "Hola, $nickname",
+                    text = stringResource(R.string.hello_name, nickname),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = ZeniaTeal
@@ -78,7 +80,7 @@ fun EmptyChatSuggestions(
                 )
 
                 Text(
-                    text = "¿De qué te gustaría hablar hoy?",
+                    text = stringResource(R.string.what_to_talk_about),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -91,30 +93,32 @@ fun EmptyChatSuggestions(
                 val sugerencias = listOf(
                     ChatSuggestion(
                         icon = "🔮",
-                        text = "Ayúdame a relajarme",
-                        actionText = "Ayúdame a relajarme"
+                        text = stringResource(R.string.suggestion_relax),
+                        actionText = stringResource(R.string.suggestion_relax)
                     ),
                     ChatSuggestion(
                         icon = "🗣️",
-                        text = "Necesito desahogarme",
-                        actionText = "Necesito desahogarme"
+                        text = stringResource(R.string.suggestion_vent),
+                        actionText = stringResource(R.string.suggestion_vent)
                     ),
                     ChatSuggestion(
                         icon = "📊",
-                        text = "Analiza mi día",
-                        actionText = "Analiza mi día"
+                        text = stringResource(R.string.suggestion_analyze),
+                        actionText = stringResource(R.string.suggestion_analyze)
                     ),
                     ChatSuggestion(
                         icon = "💤",
-                        text = "Dame un consejo para dormir",
-                        actionText = "Dame un consejo para dormir"
+                        text = stringResource(R.string.suggestion_sleep),
+                        actionText = stringResource(R.string.suggestion_sleep)
                     )
                 )
+
+                val analyzeDayText = stringResource(R.string.suggestion_analyze)
 
                 sugerencias.forEach { sug ->
                     Surface(
                         onClick = {
-                            if (sug.actionText.contains("Analiza mi día") && !selectedDiaryEntry.isNullOrBlank() && !selectedDiaryDate.isNullOrBlank()) {
+                            if (sug.actionText.contains(analyzeDayText) && !selectedDiaryEntry.isNullOrBlank() && !selectedDiaryDate.isNullOrBlank()) {
                                 onSendMessage("${sug.actionText}\n\n(Contexto del $selectedDiaryDate: $selectedDiaryEntry)")
                             } else {
                                 onSendMessage(sug.actionText)
@@ -181,7 +185,7 @@ fun DiaryPickerBottomSheet(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Selecciona una entrada",
+                text = stringResource(R.string.select_an_entry),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,

@@ -893,4 +893,51 @@
     <string name="premium_resource_dialog_text">Este recurso es exclusivo para usuarios de ZenIA Premium. Puedes desbloquearlo temporalmente viendo un breve anuncio o suscribirte para tener acceso ilimitado a todo.</string>
     <string name="premium_resource_dialog_btn_ad">Ver Anuncio</string>
     <string name="premium_resource_dialog_btn_premium">Ser Premium</string>
+
+    <string name="diary_of_date">Diario del %1$s</string>
+    <string name="read_aloud">Leer en voz alta</string>
+    <string name="today">Hoy</string>
+    <string name="yesterday">Ayer</string>
+    <string name="date_format_month_day">d \'de\' MMMM</string>
+    <string name="attached_entry">Entrada adjunta: %1$s</string>
+    <string name="remove">Quitar</string>
+    <string name="attach">Adjuntar</string>
+    <string name="hello_name">Hola, %1$s</string>
+    <string name="what_to_talk_about">¿De qué te gustaría hablar hoy?</string>
+    <string name="suggestion_relax">Ayúdame a relajarme</string>
+    <string name="suggestion_vent">Necesito desahogarme</string>
+    <string name="suggestion_analyze">Analiza mi día</string>
+    <string name="suggestion_sleep">Dame un consejo para dormir</string>
+    <string name="select_an_entry">Selecciona una entrada</string>
+    <string name="attach_this_date">Adjuntar esta fecha</string>
+
+    <string name="emergency_medical_title">Posible emergencia médica</string>
+    <string name="emergency_mental_title">No estás solo</string>
+    <string name="emergency_medical_desc">Nia ha notado síntomas que podrían requerir atención inmediata.</string>
+    <string name="emergency_mental_desc">Si necesitas apoyo inmediato, hay alguien listo para escucharte.</string>
+    <string name="emergency_call_911">Llamar al 911</string>
+    <string name="emergency_call_lifeline">Línea de la Vida</string>
+    <string name="minimize">Minimizar</string>
+
+    <string name="error_send_message">No se pudo enviar el mensaje</string>
+    <string name="error_delete_history">No se pudo borrar el historial</string>
+    <string name="error_delete_messages">No se pudieron eliminar los mensajes</string>
+    <string name="error_nia_connection">Error al conectar con Nia</string>
+    <string name="error_unknown">Error desconocido</string>
+
+    <string name="mood_bad">Mal</string>
+    <string name="mood_regular">Regular</string>
+    <string name="mood_excellent">Excelente</string>
+    <string name="unspecified">No especificado</string>
+
+    <string name="sleep_bad">Mala</string>
+    <string name="sleep_regular">Regular</string>
+    <string name="sleep_good">Buena</string>
+    <string name="sleep_excellent">Excelente</string>
+    <string name="sleep_unspecified">No especificada</string>
+
+    <string name="summary_base">El día %1$s me sentí: %2$s. Mi calidad de sueño fue: %3$s. </string>
+    <string name="summary_favorite">Considero que este fue un día muy importante/bueno y lo marqué como favorito. </string>
+    <string name="summary_activities">Mis actividades principales fueron: %1$s. </string>
+    <string name="summary_notes">Además, escribí esto en mi diario: \"%1$s\"</string>
 </resources>

@@ -1,7 +1,9 @@
 package com.zenia.app.ui.screens.zenia
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.zenia.app.R
 import com.zenia.app.data.ChatRepository
 import com.zenia.app.data.DiaryRepository
 import com.zenia.app.data.HealthConnectRepository
@@ -11,6 +13,7 @@ import com.zenia.app.data.session.UserSessionManager
 import com.zenia.app.di.ApplicationScope
 import com.zenia.app.model.MensajeChatbot
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -44,6 +47,7 @@ enum class EmergencyDisplayState {
 
 @HiltViewModel
 class ZeniaChatViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val chatRepository: ChatRepository,
     private val niaRepository: NiaApiRepository,
     private val healthConnectRepository: HealthConnectRepository,
@@ -88,6 +92,40 @@ class ZeniaChatViewModel @Inject constructor(
         viewModelScope, SharingStarted.WhileSubscribed(5000), false
     )
 
+    private fun generarResumenDiario(entry: com.zenia.app.model.DiarioEntrada, fechaIso: String): String {
+        val moodString = when (entry.estadoAnimo) {
+            "1" -> context.getString(R.string.mood_bad)
+            "2" -> context.getString(R.string.mood_regular)
+            "3" -> context.getString(R.string.mood_good)
+            "4" -> context.getString(R.string.mood_excellent)
+            else -> context.getString(R.string.unspecified)
+        }
+
+        val sleepString = when (entry.calidadSueno) {
+            "1" -> context.getString(R.string.sleep_bad)
+            "2" -> context.getString(R.string.sleep_regular)
+            "3" -> context.getString(R.string.sleep_good)
+            "4" -> context.getString(R.string.sleep_excellent)
+            else -> context.getString(R.string.sleep_unspecified)
+        }
+
+        return StringBuilder().apply {
+            append(context.getString(R.string.summary_base, fechaIso, moodString, sleepString))
+
+            if (entry.isFavorite) {
+                append(context.getString(R.string.summary_favorite))
+            }
+
+            if (entry.actividades.isNotEmpty()) {
+                append(context.getString(R.string.summary_activities, entry.actividades.joinToString(", ")))
+            }
+
+            if (entry.notas.isNotBlank()) {
+                append(context.getString(R.string.summary_notes, entry.notas))
+            }
+        }.toString()
+    }
+
     fun seleccionarFechaDiario(fechaIso: String) {
         viewModelScope.launch {
             try {
@@ -95,41 +133,7 @@ class ZeniaChatViewModel @Inject constructor(
 
                 if (entry != null) {
                     _selectedDiaryDate.value = fechaIso
-
-                    val moodString = when (entry.estadoAnimo) {
-                        "1" -> "Mal"
-                        "2" -> "Regular"
-                        "3" -> "Bien"
-                        "4" -> "Excelente"
-                        else -> "No especificado"
-                    }
-
-                    val sleepString = when (entry.calidadSueno) {
-                        "1" -> "Mala"
-                        "2" -> "Regular"
-                        "3" -> "Buena"
-                        "4" -> "Excelente"
-                        else -> "No especificada"
-                    }
-
-                    val resumenDiario = StringBuilder().apply {
-                        append("El día $fechaIso me sentí: $moodString. ")
-                        append("Mi calidad de sueño fue: $sleepString. ")
-
-                        if (entry.isFavorite) {
-                            append("Considero que este fue un día muy importante/bueno y lo marqué como día destacado/favorito. ")
-                        }
-
-                        if (entry.actividades.isNotEmpty()) {
-                            append("Mis actividades principales fueron: ${entry.actividades.joinToString(", ")}. ")
-                        }
-
-                        if (entry.notas.isNotBlank()) {
-                            append("Además, escribí esto en mi diario: \"${entry.notas}\"")
-                        }
-                    }.toString()
-
-                    _selectedDiaryEntry.value = resumenDiario
+                    _selectedDiaryEntry.value = generarResumenDiario(entry, fechaIso)
                 } else {
                     _selectedDiaryDate.value = null
                     _selectedDiaryEntry.value = null
@@ -155,7 +159,25 @@ class ZeniaChatViewModel @Inject constructor(
         if (texto.isBlank()) return
 
         viewModelScope.launch {
-            val mensajeUsuario = MensajeChatbot(emisor = "usuario", texto = texto)
+            var textoFinal = texto
+
+            if (texto == context.getString(R.string.suggestion_analyze)) {
+                val hoy = LocalDate.now().toString()
+                try {
+                    val entry = diaryRepository.getDiaryEntryByDate(hoy)
+                    if (entry != null) {
+                        val resumen = generarResumenDiario(entry, hoy)
+                        textoFinal = "${context.getString(R.string.suggestion_analyze)}\n\n(Contexto del $hoy: $resumen)"
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            val mensajeUsuario = MensajeChatbot(
+                emisor = "usuario",
+                texto = textoFinal
+            )
 
             val historialActual = (uiState.value as? ChatUiState.Success)?.mensajes ?: emptyList()
 
@@ -169,7 +191,7 @@ class ZeniaChatViewModel @Inject constructor(
 
                 obtenerRespuestaIA(historialParaMandar)
             } catch (e: Exception) {
-                _uiEvent.send(ChatUiEvent.ShowError("No se pudo enviar el mensaje"))
+                _uiEvent.send(ChatUiEvent.ShowError(context.getString(R.string.error_send_message)))
             }
         }
     }
@@ -184,7 +206,7 @@ class ZeniaChatViewModel @Inject constructor(
                     val result = chatRepository.deleteMessagesByIds(todosLosIds)
 
                     if (result.isFailure) {
-                        _uiEvent.send(ChatUiEvent.ShowError("No se pudo borrar el historial"))
+                        _uiEvent.send(ChatUiEvent.ShowError(context.getString(R.string.error_delete_history)))
                         android.util.Log.e("ZeniaChatVM", "Error deleting history", result.exceptionOrNull())
                     }
                 }
@@ -197,7 +219,7 @@ class ZeniaChatViewModel @Inject constructor(
             val result = chatRepository.deleteMessagesByIds(ids)
 
             if (result.isFailure) {
-                _uiEvent.send(ChatUiEvent.ShowError("No se pudieron eliminar los mensajes"))
+                _uiEvent.send(ChatUiEvent.ShowError(context.getString(R.string.error_delete_messages)))
             }
         }
     }
@@ -246,7 +268,7 @@ class ZeniaChatViewModel @Inject constructor(
                 manejarTrigger(response.trigger)
             }.onFailure {
                 _uiEvent.send(
-                    ChatUiEvent.ShowError("Error al conectar con Nia")
+                    ChatUiEvent.ShowError(context.getString(R.string.error_nia_connection))
                 )
             }
         }

@@ -577,7 +577,6 @@
 
     <string name="category_mood">Mood</string>
     <string name="mood_incredible">Incredible</string>
-    <string name="mood_good">Good</string>
     <string name="mood_down">Down</string>
     <string name="mood_terrible">Terrible</string>
 
@@ -901,4 +900,52 @@
     <string name="premium_resource_dialog_text">This resource is exclusive to ZenIA Premium users. You can temporarily unlock it by watching a short ad, or subscribe for unlimited access to everything.</string>
     <string name="premium_resource_dialog_btn_ad">Watch Ad</string>
     <string name="premium_resource_dialog_btn_premium">Go Premium</string>
+
+    <string name="diary_of_date">Diary of %1$s</string>
+    <string name="read_aloud">Read aloud</string>
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="date_format_month_day">MMMM d</string>
+    <string name="attached_entry">Attached entry: %1$s</string>
+    <string name="remove">Remove</string>
+    <string name="attach">Attach</string>
+    <string name="hello_name">Hello, %1$s</string>
+    <string name="what_to_talk_about">What would you like to talk about today?</string>
+    <string name="suggestion_relax">Help me relax</string>
+    <string name="suggestion_vent">I need to vent</string>
+    <string name="suggestion_analyze">Analyze my day</string>
+    <string name="suggestion_sleep">Give me a tip to sleep</string>
+    <string name="select_an_entry">Select an entry</string>
+    <string name="attach_this_date">Attach this date</string>
+
+    <string name="emergency_medical_title">Possible medical emergency</string>
+    <string name="emergency_mental_title">You are not alone</string>
+    <string name="emergency_medical_desc">Nia has noticed symptoms that may require immediate medical attention.</string>
+    <string name="emergency_mental_desc">If you need immediate support, someone is ready to listen.</string>
+    <string name="emergency_call_911">Call 911</string>
+    <string name="emergency_call_lifeline">Lifeline</string>
+    <string name="minimize">Minimize</string>
+
+    <string name="error_send_message">Could not send the message</string>
+    <string name="error_delete_history">Could not delete history</string>
+    <string name="error_delete_messages">Could not delete messages</string>
+    <string name="error_nia_connection">Error connecting to Nia</string>
+    <string name="error_unknown">Unknown error</string>
+
+    <string name="mood_bad">Bad</string>
+    <string name="mood_regular">Okay</string>
+    <string name="mood_good">Good</string>
+    <string name="mood_excellent">Excellent</string>
+    <string name="unspecified">Unspecified</string>
+
+    <string name="sleep_bad">Bad</string>
+    <string name="sleep_regular">Okay</string>
+    <string name="sleep_good">Good</string>
+    <string name="sleep_excellent">Excellent</string>
+    <string name="sleep_unspecified">Unspecified</string>
+
+    <string name="summary_base">On %1$s I felt: %2$s. My sleep quality was: %3$s. </string>
+    <string name="summary_favorite">I consider this a very important/good day and marked it as favorite. </string>
+    <string name="summary_activities">My main activities were: %1$s. </string>
+    <string name="summary_notes">Also, I wrote this in my diary: \"%1$s\"</string>
 </resources>

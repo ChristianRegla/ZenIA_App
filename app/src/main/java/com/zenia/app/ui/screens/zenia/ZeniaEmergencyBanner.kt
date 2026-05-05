@@ -18,9 +18,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import com.zenia.app.R
 import com.zenia.app.ui.theme.ZeniaLightGrey
 import com.zenia.app.ui.theme.ZeniaTeal
 import kotlinx.coroutines.delay
@@ -38,9 +40,9 @@ fun EmergencyTopBanner(
     val contentColor = Color.Black
 
     val icon = if (isPhysical) Icons.Default.LocalHospital else Icons.Default.Favorite
-    val title = if (isPhysical) "Posible emergencia médica" else "No estás solo"
-    val message = if (isPhysical) "Nia ha notado síntomas que podrían requerir atención inmediata." else "Si necesitas apoyo inmediato, hay alguien listo para escucharte."
-    val buttonText = if (isPhysical) "Llamar al 911" else "Línea de la Vida"
+    val title = if (isPhysical) stringResource(R.string.emergency_medical_title) else stringResource(R.string.emergency_mental_title)
+    val message = if (isPhysical) stringResource(R.string.emergency_medical_desc) else stringResource(R.string.emergency_mental_desc)
+    val buttonText = if (isPhysical) stringResource(R.string.emergency_call_911) else stringResource(R.string.emergency_call_lifeline)
 
     var borderWidth by remember { mutableStateOf(0.dp) }
 
@@ -134,7 +136,7 @@ fun EmergencyTopBanner(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Minimizar",
+                        contentDescription = stringResource(R.string.minimize),
                         tint = contentColor
                     )
                 }
